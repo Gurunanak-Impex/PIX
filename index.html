@@ -2183,10 +2183,10 @@
         
         <a class="flex items-center gap-3 logo-link" href="#home" aria-label="Pioneer I Xpress home">
           <div class="logo-badge" aria-hidden="true">
-            <img src="PX.png" alt="Pioneer I Xpress logo" id="siteLogo" class="logo-img">
+            <img src="https://risync.in/G4U/PX.png" alt="Pioneer I Xpress logo" id="siteLogo" class="logo-img">
           </div>
           <div class="brand-text">
-            <span class="brand-name"><img src="PXT.png" alt="Pioneer I Xpress logo" class="brand-name"></span>
+            <span class="brand-name"><img src="https://risync.in/G4U/PXT.png" alt="Pioneer I Xpress logo" class="brand-name"></span>
             <small class="brand-sub hidden sm:inline-block" data-i18n="tagline">Candles • Clothing • Beauty & More</small>
           </div>
         </a>
@@ -6206,12 +6206,12 @@
     }, 80);
   });
 
-  // helper: try to swap src to PX.png if html has .dark
+  // helper: try to swap src to https://risync.in/G4U/PX.png if html has .dark
   function syncLogoToTheme(){
     if(!logo) return;
     const dark = document.documentElement.classList.contains('dark');
-    const darkSrc = 'PX.png';   // add this file for dark theme
-    const lightSrc = 'PX.png';
+    const darkSrc = 'https://risync.in/G4U/PX.png';   // add this file for dark theme
+    const lightSrc = 'https://risync.in/G4U/PX.png';
     // prefer dark file if exists - fallback will show broken image if missing, so we test by fetching small HEAD might be overkill.
     // We'll attempt to set dark; if it 404s, browser will ignore — so keep files in your project.
     logo.src = dark ? darkSrc : lightSrc;
