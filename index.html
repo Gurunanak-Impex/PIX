@@ -3224,7 +3224,7 @@
         var picks = prods.slice().sort(function(a,b){ return b.rating - a.rating; }).slice(0, Math.min(8, prods.length));
         track.innerHTML = picks.map(function(p) {
           var img = p.img || p.image || 'https://risync.in/G4U/candle.png';
-          return '<div class="pix-trending-chip" onclick="openProductModal && openProductModal(''+p.id+'')">'
+          return '<div class="pix-trending-chip" onclick="openProductModal && openProductModal(\'' + p.id + '\')">'
             + '<img class="pix-trending-img" src="'+img+'" alt="'+p.title+'" loading="lazy">'
             + '<div><div class="pix-trending-name">'+p.title+'</div>'
             + '<div class="pix-trending-price">₹'+p.price.toLocaleString()+'</div>'
@@ -4183,7 +4183,7 @@
         '<div style="width:64px;height:64px;border-radius:50%;background:rgba(245,158,11,0.1);border:2px solid rgba(245,158,11,0.3);display:flex;align-items:center;justify-content:center;font-size:2rem;margin:0 auto 18px;">🕐</div>'+
         '<div style="font-family:Montserrat,sans-serif;font-weight:900;font-size:1.25rem;margin-bottom:8px;color:var(--text-primary);">Product Submitted for Review</div>'+
         '<div style="font-size:0.85rem;color:var(--text-secondary);line-height:1.65;margin-bottom:6px;">Your product <strong style="color:var(--text-primary);">&ldquo;' + prod.title + '&rdquo;</strong> has been submitted and is awaiting approval by the Pioneer I Xpress admin team.</div>'+
-        '<div style="font-size:0.8rem;color:var(--text-secondary);line-height:1.6;margin-bottom:24px;">Once approved, it will go live on the storefront. You'll be notified when the review is complete.</div>'+
+        '<div style="font-size:0.8rem;color:var(--text-secondary);line-height:1.6;margin-bottom:24px;">Once approved, it will go live on the storefront. You\'ll be notified when the review is complete.</div>'+
         '<div style="display:flex;flex-direction:column;gap:10px;background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.2);border-radius:14px;padding:14px 18px;margin-bottom:24px;text-align:left;">'+
         '<div style="display:flex;gap:10px;font-size:0.8rem;"><span style="color:#f59e0b;flex-shrink:0;">📋</span><span style="color:var(--text-secondary);">Typical review time: <strong>24–48 hours</strong></span></div>'+
         '<div style="display:flex;gap:10px;font-size:0.8rem;"><span style="color:#f59e0b;flex-shrink:0;">📧</span><span style="color:var(--text-secondary);">Confirmation will be sent to your registered email</span></div>'+
@@ -6367,6 +6367,17 @@
 </div>
 
 <!-- START: RS Chatbot - selection-only, no typing required -->
+<!-- RS Chatbot HTML elements (required by the chatbot script below) -->
+<div id="rsChat-toggle" aria-label="Open chat">💬</div>
+<div id="rsChat" style="display:none;">
+  <div class="header">
+    <span style="font-size:1.2rem;">🤖</span>
+    <div style="flex:1;font-weight:700;font-size:0.9rem;">Pioneer I Xpress Help</div>
+    <button id="rsClose" style="background:none;border:none;color:white;cursor:pointer;font-size:1.1rem;padding:0 4px;" aria-label="Close chat">✕</button>
+  </div>
+  <div class="body" id="rsChatBody"></div>
+  <div class="options" id="rsOptions" style="padding:8px 12px 12px;background:#fff;"></div>
+</div>
 <style>
   #rsChat { position: fixed; right: 20px; bottom: 20px; width: 360px; max-width: calc(100% - 40px); border-radius: 14px; box-shadow: 0 12px 30px rgba(11,18,32,0.18); overflow: hidden; font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; z-index: 9999; }
   #rsChat .header { background: linear-gradient(90deg, #0b63ff, #ff6a00); color: #fff; padding: 10px 12px; display:flex; align-items:center; gap:8px; }
@@ -6474,7 +6485,7 @@
     body.scrollTop = body.scrollHeight;
   }
 
-  toggle.addEventListener('click', ()=>{
+  if (toggle) toggle.addEventListener('click', ()=>{
     const open = chat.style.display === 'block';
     chat.style.display = open ? 'none' : 'block';
     toggle.style.display = open ? 'flex' : 'none';
@@ -10971,6 +10982,17 @@ document.addEventListener('DOMContentLoaded', function(){
 });
 
 /* ── 5. Social Proof Toasts ── */
+
+var SP_DATA = [
+  { name: 'Priya S.',    city: 'Mumbai',     product: 'Scented Floating Flower Candle', time: '2 mins ago' },
+  { name: 'Rahul K.',    city: 'Delhi',      product: 'Vanilla Jar Candle',             time: '5 mins ago' },
+  { name: 'Anjali M.',   city: 'Bangalore',  product: 'Rose Petal Candle Set',          time: '8 mins ago' },
+  { name: 'Vikram P.',   city: 'Hyderabad',  product: 'Luxury Soy Wax Candle',          time: '12 mins ago' },
+  { name: 'Sneha R.',    city: 'Chennai',    product: 'Floral Beauty Gift Set',         time: '15 mins ago' },
+  { name: 'Aditya B.',   city: 'Pune',       product: 'Sandalwood Candle',              time: '18 mins ago' },
+  { name: 'Meera N.',    city: 'Kolkata',    product: 'Aromatic Pillar Candle',         time: '22 mins ago' },
+  { name: 'Karan T.',    city: 'Ahmedabad',  product: 'Jasmine Wax Melt',              time: '25 mins ago' }
+];
 
 var spIdx = 0;
 var spToast = document.getElementById('socialProofToast');
@@ -15957,9 +15979,9 @@ textarea.pa-inp{resize:vertical;min-height:64px;line-height:1.5}
     var attempts = 0;
     var interval = setInterval(function () {
       attempts++;
-      if (window._auth && typeof firebase !== 'undefined') {
+      if (window._auth) {
         clearInterval(interval);
-        firebase.auth(_app).onAuthStateChanged(function (user) {
+        window._auth.onAuthStateChanged(function (user) {
           if (user && _fcmToken) {
             console.log('[PIX FCM] User signed in — updating token with UID:', user.uid);
             pixFCMSaveTokenToFirestore(_fcmToken);
