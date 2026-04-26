@@ -1912,8 +1912,7 @@
        🔔 FIREBASE CLOUD MESSAGING (FCM) — Pioneer I Xpress
        ══════════════════════════════════════════════════════════ -->
   <!-- Firebase v10 Modular SDK (compat build for CDN use) -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js"></script>
+  <!-- Firebase compat SDK removed — using modular SDK only (v10.12.0) to avoid API conflicts -->
 
   <style>
     /* ── FCM NOTIFICATION PERMISSION BANNER ── */
@@ -4706,7 +4705,7 @@
 	  {id:'c1', title:'Scented Floating Flower Candle', price:1599, cat:'candles', rating:5.0, stock:30, img:'https://risync.in/G4U/Scented Floatig Flower Candle.png', desc:'Looks elegant everywhere.'},
       {id:'c2', title:'Lavender Fields Candle', price:849, cat:'candles', rating:4.7, stock:30, img:'https://risync.in/G4U/Lavender Fields Candle.png', desc:'Calming lavender aroma, perfect for relaxation. Made with essential oils.'},
       {id:'c4', title:'Sandalwood & Musk Jar', price:999, cat:'candles', rating:4.9, stock:50, img:'https://risync.in/G4U/Sandalwood_Musk_Jar.png', desc:'A warm, woody fragrance in a stylish amber glass jar. 50h burn time.'},
-      {id:'c4', title:'Ocean Breeze Pillar Candle', price:649, cat:'candles', rating:4.5, stock:50, img:'https://risync.in/G4U/Ocean Breeze Pillar Candle.png', desc:'A fresh, clean scent reminiscent of a sea breeze. Dripless design.'},
+      {id:'c4b', title:'Ocean Breeze Pillar Candle', price:649, cat:'candles', rating:4.5, stock:50, img:'https://risync.in/G4U/Ocean Breeze Pillar Candle.png', desc:'A fresh, clean scent reminiscent of a sea breeze. Dripless design.'},
       {id:'c5', title:'Modak Scented Candles (Set of 4)', price:1299, cat:'candles', rating:4.9, stock:80, img:'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBxMTEhUTExMWFhUVGBgYGBcXFxcWGBgYGBUXFhcXGBUYHSghGBolHRUVITEhJSkrLi4uGB8zODMtNygtLisBCgoKDg0OGxAQGy0mICItLS0tLzUtLS0tLy0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLSstLS0tLS0tLf/AABEIAOEA4QMBIgACEQEDEQH/xAAcAAACAgMBAQAAAAAAAAAAAAAEBQMGAAIHAQj/xABFEAABAwIEAwUEBwUGBQUAAAABAAIRAyEEBRIxQVFhBhMicYEykaGxFCNCUsHR8BUzcpLhB2JzgtLxFlOissI0Q1Rjs//EABoBAAIDAQEAAAAAAAAAAAAAAAIDAAEEBQb/xAAsEQACAgEDAwMCBwEBAAAAAAAAAQIRAxIhMQRBURMiYUKBFDJxkbHB8KEF/9oADAMBAAIRAxEAPwCuV8pa0WhG4LLIbsgKGYanCVaKNcObZeZ9/wCWQCjsA5VhdJcfRKc/rfW+QVhbQIHFVjHYF7qhMSSVoUHGC1Aem6oDpVjKf5bjY2KS1svqUxLhZaUa8IJwvgqNp0W52NdvqPvQuKzvTuZS+jmFriUgzUve6dhyQww6nuxtllpZ+CFpg+0TzV08JSTJaA2KsWAysOqhwERumWoPSg1dF4ypxc2TsisQ0ATKgFUMppPTzLvHEO24LRlyRjSfLLJ8XTLuiiwoGxW2IxFrcFDgCCTK4XXKN2h+O2CY8tYdXJOslzYggsMHmlGdYWdrrbJcIWkHgkR0uCd7hO1KjpmGzsubcAHp+SMw2aMjxGFQMdmwpMN0nwnaguMC/Vbfx3VR9+N3Xngpxx8M6F2gzFjwGsMwZJ9IhUDNsUwOIPBMKmLLmX4qkdoKx1FZMbydVneTJyy5yUI1EDzB4fUc8bWA9AkWJxJc6OCKq4lxEN3UeHyx25XdxKMF7vsYt5MMZXYGdUlrm6cnBxwW1HBNNypCcY7hzVlcdSPJF4OgOKNxDADYKDWnvI5IXFpMY4ZraZ1BAZtiXPM8FoaxUVV8oYp3bGyyJqgTvisW+kLxaNhRZctypziFecry8NAlQZZhY4JuyqG7pOPH9TCRrWZwNkrqPY0ypM3zCAY34BUnEYqrWfpgjorzTQSH2d4+m5hDSCVTXVLq2syLTSvvuqfjmw8gJMXqluDOPcmp4iEdQqNJulVKg53sglel5aYIIKksafACdFzweCY6DpurVlmUhols9ZVP7HsqOdJ9kc+q6G3FBjQOKLDjS3YxCnMWOm5ho4Ja1gBtxRObY7USGhA5Swl0m6w9bkjF7DMdN7l6yDs+X0w8wJ58VXe1OXPwtTUB4HcufFdEyLHMdRYAQC1oBHEECFWe39cVG6W3hZc3S4ceKGWEtUpfmV3yt9u1DlJttVwVHD4nXufRNNYa2VWcuwzg4hN3SYbxNlhzY1qpMZF7birMQapjhKLy7KwNlYT2QJZIf44mIt5JDg3VKbi2oLgq49QskHHG+AdKT3DMWNIhVqtlxqvjgd0/x2IkbXVbrZx3b0/p4zr2clTSexacs7G0tMlo9UNjcpYx2kAQgqHbR4bAbKVYnP6jnSRuhhg6tzbmw5KKWyGeNwDA3YJBUAGyzMc8cBBCVU80ldLp8GRRtmXLfZBVWmEM6iFu/GhaMxDSd1pSkjNK1yZVwXhkJU8HZWdtNjm7oHDYAPqW2COGSrsJNNcCf6M5Yrr+y+ixT8S/BKLY+q1jfJVTOc/uWs96WZtnjqnhbsiMgyprjqeZ6I5zbVB8vYO7P0alU/WT0KuGDyBsyRfmtsAKVNvBTVc/YBEhFBJL3BcAPaBmimY3iy5ucve521yVdc0zprzugGVAbtaT5BZ5TuWzKckPezWQ02sAMTxKXdqMqpNOoASOK9/aVdohtNwVdzGtWefHq8k15YKNJANj7stiWBro3lMK+M1VY6KudmcI9rnCCAbyeattPLoIdF+JTF7obBpAVHC+IyjcLSaHboDNa7mE6Qgcsxj3zNiDZczq8Skr8DYRotnfBpt8F5iKmppCTB5kCU3wuH1NtK5kI5Z2ocDbrkVYRv1gROPmm4OHAg+4rBTNJxJGxQmb5o02G5QxjqdUE3SLxR7Q0e6DtYFrjjPKFS8RihWqueBAJ36JvlmRsOXVa72+N12nkGuAt5mVW6mLaxtkK6J4WuXa2/T/ACKcgbPq+kQNzZVPEYUkqfMsyLnydhstaGPBC7GDFLFBUKUrkE4PLHQicNg4d40JQz8NdBTPEZowtkIZ+qpbrk2e1oV5xTYdlX3tDdl5mmOcXWUGAfqqAFdLFilGNsQ2mzXEaomEG2oea6FW7Pudhn1gw6Gw0u4Sf18VSRlbp+SZizRknYjNhkmb4CpUc7SCYXQshwAY3U5JOzOSRcqwY+vpbpCRkkpS24EpVyFfTWdF6qz3xWILYWoBoYBx2aU8y/AVx7IhXjBZOxoEhMKeGaNgmLC3ywVj8sptHIar/ae75IPPMnFFpPLmujsAC57/AGg43Zg4lTJhikHoRXsqBqvDRtN11ns/kbA0WVM7FZe0AOO5XR8Jj2NEAoumhG9TK0pE9XKWRsFWswypk7J7js8Y0bhU7MO0LS4mbJ+eeOK3KTRtidFLzWmGzcPdpBjmFW8dmuokoHB1i2prXO/ESb+Ca9y95jSZpnokeUNImRxsVFic2Bbp3BRGUVWxul9RmT4HwaD3kBwMhPMFjqbW7hVfMqEjUCqziszePCCk9PKS2RJtIsnanPWk6GGXG1kBluVOMOdJKq7a8ODjwMq5ZPntMEOcYAufRBnxyhH2LnkmOSlL3HTc+o9zlj2/dpNHrLZ+JK4VjcUTxV8zvt6zFYetTZOmANXA3G3uXPaQDnidltnJTknpaUUlv8FZk4+1vd7mmLwdhxBEgpQAQYC6FRwlMtAm6R5lk4DpCXg6tXpZemkVarTKjNWptwRuYUnNQVDHDiujFuUbSsqU/Bp3Djup8qwpFQErc5iOCK7P4gPxVFh2dUYD5ahKk5T0PYkHckfQtfJxTyl9GLig5x/jDdZPvC4bl1IvfMWC7zj89pVaWIptcJFKoP8AoIXHcvo6bLNLJinXpu6SX8h5NcF7trYypeFsDdA5kQxplG0zeeSp3azN5doaUUINukZnwe/tMdFir2hYnekvIJ9FtWF4G6WuzC1lEA95RuQ0OxOPAEBVDMMlfiKmo2A2Vuw+WDdyYU6LRsELg5ckK9lmSOYAAVY8Fk4i6nYxbYjGCk2SU3HjjEporHa6lSosLuK5q7FmobBPe2eemu7Q32Qb9eiS4QFni0rD1Eot2hTabNqmCIglNcBlReEq+kue8SeKuOW41jG7hZ0rlUgowvdiDH5Q9gkEoChinNO902zztCHS1nvVbdWKuWNPZcEbSewxxecPiAhMLS1AuN1Dg8G6q6BtxV9y/ImtpiQo4aI+1BQTk9zndai9zvC0wrx2U7EtrUBWrudD9Q0DbTtJO6Y5PkmtzmBvhJu7krsKIp0wxggNAAWzpoOa1SWy4HQx1I472iyl2FIZPgI8PpwPXZVvE4nSuq9pMtZXZpc4h+rwnr1XJM9wjqdQ03btMW2PUKowWumTqcDxvUuGNsqzEx7R9UZVxhKR4Jrmi4R7HA9EieGLlaMjnIkrPDhdK62Uh0wmrcPKxzSwq05Y+CRmV0YCHQUXluWVTWYaLHPc0gw0ExfcxsEXUpmpUaym0ue4w1oEkldt7D9mfoeH8cGrUgvI4cmg8h8ytmNymOjycwwFLF0XVjiGuYathPIzNxaYRdEgWV37bR3NS0mxHSCqDRfpYXFZ5xSkMzOTkm3ZpnOYikwj7RVE7oveXlNM2ra3zKHxLoaG8SmwbS27iHTBdQWKb6KViO4kO5YXLwN7phSaBsleBzyjUFnBNqJBuFarsN/QkC3atVvTCNECI0s1HbZc+7Z50Se7YfNdH7VMLMC4t3YGn4gH5lc47N5Aazu8eJkpWeUtXpR5asXP4K7lOVue8FwsrXi8paKdheFaX9my0Atbsk2c19DSIuOCzPDHdNjIxUUc3xtLQ+OKErYgxEphicFWeS8tiVDh+z9V7hqs1Kio92J0Tk9kQ4TDB49q/L+itHYXsf8ATKzu9JFGlGqLFxOzRy23UmCyGnTgzqKvnYGiS6qRZgABbwLjx9APijxwlOaj2f8AA/8AD6Y6pBOY9kMNTp6qTAwt5cfNLMDQLzpGw3P4eaCz7Mq7nPY+o7wvc2BYWJGwT/KqIp0Wt6STxJKdhxRlN0qj4/38D9Glb8hNCk1g0tEBaYh0ghbOd8Ln8kPUqXaOcn3re9lQcUKMZQmeokefFVXNcjp1LkXHsu4jorfXPgni1xS7FFs9Hj3FY547N0ZWtL4Oa5owg92B4krxTjT3V5zLBgvkDxCyrmbZHUfciyywkoy0vg5ufpqbpC/L8S4wQn+U5fVxlTu6bZPFx9lo5kpJl2EqMe1oYTJAFuJsu99l8mZhaDWADURL3cS7j6J0MSyT24M3pUBdkux1DBDUPHWPtVDw6NH2Qn9Z/wATC2e7hzUFR/iPJo+K6G0VSGJCfOsH3jS37wj3rjvbilWw0NI8P3hsu213+IdWyqN2hyzvHVA8amvvBvbp5LPOK1J0N0qcdL+xzHs4wOJc+OkqOpD6p0+yDZb4/DHDudTnyPMcFJlVC4S5PmRjprZhfcFeI/UFiz6iELHgJxlXaerRtOpvI7+9Jywc15pHNCnpKTo6jlHaSjXbvDuIKbYfFNc9rQd3AfFcXY2DLTB6KxZLnxY5us/5uXVN9d8D8Uot+7Y7TnYa+hWZ/wDW75E/gq1kua0aQAdaFVexvaatV+mUa9QuqMLmAkAeBwLWOAAG+lx9RzRH0YEwSnTzTUra3/rlD1hg1yXPF9rqQB0AuPlAVKzXFvrOLi0Dkiu4m2w5rdtICzrhZpapy1SdjYwjHgVupF7L79ETRpNiHTZM2Ma2C0T0W1Vms2b5q0gtQDgcLMxEK69ksMKdE/3nk/AAfIqrU6JNo0gKHMO1VXC1cNhixvd13ECpJkOaZLYiL6mxe903FJwdpWLnHWqsadoMOG1ahAFzPvAP4qXB4iWMPT5KDOsQHue4faDf+0BJW4w0wDuJuOhVwyqM2+zGQxuUR/XxHgJ+8f6KDE1orMH62SivmTSwAEeE38plaYvGjv2GbH8k95E/+DY4/wCw36R4qrfVIamK8Dv7pt71J9LHevvwVZx2bMYCC65dMcYCVKV8D4xr/g2xmLAeDzC2+mAqkYrM3VH6thwHRPsicXbrJmh3Bu2WTLqo72mYtqb810sVFyxrTuFd8ozMVGNk+IbhO6OaVxMvUQbpjwVNzyS51b6t7vvFa1sT9W7zQOJrRSYOZWqU/wCDMohWLqRUpdQR8FW88xV7f+26T5cR8UfmWJmtTH3RKr2NxE98ecgfJBOXb5/oOCEeNyqlWqv1kw2C2ORvC2w+R0hYOKSZhnMVnBpsIB8wEwwGO1ncmVlyxndjlHHLlbhf/Djf+YfgsRepepO4Xo4/BWXUV4MPPFbUnHzUjmA8YRO0cgiFKOKJwOCdWqNpsu55gD8SeA4+i1GHHGVdv7PsmucSRAALKc8SbPcOgEtnqeSPFD1JqJQzwnZmlQa0uI7wMLX1AYmXarj7QEACbwELgi14kEahaJ5bpnm7CQf1uqTjcM+m41GT/ejh18lp6nHpquDXjytR/QuZpyLwvG0QdyVWcmzyXd3Ufc7Kz4eszmFnTHxlqVonYA2LLfWQTHFQVMRpPsz5KXW6ZAI5yiLNgSeCVdqMoZiWMa/UHU3CpTc32hUAMfnHQJ1hpMl0ADYfmhsU+TY8Y+C5nV9e8en0Xve5qwYFJ+5ADsZJ0uGkxaTcx0Q9Z42lJsxpGQeO/wCH680ixgrN8TajrbtJJI8uYR9Pnc41J7m7J0yi7hwWHF5ax2qbTuQYJ9QleLyeqdDm1ngMiJg7c+aTtzitHtz5wiKPaOsN9J9P1da0pLhiNS7m1fKcTJd3x8W8AD0QjeybidRJPMndO29pHR4mNMqUdo2/8sjyMqa8nkjce6AsL2bAvHvTbDYQMtshaPaFt/A73hFU89pm5Y4e4pMoyfJNSCO5W3cPbdji13D+o4rR2d0uvuWzc6pRufUFWotA2iGpneLpyKlNtRvNhLTPkV47tkwmmH0qrNO8skA+bZW9TN6I3MzzBUYxVF32h7imrLNcoU8cGLMX21ZqqPFOoXbMGkiesnZVnMM9xFXw02Fo4k3JPPornUo0Xfbb8vmvKOApzYs94TFnr6QPRXkoeGyWobx6lWbK8BoF5lWZmFYOAv1Uf0OTtZLyZZS5ChjjEX6vJYj/ANmfqFiVbGbFNo1RuCiiZuE8x3ZFoH1ctcTxMhef8IudpbTxMOJAI08OMeQlaVG3SOLLBJG/ZXs+7Eu1OltFp8TuLj91vXmeC6UWta0NY3S1oDWtHDh8lHg6DaNNtNghrRpH4kniZ3PMlbF/i6MEnzXUw4VjXyIsDrs1Fw/vR7mpJWpQZHr+PuKbsreFp+9UP5JdUJmoBuw6h1B3HzRTVjMcqZV817ONfUFan4HjcfZcOY+6eu3zVhyelDILY5E7oarUAgzDXeyfuu5eRUmV40lzqZ3bcfiPK4PvXOzx0uzoYXqQzD3ARPwRGHe4i58kISpmVP181xP/AEeplCKhHvz+huw4U964C9X68tygnm7OpJ+K2fWs4+gUNd8VGDkB8lxo0bIQoV4llifuuIPkSlWPoxflv+BT0gF1VvNJK9Xwgn+B3yH66rZhbs0orGdsvrtaGkR5mTz/ANkqpuk807zinZwPD5RIVZpvXoOn90Dn9UtM78jdu0SpwYShtZE060pjjRn1Bjn3RLXWQWtTNfsEDRdhQeCvKx9VFqgprgcs75jqgq0mNaQ063EOvAkAAyLhVRTko7sXNdO6lHuROHy897ofLWBzdbwDDWOMB3iAiYMT+BTChgwys57XOGHEtZWexrg6Yad4beSJV6QHlihTShe1CLwnePrYY4YU6bNVdjRqfTab6d3E/d81WW1OqjVFwnq3CNRsVN35udRHkUJrBC9Y+RayGgwj6Qfvu/mP5r1DaTz+CxQhevpDQ4tDtU33uFLluMb30CePDjBSs4R5jTTDSPtOM+tvkj8JgtMEvJIM2sCfmmQk1JMyzjcWh/8ASPEByH4Sh3YiKT3cSgH4iHt8o+EKCpiJouHIldfWmrRyNLTpkmIrxSo/xD5qLGYjTiG8ntg/r3oHFV/qafQj5qDNa/1tH1+SpyCjEj1yK1LkSW9OI+K0yfE6qgfzpmfMEfmULUxIbWrOJsGifd/UJPg8yizdhZYOodo6XSp2dEbUnb4qKjiLeTfik+VYsuE7BTYrEhjp4Oseh5rh9bh9RKux1+laTafcaOreAdSosdWioEEcRLfI/wBVpjqsvafJc2OPf9zeoq/3CjVis7qAkOLd++b1ke5HPrjvJ6JHjsY0Co4kAGwWvp8Tv9insiDMgalgJcWc458VVa+Geyz2lp6i3odimjcy7x5IBjYHoOKf5Sxz/CRqbyIkH0K7WK8MaZzOoayu12KWHKWk4q75r2Zw0TPcu5z4f5D+EKnYnDBjtIe1/EESB7nQU+M1LgyuLQRQfNiUVsUBQajALbJchiJmuVryzFYahQ1NZqxJnxAl+kkEDwxpAgj3m9rD9lMsovoVnue0VGnw626g0ROrSTEz5+yU1xTmDLiTTpNbUMg7PdcQ6BsZ2ueHkoovn4M+WdvT8muTYyk5+nE09TIcWlzd6nFrwDcXJAvwv4UwpNFWlWFZxFEDW1rdMDuzpaGiNoAB22MEyk2dV8K3DUfo/hqPgy9xcRp1DxEmARO/CbWUpxHf4GowFjXNIdPQMaDTaBsPCATxVK70sz1ugfNMM+pT76iG02U6EvLXae8E7lsk3gxO+kKqtqTtZEYDMXlpod6GUnnxEiYG8E7xMe9CVGgPOkktBMHYkdYJ+CjSNeNafayambXW880MwrbvTtzVDLCdfVYhZPNYpRLL3h88H22erfyKa0MQx92ODumx9xVOAPLjCnDvQpKyNclOKHebB+7faHA7eqrVfOqzJDsO4g+1pIPqJj3JzQzJ4EOhw5O35WO4U5dSqbnSeTtv5gnQzyXD+wmeGMuUVGt2mBp6O6qgg/dG3vQuNz+o97TTou8IgarST5SrnUydvIQeI2PqFoMpbyTH1Ul2Bj0sTn5wGJrEmobEyWgQJ4T/AFKfZb2ej2rq1swbRwspGUQOCzZM058muEIxWwPhqMCOCmdQBF9viiGMCwkcEhxHRlXAnr5NGo03FhcLkXHuNkuxGCxIAAeDHEtv8D+CsrpmIK12ueHMwh07jfVaKTUynFGZre1yAHu4oU9lXuI1OJjnePKVZ8f2jpMszxnpYD/NxVex+eValtWkH7Lbe87lasbyLjb7CZzT53JaOXUKN6jpP3Rc/wBFlXtA5vhotDBz3KTFy0LkzRe73Eub4RPXrueZcSTxJK2b2T+lNFUPIOrQRFgAAdU/5kI5ye9nsQYDbgFxu3gbC9xb8k2Lcd4iZpNbmg/s3bpBZXcTxtAHNMqf9nbRT1DE1SZ5x52lWXKhR7t/euqHYUy0yIMzYDfbfovKGAduwv3IEt1QZI1aXbTMjzCJ5ZvkVpinS7AWH7FsDPq6he5wLfGZNxBjVZpubrXGdmaoospOc5zaeoiCCfavBIvvHkALBM8TQrUw0MfUPiBgAcR4iZjSYWuLrV2uY0ggiY1EvB1C51iYvG8pdrfkFt6qEP7H+qbpL4c4EamB06bgXbYGCvMVk3ic01ND4A2s4cbCIuNuqYuzqsxxpmnqYSPE0h8Hedhbn0lAvxVBha6NTnTrGq8AARp3BBbPkTdB3CdqVglTszW7okGn4ZhpluqDuHCbbwDtdBOyHEtZrNNu3B5P/irNXLi1tTDuDmmdTDPDhxRNPF1GOFMNDWuEy7Zx3gIq2DTfko7cDWLNZouiYgObPLYwhsQajZLqNVoHNo/NdTpmlVpkOF28REhC47LdVNrwGuA3a4cPNXXwXrfk5l9LP3an8v8AVero37Io/cp+9qxTbwXqfkr7Wgx+CIZJv8rKXGYQMc5zZc2YkCSJ2Ebn0v0WtIgiW3H6sRwWRprkbqTPYv8Ar9cFvp9/RaNO/Rb0iFRZJQqOaZaSPI/gjqeZ8HtB6ix/L5IBee5Wm0UPKVSm/wBk35Hwn8j71vUpRZI2HdFYbFuaLGRyNx7iitPklsYgcFDjK9KmJqODRzJv7kh7TdoqlOG0wGyPE7j6A7Kl18Q551OcXHmTKNQsmot2N7WtEiiyf7ztvQKt4/M6lUzUcTyGwHkECHLHJigkRybNitXFelaFGgTYlaFRvqAISrjxMNBcfcPejjBvgGU1HkIrVY4pz2ccYadEnUSNQOmJm7djYITBZOSGuqUyXBwIEkA2kwBytc9VesJk9SpTnRpIaQILfCHAiDpcJAB8zHCykmkqQN3uzbB0g9gZW1EzLYJF9I4iBysjsJpI0hxbqb4S5xjUBIkA3bHwhQ47LKAp0mOqA1niSZ0izSQLCfs7TyndejLiWjQ0BzY3cW7GwG5/3SWmmLdO6GNLMnd13bnS0mH1hLSC4iTB4AQNzZQ1ctqaiyjXLdIg21ExHtXvw4pZWyvEOZ4m6zJcQx+ncc3R7ueylY/FMADmMBjheLbBxEgdJKJytKyoLTdGmPL6ZDn/AFjuOkWIFovcG4tsgcUKL3teWmm14LdRO2oRe1uJRdPMHtkvDdTeBJmJi0wDuPcpMO1uKaZe0NubN0mRwI1GedkNXwG6rdAeFywyDROmqAQRqhrrwbT4hbf/AHU+IzZ1NjKdUA3AI+4TwtM77ztG6jr4mphnamtLr2cGyCNMFpPUBoixmDwR+BxbKpd3rSNXMEeID71osB8Fd+QVLb3Hn0Ci54NN8E8JEA8JETy3W7atagXMMEXguj3GTPl6pU3Lagqd4HiGk+GTIbEi/wBrhyPRFZZnRNbTXdq0wQ+PaBmRA6QRA5Itg3YR+3Wf8t38pWJv9Jw/3x/1/wClYrpeQb+ATDgsb4GaASCA7+9a4m2yW5lWpF7rufUDHCdBbBsbOAHoJ4rSs+rVgyWNs0+EamwCAZIsLkyiMJRDSSXTMw5xtwMQIna3mUDYVeRPQw+JYxzqga4AEgNBa+BsCD4SfUBYMW0wAYJ4OBa628Aj4hGvrai+mB3riYBJBABuALAbCOfNa18tFTSa7AX6gO7BkNINt45cNpOyBwiw1Jo8a/mpWGd1KMpOk6S5txpDvHb7XI+V+GygqU3NkuY6J0ggagZ2sLjbiI6pTg+wWtG15hbsMWUAqcZ/QRJrSL36nf3jf1lDSC3Kx2tPjHk3460gKfdqj4/RnzqKuvK1Q4BZJK2DkHXxQFpudhx9ynweErVTZrmsH2gNR9w287pqxtqwHkSPa1YC5MId/euE02SD9o7e7ieib4fsuC6S51QRvG3LiAb84RtPs422mrAJh8N2FpGkcQb8bSiWhAuUn8Faw+RVaolwceRgxw4ev6lO8hyphLgbkXMNJmD963iH62Vhodl6gbNOsHsmC2TO0E7+0ZnknOC7NB0udULZ3AEzIvPoYkdRO6ksknsCoxW4twdVwAbU7xgGwAabTvxJ9eSaYPLH6i6ajwfZvEDqAb+4J3l2VBh8Lbj7UA289gOiLZSAMuYXA2nlx2Sa8havAir5ZA1N1kGNRadRB9eUcuCirUi2xa4ji4gh0jlxKtBw0tlhgzwM+kcT5oWpVlxbUYdXCGyDw2NlbgUplZbjHU7lxDXTAIMahJmSJHGwTDEY5lRlNtVoDTDpaLti4k+gujMbhmUgSWggjc3j04JRVZUoMOlpmoQPAW+gNr7ndDuuQtnwEty5jqgcxwe0t4Eu6y0jigYe4nVB0GRO5IteTeEW7CvAbUoOe1wgPbYjmSQCPkjqT6VUOY9g1byGkB3Au3MGVdWVdCejiXHvIMNgEaY1NncvB+zb58ELj8mqCn3orEh1zBGwMyHMsbfAc4RWYYGqyCxoDhG0mWjgOsD9QpaA7y1HVAkOBuNpk+anwU0nugXs/nNSkPrGd4Lai9sBwJIBBPkOl0fnWHw9SkKtGaD3RADDpBdtZoOkHmPcUFiMs718U4aANT2zcEESPU7nz5oGnjX0HOY6XMBIMCS2WggG8Rx9VNUq4BUe8eSH/h7Gf/IpfzH/AEL1GftXA/fxH8lL/UsU38B6pB2YWABqEMEzpLZ221EWvyjjCAo0zUB7s6KbT7Jkzeb6jcnzPoiMLQFUkvEHrwE2JiLpvTAG+oNGxtfnJ4qVZLoWYak4uMN0sJhziYfMW07m21t5RmHcBDQJDLFxtYm5vdxjqiKbBqgAbk2MesfrikfaXHuAIYLC06oA85PzVUS7DsRjXU3ONId6dg2YBBA8W0c90GWVH94ao0AjxNadZI89MCOg4qPLdZw/1rIcJuSHausDZbYPKg4tq1LmZaQ54HDTfjHMqNBKibDZU1jS2mxgm+rR7XQuDpnzWUstqNbLntedpDS3j6g/BPMM2IJF+UDbz4oDEVKjnljeJi5AAHHzKjgnyUpO9iq9p8pquu0NkBgiYMgv/wBQSun2UcQNZeSYs3wAT1deePDyXQWU2CWsnw72L/QmbBL8xzA0xr7oPB2BJBtxbEyOSKPtRVuRX8D2ebQbakzWT7Tg5zvQ7njsm9LLgxompDtyYLAZNoGw3jZAOzKpiHaT9SDAABk32PRRYuhFNwFXU5v2HzItHGDHTyUk23uWo0NadEF8uqEOGwgnrd3H3WlGaS8hhDQN52nkI5z742VVa+ozxMqtq76Q4FrrwLX6c4sjsHVe1rjVqM1D7F5B2kO3Px6IGi6H/wC0e6YDiS1nAFswSeY5cuH4TZdjnPvqDaczqsXdBfmL9JS5tJxILgSxrfCDeo6eHyN+aYYelDLsB5AHlYNBV2TSMjTqO8YquAPv3R+W15a5riXFhIHG3BY1sNnoJHLzQeV1I7x7ZA1BtyL2+zAumLZim7QXgqpZV0RIIJnk6dvih861gOIdDgRHD/ZSUWzVu/YWBmZ4k9FDnThpMkCeZ3U+kr6g+s0aA8mZA8iq04OIJdTEz4fFNjxMn4KwNDe6bTvGkAX4RYpDjcKS1zAQC1sNgiTxvyKk0XB0B5dimsraXGC8HUZIjTtadr7hbVXuZV10HcgS5xMRu0DjPVZllNoewEMe9wOtw+zOzTx8lLjKbqRLQQWn70DSDb3oFwG+RviCKtHvSAdnAb9JEeZVbxjHNioB3RF3BpMnoRsCbe9WTKKdMYZrS2Im0k21XvPFLcUZY+XB0+JsyLARtx2RS33Bi96B8JWadVajIqAFpmYdsTY7pnWp061Nwa0anAlwPAwPUiwVd7OYyahY4VNMRJNidwAN02qVnd6zQHN3DpIA3E777fFRPYklTF3cH7rP5D+axWfQPut/XqsU9NE9RivDey7/AA2/ivMftR8x81ixV2J3Naf78+SrHaPcfx/ivFioJFhxf7of5fmmWG/cN/i/FYsRLkp8G2M9n1/NK6H7weQWLEEy4DehvX8lVa/su8x82rFiJkXf7CPN/wB4fMIftZ/4s/7QsWKR7DCHs5+7q+X4I3H/AL5v8TPmsWIpfmBj+Vlx7M7M/gb8gj6O1PzPzK8WIHyUOK37t/8AAl+TexS/iPycsWI5coTHhktP987yHzS7tv7Df4mf9wWLEP0hL8w2oewz+JvySDHfvD5j8VixFIkCTKv3o/hUHa72T5fisWIFwE+RzlH/AKSn/hD5Je/2m/4VP/yXixECuWK8N/6rD/4h/wDzcnefbs8vwWLFX0st8itYsWKFH//Z', desc:'Beautifully crafted Modak-shaped candles, perfect for festive occasions. Scented with saffron and cardamom.'},
       { id:'c6', title:'Iron Man Candle', price:799, cat:'candles', rating:4.8, stock:40, img:'https://risync.in/G4U/iron.png', desc:'Heroic Iron Man candle – metallic red & gold shine for Marvel fans.' },
       { id:'c7', title:'Spider-Man Candle', price:749, cat:'candles', rating:4.6, stock:50, img:'https://risync.in/G4U/spider.png', desc:'Spider-Man inspired design – perfect for kids and collectors alike.' },
@@ -4772,7 +4771,7 @@
         img:'https://risync.in/G4U/Pink planet 4-5front.jpg',
         imgs:['https://risync.in/G4U/Pink planet 4-5front.jpg','https://risync.in/G4U/Pink planet 4-5 side.jpg'],
         desc:'Out-of-this-world pink planet print. Perfect for little dreamers and space fans. Age 4–5 years.'},
-      {id:'ts13', title:'Red Train Kids T-Shirt (4–5Y)', price:449, cat:'clothing', rating:4.7, stock:33,3
+      {id:'ts13', title:'Red Train Kids T-Shirt (4–5Y)', price:449, cat:'clothing', rating:4.7, stock:33,
         img:'https://risync.in/G4U/Red train 4-5 front.jpg',
         imgs:['https://risync.in/G4U/Red train 4-5 front.jpg','https://risync.in/G4U/Red train 4-5 side.jpg'],
         desc:'Vibrant red train graphic — a must for little train lovers! Soft 100% cotton. Age 4–5 years.'},
@@ -4848,7 +4847,7 @@
         img:'https://pioneerixpress.com/hooray-dogs-tshirt.jpg',
         imgs:['https://pioneerixpress.com/hooray-dogs-tshirt.jpg'],
         desc:'Cheerful cartoon dog characters with HOORAY message. Bright and playful design. Age 2-3 years.'},
-		{id:'ts33', title:'Pink HOORAY! Cartoon Dogs Kids T-Shirt (3-4Y)', price:449, cat:'clothing', rating:4.8, stock:34,
+		{id:'ts32', title:'Pink HOORAY! Cartoon Dogs Kids T-Shirt (3-4Y)', price:449, cat:'clothing', rating:4.8, stock:34,
         img:'https://pioneerixpress.com/pink-hooray-dogs-tshirt.jpg',
         imgs:['https://pioneerixpress.com/pink-hooray-dogs-tshirt.jpg'],
         desc:'Cheerful cartoon dog characters with HOORAY message. Bright and playful design. Age 2-3 years.'},
@@ -4880,7 +4879,7 @@
         img:'https://pioneerixpress.com/cotton-candy-tshirt.jpg',
         imgs:['https://pioneerixpress.com/cotton-candy-tshirt.jpg'],
         desc:'Adorable ice cream cone characters with "Cute Cotton Candy" text. Navy blue. Age 3-4 years.'},
-      {id:'ts340', title:'Run Faster Race Cars Kids T-Shirt (3-4Y)', price:479, cat:'clothing', rating:4.8, stock:27,
+      {id:'ts40', title:'Run Faster Race Cars Kids T-Shirt (3-4Y)', price:479, cat:'clothing', rating:4.8, stock:27,
         img:'https://pioneerixpress.com/run-faster-cars-tshirt.jpg',
         imgs:['https://pioneerixpress.com/run-faster-cars-tshirt.jpg'],
         desc:'"Run Faster" with stylish race car panels collage. Soft pink lavender. Age 3-4 years.'},
@@ -6638,6 +6637,14 @@
   window.firebaseReady = true;
   document.dispatchEvent(new Event('firebaseReady'));
 
+  // Safety net: if DOMContentLoaded already fired before Firebase module loaded,
+  // trigger a product render now so the grid is never left blank.
+  if (document.readyState !== 'loading') {
+    setTimeout(function() {
+      if (window._PIX_rerenderProducts) window._PIX_rerenderProducts();
+    }, 100);
+  }
+
   // ---- DOM helpers ----
   const $ = id => document.getElementById(id);
   let currentUser = null;
@@ -7029,32 +7036,40 @@
    * Updates run for ALL users in real-time.
    */
   (function startCommunityListener() {
-    const q = query(
-      collection(db, 'communityProducts'),
-      orderBy('createdAt', 'desc')
-    );
-    onSnapshot(q, snap => {
-      const prods = snap.docs.map(d => {
-        const data = d.data();
-        return {
-          id: d.id,
-          title: data.title || 'Untitled',
-          price: data.price || 0,
-          stock: data.stock || 0,
-          img: data.img || 'https://risync.in/G4U/product.png',
-          desc: data.desc || '',
-          cat: 'others',
-          rating: data.rating || 4.5,
-          _community: true,
-          addedByName: data.addedByName || 'Community'
-        };
+    try {
+      // orderBy('createdAt') needs a Firestore composite index.
+      // Wrap in try/catch so a missing-index error cannot abort
+      // startAdminProductsListener (which runs immediately below).
+      const q = query(
+        collection(db, 'communityProducts'),
+        orderBy('createdAt', 'desc')
+      );
+      onSnapshot(q, snap => {
+        const prods = snap.docs.map(d => {
+          const data = d.data();
+          return {
+            id: d.id,
+            title: data.title || 'Untitled',
+            price: data.price || 0,
+            stock: data.stock || 0,
+            img: data.img || 'https://risync.in/G4U/product.png',
+            desc: data.desc || '',
+            cat: 'others',
+            rating: data.rating || 4.5,
+            _community: true,
+            addedByName: data.addedByName || 'Community'
+          };
+        });
+        if (window._PIX_injectCommunityProducts) {
+          window._PIX_injectCommunityProducts(prods);
+        }
+      }, err => {
+        console.warn('communityProducts listener error (non-fatal):', err.code || err.message);
+        // Non-fatal: static + admin products still render normally
       });
-      if (window._PIX_injectCommunityProducts) {
-        window._PIX_injectCommunityProducts(prods);
-      }
-    }, err => {
-      console.error('communityProducts listener error:', err);
-    });
+    } catch (err) {
+      console.warn('startCommunityListener failed (non-fatal):', err.message);
+    }
   })();
 
   // ===== ADMIN PRODUCTS LISTENER =====
@@ -7143,18 +7158,12 @@
         console.error('Error code:', err.code);
         console.error('Error message:', err.message);
         
-        // Show error to user if products don't load
-        const grid = document.getElementById('grid');
-        if (grid && grid.innerHTML.includes('skeleton')) {
-          grid.innerHTML = `
-            <div class="col-span-full text-center py-12" style="color: #ef4444;">
-              <h3 style="margin-bottom: 12px;">⚠️ Error Loading Products</h3>
-              <p style="color: var(--text-secondary); margin-bottom: 8px;">${err.message}</p>
-              <p style="font-size: 0.85rem; color: var(--text-secondary);">
-                Check your Firestore rules or console for more details.
-              </p>
-            </div>
-          `;
+        // FIXED: Always fall back to rendering static products so the grid
+        // is never left blank when Firestore is unavailable or rules block access.
+        if (window._PIX_rerenderProducts) {
+          window._PIX_rerenderProducts();
+        } else if (typeof renderProducts === 'function') {
+          renderProducts();
         }
       });
     } catch(e) {
@@ -10838,53 +10847,7 @@ document.addEventListener('DOMContentLoaded', function(){
 <!-- ====== STYLES ====== -->
 <style>
 
-/* ── 3. Exit Intent ── */
-#exitIntentOverlay{
-  display:none; position:fixed; inset:0; z-index:9600;
-  background:rgba(0,0,0,0.75); backdrop-filter:blur(6px);
-  align-items:center; justify-content:center; padding:20px;
-}
-#exitIntentBox{
-  position:relative; background:var(--surface-primary);
-  border-radius:24px; overflow:hidden; max-width:500px; width:100%;
-  box-shadow:0 32px 80px rgba(0,0,0,0.6);
-  animation:modalIn 0.3s ease forwards;
-}
-.exit-top{
-  background:linear-gradient(135deg,#FF3C78,#c41755);
-  padding:32px 28px 24px; text-align:center;
-}
-.exit-emoji{font-size:3rem;display:block;margin-bottom:10px;}
-.exit-headline{font-family:'Montserrat',sans-serif;font-size:1.6rem;font-weight:900;color:#fff;letter-spacing:-0.02em;line-height:1.2;}
-.exit-sub{color:rgba(255,255,255,0.82);font-size:0.85rem;margin-top:8px;}
-.exit-coupon{
-  background:rgba(255,255,255,0.15);border:2px dashed rgba(255,255,255,0.5);
-  border-radius:12px;padding:12px 24px;margin:16px auto 0;
-  display:inline-block;font-family:'Montserrat',sans-serif;
-  font-weight:900;font-size:1.4rem;letter-spacing:0.1em;color:#fff;
-}
-.exit-body{padding:24px 28px 28px;text-align:center;}
-.exit-body p{font-size:0.85rem;color:var(--text-secondary);margin-bottom:18px;line-height:1.6;}
-.exit-cta{
-  display:inline-block;background:linear-gradient(135deg,#FF3C78,#c41755);
-  color:#fff;font-weight:800;font-size:0.88rem;padding:13px 32px;
-  border-radius:999px;border:none;cursor:pointer;letter-spacing:0.06em;
-  text-transform:uppercase;transition:all 0.2s;
-}
-.exit-cta:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(255,60,120,0.45);}
-.exit-dismiss{
-  margin-top:14px;display:block;font-size:0.76rem;
-  color:var(--text-secondary);cursor:pointer;text-decoration:underline;
-  background:none;border:none;
-}
-#exitIntentClose{
-  position:absolute;top:14px;right:14px;width:32px;height:32px;
-  border-radius:50%;border:none;background:rgba(255,255,255,0.18);
-  color:#fff;font-size:1.1rem;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;
-  transition:background 0.2s;
-}
-#exitIntentClose:hover{background:rgba(255,255,255,0.32);}
+/* Exit intent popup removed */
 
 /* ── 4. Notify Me strip on product modal ── */
 #notifyMeStrip{
@@ -10976,23 +10939,7 @@ html.dark #searchAutoList{border-color:rgba(255,255,255,0.1);}
 
 
 
-<!-- ====== 3. EXIT INTENT POPUP ====== -->
-<div id="exitIntentOverlay">
-  <div id="exitIntentBox">
-    <button id="exitIntentClose" aria-label="Close">&times;</button>
-    <div class="exit-top">
-      <span class="exit-emoji">🎁</span>
-      <div class="exit-headline">Wait! Don't leave empty-handed</div>
-      <div class="exit-sub">Use this exclusive code at checkout and save instantly</div>
-      <div class="exit-coupon">PIX15</div>
-    </div>
-    <div class="exit-body">
-      <p>Get <strong>15% OFF</strong> your entire order — candles, beauty, clothing and more. Limited time offer for first-time customers!</p>
-      <button class="exit-cta" id="exitUseCoupon">🛍️ Shop Now &amp; Save 15%</button>
-      <button class="exit-dismiss" id="exitDismiss">No thanks, I'll pay full price</button>
-    </div>
-  </div>
-</div>
+<!-- Exit intent popup removed -->
 
 <!-- ====== 5. SOCIAL PROOF TOAST ====== -->
 <div id="socialProofToast">
@@ -11019,41 +10966,7 @@ html.dark #searchAutoList{border-color:rgba(255,255,255,0.1);}
 (function(){
 
 
-/* ── 3. Exit Intent ── */
-var exitShown = false;
-var exitOverlay = document.getElementById('exitIntentOverlay');
-function showExitIntent(){
-  if (exitShown || sessionStorage.getItem('PIX_exit_shown')) return;
-  exitShown = true;
-  sessionStorage.setItem('PIX_exit_shown','1');
-  exitOverlay.style.display = 'flex';
-  document.body.style.overflow = 'hidden';
-}
-function hideExitIntent(){
-  exitOverlay.style.display = 'none';
-  document.body.style.overflow = '';
-}
-// Trigger on mouse leaving viewport (desktop)
-document.addEventListener('mouseleave', function(e){
-  if (e.clientY < 10) showExitIntent();
-});
-// Mobile: trigger after 35s idle
-var mobileExitTimer = setTimeout(function(){
-  if (/Mobi|Android/i.test(navigator.userAgent)) showExitIntent();
-}, 35000);
-document.getElementById('exitIntentClose').addEventListener('click', hideExitIntent);
-document.getElementById('exitDismiss').addEventListener('click', hideExitIntent);
-exitOverlay.addEventListener('click', function(e){ if(e.target === exitOverlay) hideExitIntent(); });
-document.getElementById('exitUseCoupon').addEventListener('click', function(){
-  hideExitIntent();
-  // Auto-fill coupon in checkout
-  var couponInput = document.getElementById('coupon');
-  if (couponInput) couponInput.value = 'PIX15';
-  // Scroll to products section
-  var gridEl = document.getElementById('grid');
-  if (gridEl) gridEl.scrollIntoView({ behavior:'smooth', block:'start' });
-});
-document.addEventListener('keydown', function(e){ if(e.key==='Escape') hideExitIntent(); });
+/* Exit intent JS removed */
 
 /* ── 4. Notify Me for Out-of-Stock ── */
 // Inject strip into product modal after mAdd button
@@ -12796,14 +12709,7 @@ html.dark .card {
   border-radius: 18px !important;
 }
 
-/* ── Better exit intent animation ── */
-#exitIntentOverlay {
-  animation: fadeInOverlay 0.3s ease forwards;
-}
-@keyframes fadeInOverlay {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
+/* Exit intent animation removed */
 
 /* ── Category badge improved ── */
 .cat-tile-badge {
@@ -16093,9 +15999,10 @@ textarea.pa-inp{resize:vertical;min-height:64px;line-height:1.5}
     var attempts = 0;
     var interval = setInterval(function () {
       attempts++;
-      if (window._auth && typeof firebase !== 'undefined') {
+      // Use window._auth (modular SDK instance) instead of firebase.auth() compat call
+      if (window._auth && typeof window._auth.onAuthStateChanged === 'function') {
         clearInterval(interval);
-        firebase.auth(_app).onAuthStateChanged(function (user) {
+        window._auth.onAuthStateChanged(function (user) {
           if (user && _fcmToken) {
             console.log('[PIX FCM] User signed in — updating token with UID:', user.uid);
             pixFCMSaveTokenToFirestore(_fcmToken);
