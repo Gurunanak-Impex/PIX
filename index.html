@@ -4439,12 +4439,19 @@
     </footer>
   </aside>
 
-  <aside class="drawer fixed top-0 right-0 bottom-0 w-full transform translate-x-full z-50 flex flex-col" id="wishlist" style="max-width: min(448px, 100vw);">
-    <header class="p-4 flex items-center justify-between border-b" style="border-color: rgba(128,128,128,0.2);">
+  <!-- Wishlist backdrop (mobile) -->
+  <div id="wishBackdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);backdrop-filter:blur(3px);z-index:9598;" onclick="document.getElementById('wishlist').classList.add('translate-x-full');document.getElementById('wishlist').classList.remove('translate-x-0');document.getElementById('wishBackdrop').style.display='none';"></div>
+
+  <aside class="drawer fixed top-0 right-0 bottom-0 w-full transform translate-x-full flex flex-col" id="wishlist" style="max-width: min(448px, 100vw); z-index: 9599;">
+    <!-- Drag handle (mobile bottom-sheet indicator) -->
+    <div id="wishDragHandle" style="display:none;padding:10px 0 4px;text-align:center;flex-shrink:0;cursor:grab;">
+      <div style="width:40px;height:4px;border-radius:99px;background:rgba(128,128,128,0.35);margin:0 auto;"></div>
+    </div>
+    <header class="p-4 flex items-center justify-between border-b" style="border-color: rgba(128,128,128,0.2);flex-shrink:0;">
         <strong class="text-lg" data-i18n="wishlist_title">Wishlist</strong>
-        <button class="p-2 rounded-lg font-semibold text-sm" style="border:1.5px solid rgba(196,23,85,0.15);color:var(--text-primary);background:transparent;" id="wishClose" data-i18n="close">Close</button>
+        <button class="font-semibold text-sm" style="min-width:44px;min-height:44px;padding:8px 14px;border:1.5px solid rgba(196,23,85,0.15);color:var(--text-primary);background:transparent;border-radius:10px;cursor:pointer;" id="wishClose" data-i18n="close">Close</button>
     </header>
-    <div class="flex-1 overflow-auto p-4 space-y-3" id="wishItems"></div>
+    <div class="flex-1 overflow-auto p-4 space-y-3" id="wishItems" style="padding-bottom:24px;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;"></div>
   </aside>
 
   <!-- ADDRESS BOOK MODAL -->
@@ -5129,15 +5136,15 @@
             list.innerHTML = `<div class="text-center py-10" style="color: var(--text-secondary);">${window.PIX_t?window.PIX_t('wish_empty'):'Your wishlist is empty'}</div>`;
         } else {
             list.innerHTML = state.wish.map(id => PRODUCTS.find(p => p.id === id)).filter(Boolean).map(p => `
-            <div class="cart-item flex gap-3 items-center" data-id="${p.id}" style="min-width:0;">
-                <img src="${p.img}" alt="${p.title}" class="object-cover rounded-lg flex-shrink-0" style="width:56px;height:56px;">
-                <div style="min-width:0;flex:1 1 0;">
-                    <div class="font-bold text-sm" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.title}</div>
-                    <div class="text-xs" style="color: var(--text-secondary);">${fmt(p.price)}</div>
-                </div>
-                <div class="flex items-center gap-2 flex-shrink-0">
-                    <button class="add btn-primary text-white text-xs font-bold py-1 px-2 rounded" ${p.stock === 0 ? 'disabled' : ''}>${window.PIX_t?window.PIX_t('add'):'Add'}</button>
-                    <button class="rm text-red-500 font-bold text-xs">${window.PIX_t?window.PIX_t('remove'):'Remove'}</button>
+            <div class="cart-item" data-id="${p.id}" style="display:flex;gap:12px;align-items:flex-start;min-width:0;padding:10px;border-radius:14px;background:var(--bg-primary);border:1.5px solid rgba(128,128,128,0.1);">
+                <img src="${p.img}" alt="${p.title}" class="object-cover rounded-lg flex-shrink-0" style="width:64px;height:64px;">
+                <div style="min-width:0;flex:1 1 0;display:flex;flex-direction:column;gap:4px;">
+                    <div class="font-bold text-sm" style="overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">${p.title}</div>
+                    <div class="text-sm font-bold" style="color:var(--brand-primary);">${fmt(p.price)}</div>
+                    <div style="display:flex;gap:8px;margin-top:4px;flex-wrap:wrap;">
+                        <button class="add btn-primary text-white font-bold rounded-lg" style="font-size:0.75rem;padding:6px 14px;flex:1;min-width:70px;" ${p.stock === 0 ? 'disabled style="opacity:0.5;cursor:not-allowed;"' : ''}>${p.stock === 0 ? 'Out of Stock' : (window.PIX_t?window.PIX_t('add'):'Add to Cart')}</button>
+                        <button class="rm font-bold rounded-lg" style="font-size:0.75rem;padding:6px 14px;color:#e53e3e;border:1.5px solid rgba(229,62,62,0.2);background:rgba(229,62,62,0.05);">${window.PIX_t?window.PIX_t('remove'):'Remove'}</button>
+                    </div>
                 </div>
             </div>`).join('');
         }
@@ -5698,8 +5705,8 @@
         
         $('#clear').addEventListener('click', () => { state.cart = []; save(); updateCart(); renderCheckout(); });
 
-        $('#wishBtn').addEventListener('click', () => { $('#wishlist').classList.remove('translate-x-full'); updateWishlist(); });
-        $('#wishClose').addEventListener('click', () => $('#wishlist').classList.add('translate-x-full'));
+        $('#wishBtn').addEventListener('click', () => { $('#wishlist').classList.remove('translate-x-full'); $('#wishlist').classList.add('translate-x-0'); updateWishlist(); var bd = $('#wishBackdrop'); if(bd) bd.style.display='block'; });
+        $('#wishClose').addEventListener('click', () => { $('#wishlist').classList.add('translate-x-full'); $('#wishlist').classList.remove('translate-x-0'); var bd = $('#wishBackdrop'); if(bd) bd.style.display='none'; });
         
         $('#wishItems').addEventListener('click', e => {
             const itemEl = e.target.closest('.cart-item');
@@ -16374,18 +16381,23 @@ img { max-width: 100%; height: auto; }
 
 /* ── 19. CART & WISHLIST DRAWERS ── */
 @media (max-width: 767px) {
-  #cart, #wishlist { max-width: 100vw !important; width: 100vw !important; }
-  /* On phones, drawers slide from bottom */
   #cart, #wishlist {
+    max-width: 100vw !important; width: 100vw !important;
     top: auto !important; left: 0 !important; right: 0 !important;
-    bottom: 0 !important; max-height: 90vh;
+    bottom: 0 !important;
+    max-height: 88vh !important;
     border-radius: 20px 20px 0 0 !important;
     transform: translateY(100%) !important;
+    transition: transform 0.38s cubic-bezier(.2,.9,.2,1) !important;
+    box-shadow: 0 -8px 40px rgba(0,0,0,0.22) !important;
   }
   #cart.translate-x-0, #wishlist.translate-x-0 {
     transform: translateY(0) !important;
   }
-  /* Drawer header */
+  #cart.translate-x-full, #wishlist.translate-x-full {
+    transform: translateY(100%) !important;
+  }
+  #wishDragHandle { display: block !important; }
   #cart .px-6, #wishlist .px-6 { padding: 14px 16px !important; }
   #cart .px-6.py-5, #wishlist .px-6.py-5 { padding: 14px 16px !important; }
 }
@@ -16539,24 +16551,35 @@ img { max-width: 100%; height: auto; }
   #checkout { padding-left: 12px !important; padding-right: 12px !important; }
 }
 
-/* ── 33. CART / WISHLIST DRAWERS AS BOTTOM SHEETS ── */
+/* ── 33. CART / WISHLIST — mobile backdrop show ── */
 @media (max-width: 767px) {
-  #cart.translate-x-full { transform: translateY(100%) !important; }
-  #wishlist.translate-x-full { transform: translateY(100%) !important; }
-  #cart.translate-x-0 { transform: translateY(0) !important; }
-  #wishlist.translate-x-0 { transform: translateY(0) !important; }
-  #cart, #wishlist {
-    left: 0 !important; right: 0 !important;
-    top: auto !important; bottom: 0 !important;
-    max-height: 88vh !important;
-    border-radius: 20px 20px 0 0 !important;
-  }
+  #wishlist { background: var(--surface-primary) !important; }
 }
 
 /* ── 34. GENERAL TOUCH TARGETS ── */
 @media (max-width: 767px) {
   button, [role="button"] { min-height: 36px; }
   .chip { min-height: 36px !important; display: inline-flex !important; align-items: center !important; }
+}
+
+/* ── 35. WISHLIST ITEM CARDS — mobile polish ── */
+@media (max-width: 767px) {
+  #wishItems .cart-item {
+    border-radius: 14px !important;
+    background: var(--bg-primary) !important;
+    border: 1.5px solid rgba(128,128,128,0.1) !important;
+    padding: 12px !important;
+    gap: 12px !important;
+  }
+  #wishItems .cart-item img {
+    width: 68px !important;
+    height: 68px !important;
+    border-radius: 10px !important;
+  }
+  #wishItems { padding: 12px !important; gap: 10px !important; }
+  #wishlist header {
+    border-radius: 20px 20px 0 0;
+  }
 }
 </style>
 
@@ -16570,7 +16593,7 @@ img { max-width: 100%; height: auto; }
     <span class="pbn-icon">🛍️</span>
     <span>Shop</span>
   </button>
-  <button class="pbn-item" onclick="document.getElementById('wishlist')?.classList.remove('translate-x-full');document.getElementById('wishlist')?.classList.add('translate-x-0');document.querySelectorAll('.pbn-item').forEach(x=>x.classList.remove('active'));this.classList.add('active')" aria-label="Wishlist">
+  <button class="pbn-item" onclick="document.getElementById('wishlist')?.classList.remove('translate-x-full');document.getElementById('wishlist')?.classList.add('translate-x-0');updateWishlist&&updateWishlist();var bd=document.getElementById('wishBackdrop');if(bd)bd.style.display='block';document.querySelectorAll('.pbn-item').forEach(x=>x.classList.remove('active'));this.classList.add('active')" aria-label="Wishlist">
     <span class="pbn-icon">❤️</span>
     <span id="pbn-wish-label">Saved</span>
     <span class="pbn-badge" id="pbn-wish-badge" style="display:none">0</span>
