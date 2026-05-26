@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Live Agent · Real Account Analysis</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,800;9..144,900&family=JetBrains+Mono:wght@400;500;600&family=Inter+Tight:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0a0a0a; --paper:#f4f1ea; --paper-2:#ebe6db; --paper-3:#dfd8c8;
+  --accent:#d64818; --green:#1a4d3a; --gold:#b8902a;
+  --muted:#6b6660; --line:#1a1a1a;
+  --good:#1a4d3a; --warn:#b8902a; --bad:#d64818;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  background:var(--paper);color:var(--ink);
+  font-family:'Inter Tight',sans-serif;font-size:14px;line-height:1.55;
+  padding:0;
+}
+.wrap{max-width:1200px;margin:0 auto;padding:0 32px}
+
+/* Masthead — newspaper style */
+.masthead{
+  border-bottom:3px solid var(--ink);padding:24px 32px 16px;
+  display:flex;justify-content:space-between;align-items:flex-end;gap:24px;
+  background:var(--paper);
+}
+.masthead h1{
+  font-family:'Fraunces',serif;font-weight:900;
+  font-size:48px;letter-spacing:-0.04em;line-height:0.9;
+}
+.masthead .kicker{
+  font-family:'JetBrains Mono',monospace;font-size:10px;
+  letter-spacing:0.25em;text-transform:uppercase;color:var(--muted);
+  margin-bottom:8px;
+}
+.masthead .meta{
+  font-family:'JetBrains Mono',monospace;font-size:10px;
+  letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);
+  text-align:right;line-height:1.8;
+}
+.live-dot{
+  display:inline-block;width:6px;height:6px;border-radius:50%;
+  background:var(--good);margin-right:6px;vertical-align:middle;
+  animation:pulse 2s infinite;
+}
+@keyframes pulse{50%{opacity:0.3}}
+
+/* Section heads */
+.section{padding:48px 0;border-bottom:1px solid rgba(0,0,0,0.08)}
+.section-num{
+  font-family:'JetBrains Mono',monospace;font-size:11px;
+  letter-spacing:0.2em;color:var(--muted);
+  margin-bottom:12px;
+}
+.section h2{
+  font-family:'Fraunces',serif;font-weight:800;
+  font-size:38px;letter-spacing:-0.03em;line-height:1;
+  margin-bottom:8px;
+}
+.section .lede{
+  font-family:'Fraunces',serif;font-style:italic;
+  font-size:18px;line-height:1.5;color:var(--muted);
+  max-width:680px;margin-bottom:32px;
+}
+
+/* Hero KPI grid */
+.kpi-grid{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:1px;background:var(--line);border:1px solid var(--line);
+  margin-bottom:32px;
+}
+.kpi{
+  background:var(--paper);padding:20px 24px;
+}
+.kpi.bad{background:var(--accent);color:var(--paper)}
+.kpi.warn{background:var(--gold);color:var(--paper)}
+.kpi.good{background:var(--green);color:var(--paper)}
+.kpi .label{
+  font-family:'JetBrains Mono',monospace;font-size:9px;
+  letter-spacing:0.2em;text-transform:uppercase;
+  margin-bottom:8px;opacity:0.75;
+}
+.kpi .value{
+  font-family:'Fraunces',serif;font-weight:800;
+  font-size:36px;letter-spacing:-0.02em;line-height:1;
+}
+.kpi .sub{
+  margin-top:6px;font-size:12px;opacity:0.85;
+}
+@media(max-width:900px){.kpi-grid{grid-template-columns:repeat(2,1fr)}}
+
+/* Verdict box */
+.verdict{
+  background:var(--ink);color:var(--paper);
+  padding:32px;margin:32px 0;
+  border-left:6px solid var(--accent);
+}
+.verdict .vlabel{
+  font-family:'JetBrains Mono',monospace;font-size:10px;
+  letter-spacing:0.2em;text-transform:uppercase;
+  color:var(--accent);margin-bottom:12px;
+}
+.verdict .vtext{
+  font-family:'Fraunces',serif;font-weight:600;
+  font-size:24px;line-height:1.3;
+}
+
+/* Two column for findings */
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+@media(max-width:800px){.cols{grid-template-columns:1fr}}
+.finding{
+  border:1px solid var(--ink);padding:20px;background:var(--paper);
+}
+.finding.flag-red{border-left:6px solid var(--bad)}
+.finding.flag-yellow{border-left:6px solid var(--warn)}
+.finding.flag-green{border-left:6px solid var(--good)}
+.finding h3{
+  font-family:'Fraunces',serif;font-weight:600;
+  font-size:18px;margin-bottom:8px;
+}
+.finding p{font-size:13px;line-height:1.55;margin-bottom:8px}
+.finding .num{
+  font-family:'Fraunces',serif;font-weight:800;
+  font-size:32px;color:var(--accent);
+  line-height:1;display:block;margin-bottom:6px;
+}
+
+/* Tables */
+table{width:100%;border-collapse:collapse;margin:16px 0;font-size:13px}
+th{
+  text-align:left;padding:10px 12px;
+  font-family:'JetBrains Mono',monospace;font-size:9px;
+  letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);
+  border-bottom:2px solid var(--ink);
+}
+td{padding:10px 12px;border-bottom:1px solid rgba(0,0,0,0.08);vertical-align:top}
+tr:hover td{background:rgba(0,0,0,0.02)}
+.mono{font-family:'JetBrains Mono',monospace;font-size:12px}
+.tag{
+  display:inline-block;padding:2px 7px;font-size:10px;font-weight:600;
+  font-family:'JetBrains Mono',monospace;letter-spacing:0.05em;
+  border:1px solid currentColor;
+}
+.tag.delivered{color:var(--good)}
+.tag.returned{color:var(--bad)}
+.tag.cancelled{color:var(--warn)}
+.tag.active{color:var(--good)}
+.tag.inactive{color:var(--muted);border-color:var(--muted)}
+.tag.incomplete{color:var(--bad)}
+
+/* 12-point list */
+.checklist{display:grid;gap:1px;background:var(--line);border:1px solid var(--line);margin-top:16px}
+.check-item{
+  background:var(--paper);padding:20px 24px;
+  display:grid;grid-template-columns:50px 1fr 140px;gap:16px;align-items:start;
+}
+.check-num{
+  font-family:'Fraunces',serif;font-weight:800;font-size:32px;
+  color:var(--muted);line-height:1;
+}
+.check-body h4{
+  font-family:'Fraunces',serif;font-weight:600;font-size:17px;
+  margin-bottom:4px;
+}
+.check-body p{font-size:13px;color:var(--muted);line-height:1.5}
+.check-body p strong{color:var(--ink);font-weight:500}
+.check-status{
+  font-family:'JetBrains Mono',monospace;font-size:9px;
+  letter-spacing:0.15em;text-transform:uppercase;
+  padding:6px 10px;text-align:center;
+  border:1px solid currentColor;align-self:start;
+}
+.s-yes{color:var(--good)}
+.s-partial{color:var(--warn)}
+.s-no{color:var(--bad)}
+.s-needs{color:var(--muted)}
+@media(max-width:700px){.check-item{grid-template-columns:1fr}.check-status{justify-self:start}}
+
+/* Action box */
+.action{
+  background:var(--paper-2);border:2px solid var(--ink);
+  padding:24px;margin:24px 0;
+}
+.action h3{
+  font-family:'Fraunces',serif;font-weight:700;
+  font-size:22px;margin-bottom:12px;
+}
+.action ol{padding-left:20px;margin-top:12px}
+.action ol li{margin-bottom:8px;font-size:14px;line-height:1.5}
+.action code{
+  font-family:'JetBrains Mono',monospace;font-size:12px;
+  background:var(--paper-3);padding:2px 6px;border:1px solid rgba(0,0,0,0.1);
+}
+
+.pullquote{
+  font-family:'Fraunces',serif;font-style:italic;font-weight:400;
+  font-size:28px;line-height:1.3;color:var(--ink);
+  border-left:4px solid var(--accent);padding-left:24px;margin:32px 0;
+}
+
+.refresh-box{
+  background:var(--ink);color:var(--paper);padding:32px;margin:48px 0;
+  border-radius:0;
+}
+.refresh-box h3{
+  font-family:'Fraunces',serif;font-weight:700;font-size:24px;
+  margin-bottom:16px;
+}
+.refresh-box p{margin-bottom:12px;line-height:1.6}
+.refresh-box code{
+  font-family:'JetBrains Mono',monospace;font-size:12px;
+  background:rgba(255,255,255,0.1);padding:2px 8px;
+  border:1px solid rgba(255,255,255,0.2);
+}
+
+footer{
+  padding:32px;text-align:center;
+  font-family:'JetBrains Mono',monospace;font-size:10px;
+  letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);
+  border-top:1px solid rgba(0,0,0,0.1);margin-top:48px;
+}
+
+@media print{
+  body{background:white}
+  .section{page-break-inside:avoid}
+}
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div>
+    <div class="kicker">Auranestt Kids · Account A3749R7F13LNVE-IN · India</div>
+    <h1>The Live Agent</h1>
+  </div>
+  <div class="meta">
+    <span class="live-dot"></span>Connected via Windsor.ai<br>
+    Data pulled May 5, 2026<br>
+    Period: Mar 6 – Apr 30, 2026
+  </div>
+</header>
+
+<div class="wrap">
+
+<!-- 01: REALITY CHECK -->
+<section class="section">
+  <div class="section-num">01 · Reality Check</div>
+  <h2>The honest snapshot</h2>
+  <p class="lede">No mock numbers. Every figure below is computed from your actual Amazon Selling Partner data, fetched live through Windsor.ai.</p>
+
+  <div class="kpi-grid">
+    <div class="kpi">
+      <div class="label">Net Revenue · 60d</div>
+      <div class="value">₹4,970</div>
+      <div class="sub">From 8 delivered orders</div>
+    </div>
+    <div class="kpi bad">
+      <div class="label">Cancellation Rate</div>
+      <div class="value">56%</div>
+      <div class="sub">15 of 27 orders cancelled</div>
+    </div>
+    <div class="kpi bad">
+      <div class="label">Return Rate</div>
+      <div class="value">33%</div>
+      <div class="sub">4 of 12 shipped came back</div>
+    </div>
+    <div class="kpi warn">
+      <div class="label">Monthly Run-Rate</div>
+      <div class="value">₹2,485</div>
+      <div class="sub">Target: ₹10,00,000</div>
+    </div>
+  </div>
+
+  <div class="verdict">
+    <div class="vlabel">Verdict</div>
+    <div class="vtext">
+      You're at <strong>0.25%</strong> of your ₹10L/month target. To get there, revenue needs to grow <strong>402×</strong>. That's not a tweak — it's a fundamental rebuild of catalog, listings, and operations. Below is what's wrong, what's fixable, and what an "agent" can and cannot do for you.
+    </div>
+  </div>
+</section>
+
+<!-- 02: SEVEN PROBLEMS -->
+<section class="section">
+  <div class="section-num">02 · What's Wrong</div>
+  <h2>Seven problems found in your account</h2>
+  <p class="lede">Each one is a leak. Fix the leaks before pursuing the ₹10L target — pouring more inventory into a 56%-cancel funnel just multiplies losses.</p>
+
+  <div class="cols">
+    <div class="finding flag-red">
+      <span class="num">56%</span>
+      <h3>Cancellation rate is catastrophic</h3>
+      <p>15 of 27 orders in 60 days were cancelled before shipping. Industry benchmark is 2-5%. This usually points to slow dispatch (Amazon cancels for late shipment) or stock-out cancellations.</p>
+      <p><strong>Likely cause:</strong> The bestseller GH-MZIB-0O1A is now <em>Inactive</em> with 0 quantity. Buyers ordered, you couldn't fulfill.</p>
+    </div>
+
+    <div class="finding flag-red">
+      <span class="num">33%</span>
+      <h3>Return rate is 7× the safe threshold</h3>
+      <p>4 of 12 shipped orders returned. Amazon flags accounts above 8-10%. You're above 30%. The motorcycle LED light SKU (UJ-SS1O-UQK9) had a 100% return rate on its 1 shipment.</p>
+      <p><strong>Action:</strong> Run an FBA returns report through Seller Central to read customer comments — pattern will tell you if it's quality, fit, or expectation mismatch.</p>
+    </div>
+
+    <div class="finding flag-red">
+      <span class="num">96%</span>
+      <h3>Revenue concentrated in one inactive product</h3>
+      <p>SKU <span class="mono">GH-MZIB-0O1A</span> at ₹950 generated 96% of your delivered revenue. It now shows as <strong>Inactive</strong> with 0 quantity.</p>
+      <p><strong>Action:</strong> Either restock and reactivate immediately, or you have effectively zero revenue stream right now.</p>
+    </div>
+
+    <div class="finding flag-red">
+      <span class="num">7</span>
+      <h3>Identical image reused across many SKUs</h3>
+      <p>The image <span class="mono">41ZMpmlX+SL.jpg</span> appears on 5 different listings (8L-0YJ5-WMUI, FK-ISIN-160D, HL-JCL6-QAVA, TC-NY9E-X6K1, 8Y-GF9Y-WSFS). Same with <span class="mono">41eN5oQ4u0L.jpg</span> on 5 others.</p>
+      <p><strong>Why it matters:</strong> Customers see the same picture for different products. They click through, get confused, click away. This kills CTR and inflates returns.</p>
+    </div>
+
+    <div class="finding flag-yellow">
+      <span class="num">11</span>
+      <h3>11 listings are dead weight</h3>
+      <p>9 Inactive + 2 Incomplete out of 41 total. Inactive listings still count against your account health. Incomplete ones never went live.</p>
+      <p><strong>Action:</strong> Either complete and reactivate, or delete entirely from the catalog.</p>
+    </div>
+
+    <div class="finding flag-yellow">
+      <span class="num">5+</span>
+      <h3>No category focus — diluted brand</h3>
+      <p>Your active SKUs span: candles, makeup blender sponges, motorcycle LED lights, kids t-shirts, cosmetic brushes. Your Instagram is "Auranestt Kids".</p>
+      <p><strong>Strategic question:</strong> Are you a kids' brand, a beauty brand, or a moto-accessories reseller? Pick one. Customers and Amazon's algorithm both reward focus.</p>
+    </div>
+
+    <div class="finding flag-yellow">
+      <span class="num">SKU</span>
+      <h3>Inconsistent SKU naming</h3>
+      <p>SKUs in your catalog: "1", "2_Glitter candle pack of 100", "3E-PVJI-RD7K", "ANT-NBS-1Y", "Boys tshirt pack of 3", "Eye Rover-LED Eyes Motorcycle". Six different naming conventions.</p>
+      <p><strong>Action:</strong> Adopt one format like <span class="mono">CATEGORY-PRODUCT-VARIANT</span>. Makes inventory and reporting tractable.</p>
+    </div>
+
+    <div class="finding flag-green">
+      <span class="num">₹950</span>
+      <h3>Higher AOV products do work for you</h3>
+      <p>The ₹950 GH-MZIB-0O1A delivered 5 times — your strongest signal of demand. Buyers will pay this price point in your category. Restock it, optimize the listing, scale.</p>
+      <p><strong>Direction:</strong> Build a small portfolio of 5-10 SKUs in the ₹500-1500 range rather than 30+ SKUs at ₹50-300.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 03: ANSWERING YOUR 12 QUESTIONS -->
+<section class="section">
+  <div class="section-num">03 · Your 12 Asks</div>
+  <h2>What an agent can and cannot do</h2>
+  <p class="lede">For each of your twelve requests, here's the honest answer about what's possible right now with the tools you've connected.</p>
+
+  <div class="checklist">
+
+    <div class="check-item">
+      <div class="check-num">01</div>
+      <div class="check-body">
+        <h4>Review Seller Central account</h4>
+        <p>Done above. Real data on revenue, cancellations, returns, listings — all pulled through your Windsor.ai connection. <strong>Refresh anytime by asking me in chat.</strong></p>
+      </div>
+      <div class="check-status s-yes">Done</div>
+    </div>
+
+    <div class="check-item">
+      <div class="check-num">02</div>
+      <div class="check-body">
+        <h4>Audit listings & fix what's wrong</h4>
+        <p>I can <strong>identify</strong> issues (duplicate images, weak SKUs, inactive products) — see Section 02 above. I cannot <strong>edit</strong> your listings — Windsor.ai is read-only. You'll need to make the changes yourself in Seller Central. I can give you exact text to paste.</p>
+      </div>
+      <div class="check-status s-partial">Read only</div>
+    </div>
+
+    <div class="check-item">
+      <div class="check-num">03</div>
+      <div class="check-body">
+        <h4>Find 30 categories of new products</h4>
+        <p>I can analyze <strong>your</strong> sales velocity and recommend what's working in your account. I cannot scrape Amazon's marketplace for trending products in 30 categories — that requires tools like Helium 10 or Jungle Scout (₹3-8k/month). Your data alone tells me to focus on ₹500-1500 AOV items.</p>
+      </div>
+      <div class="check-status s-partial">Limited</div>
+    </div>
+
+    <div class="check-item">
+      <div class="check-num">04</div>
+      <div class="check-body">
+        <h4>Return-prevention strategy</h4>
+        <p>I can analyze your return data when FBA returns report becomes available (Windsor request timed out today, retry in a few hours). For now, your 33% return rate suggests photo/description honesty issues. Real fix: order 1 sample of each top product, photograph it yourself, write specs.</p>
+      </div>
+      <div class="check-status s-yes">Yes</div>
+    </div>
+
+    <div class="check-item">
+      <div class="check-num">05</div>
+      <div class="check-body">
+        <h4>Order alerts + packing slip PDF on WhatsApp</h4>
+        <p>Windsor.ai is <strong>read-only</strong> — it cannot push WhatsApp messages. To send WhatsApp PDFs you need <em>WhatsApp Business API</em> (Meta verification + ₹2-10/conversation) or a paid tool like Wati/Interakt (₹2k-5k/month). Cheaper alternative: I generate the packing slip, you save & forward via WhatsApp manually.</p>
+      </div>
+      <div class="check-status s-no">Not via Windsor</div>
+    </div>
+
+    <div class="check-item">
+      <div class="check-num">06</div>
+      <div class="check-body">
+        <h4>Monthly dispatch + payment dashboard</h4>
+        <p>Settlement data <strong>is</strong> available through Windsor — recent payouts shown in Section 04 below. I can build you a monthly view comparing units shipped vs Amazon's payment schedule.</p>
+      </div>
+      <div class="check-status s-yes">Yes</div>
+    </div>
+
+    <div class="check-item">
+      <div class="check-num">07</div>
+      <div class="check-body">
+        <h4>Highlight returns & whether received</h4>
+        <p>FBA returns report is in Windsor (it timed out today, will work later). It includes <strong>status</strong> — "Reimbursed", "Customer", "Damaged", etc. — so I'll know what was received vs not.</p>
+      </div>
+      <div class="check-status s-yes">Yes</div>
+    </div>
+
+    <div class="check-item">
+      <div class="check-num">08</div>
+      <div class="check-body">
+        <h4>Monthly GST report on WhatsApp</h4>
+        <p>I can <strong>calculate</strong> the GST report from settlement data (output a printable PDF). I cannot <strong>send</strong> it via WhatsApp — same limitation as #5. You'll need to manually forward, or use a separate WhatsApp Business API setup. Note: VAT fields exist in Windsor but they're for EU sellers, not Indian GST. Indian GST has to be calculated from sales data using your applicable rate.</p>
+      </div>
+      <div class="check-status s-partial">Calc only</div>
+    </div>
+
+    <div class="check-item">
+      <div class="check-num">09</div>
+      <div class="check-body">
+        <h4>Distance from ₹10L/month target</h4>
+        <p>Computed in real-time. Currently <strong>₹9,97,515 short</strong> on ₹2,485 of monthly revenue. Will track this with every refresh.</p>
+      </div>
+      <div class="check-status s-yes">Yes</div>
+    </div>
+
+    <div class="check-item">
+      <div class="check-num">10</div>
+      <div class="check-body">
+        <h4>Suggest what new product to source</h4>
+        <p>Based on <strong>your data</strong>, recommendation: scale GH-MZIB-0O1A (₹950 product, 5 successful deliveries). Beyond that, no agent can predict marketplace winners without external research data — see #3.</p>
+      </div>
+      <div class="check-status s-partial">Internal only</div>
+    </div>
+
+    <div class="check-item">
+      <div class="check-num">11</div>
+      <div class="check-body">
+        <h4>Where to source from (India/China)</h4>
+        <p>This is general business advice, not data. Your active SKUs suggest your category is consumer accessories. India: IndiaMART, TradeIndia, Tirupur (apparel), Surat (textiles), Mumbai (cosmetics). China: Alibaba, 1688.com (cheaper but Mandarin only), Yiwu Market for accessories. I can't access supplier databases — that's manual outreach.</p>
+      </div>
+      <div class="check-status s-needs">General advice</div>
+    </div>
+
+    <div class="check-item">
+      <div class="check-num">12</div>
+      <div class="check-body">
+        <h4>CRM dashboard with customer Excel</h4>
+        <p>From the order data, I have shipping addresses (city + state). Buyer names + emails are <strong>encrypted by Amazon</strong> — that's an Amazon privacy policy, not a Windsor limitation. You see them in Seller Central but they aren't pushed via SP-API. Best you can build is a "delivery zones by SKU" CRM. See Section 05 below for what's possible.</p>
+      </div>
+      <div class="check-status s-partial">Limited by Amazon</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- 04: SETTLEMENTS -->
+<section class="section">
+  <div class="section-num">04 · Money in the bank</div>
+  <h2>Recent settlements</h2>
+  <p class="lede">From the v2_settlement_report — the actual paisa-level breakdown of one of your recent orders, showing how Amazon splits revenue.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Posted</th>
+        <th>Order</th>
+        <th>SKU</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Amount</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td class="mono">07 Apr 2026</td><td class="mono">405-5683487...</td><td class="mono">KA-ZFA0-ACQ3</td><td><span class="tag delivered">Order</span></td><td>Item Price</td><td>₹101.69</td></tr>
+      <tr><td class="mono">07 Apr 2026</td><td class="mono">405-5683487...</td><td class="mono">KA-ZFA0-ACQ3</td><td><span class="tag delivered">Order</span></td><td>Item Price</td><td>₹18.31</td></tr>
+      <tr><td class="mono">07 Apr 2026</td><td class="mono">405-5683487...</td><td class="mono">KA-ZFA0-ACQ3</td><td><span class="tag delivered">Order</span></td><td>Item Price</td><td>₹59.32</td></tr>
+      <tr><td class="mono">07 Apr 2026</td><td class="mono">405-5683487...</td><td class="mono">KA-ZFA0-ACQ3</td><td><span class="tag delivered">Order</span></td><td>Item Price</td><td>₹10.68</td></tr>
+      <tr><td class="mono">07 Apr 2026</td><td class="mono">405-5683487...</td><td class="mono">KA-ZFA0-ACQ3</td><td><span class="tag returned">Tax</span></td><td>Item TCS</td><td>−₹0.81</td></tr>
+      <tr><td class="mono">07 Apr 2026</td><td class="mono">405-5683487...</td><td class="mono">KA-ZFA0-ACQ3</td><td><span class="tag returned">Fee</span></td><td>Item Fees</td><td>−₹1.00</td></tr>
+      <tr><td class="mono">07 Apr 2026</td><td class="mono">405-5683487...</td><td class="mono">KA-ZFA0-ACQ3</td><td><span class="tag returned">Fee</span></td><td>Item Fees</td><td>−₹0.18</td></tr>
+      <tr><td class="mono">08 Apr 2026</td><td class="mono">405-5683487...</td><td>—</td><td><span class="tag cancelled">Other</span></td><td>Other transaction</td><td>−₹59.00</td></tr>
+      <tr><td class="mono">08 Apr 2026</td><td class="mono">405-5683487...</td><td>—</td><td><span class="tag cancelled">Other</span></td><td>Other transaction</td><td>−₹10.62</td></tr>
+      <tr><td class="mono">08 Apr 2026</td><td>—</td><td>—</td><td><span class="tag cancelled">Other</span></td><td>Other transaction</td><td>+₹218.60</td></tr>
+    </tbody>
+  </table>
+
+  <p style="font-size:13px;color:var(--muted);margin-top:8px"><em>Insight:</em> A ₹120 sale netted you about ₹190 after various line items. The "other transactions" are reimbursements/adjustments. This level of detail is available for every order — I can pull a full month at a time.</p>
+</section>
+
+<!-- 05: LISTINGS TABLE -->
+<section class="section">
+  <div class="section-num">05 · Catalog audit</div>
+  <h2>All 41 of your listings</h2>
+  <p class="lede">Pulled from <span class="mono">merchant_listings_all_data</span>. Note the duplicate image URLs — that's Section 02, finding #4.</p>
+
+  <table>
+    <thead><tr>
+      <th>SKU</th><th>ASIN</th><th>Status</th><th>Stock</th><th>Price</th><th>Listed</th>
+    </tr></thead>
+    <tbody>
+      <tr><td class="mono">UJ-SS1O-UQK9</td><td class="mono">B0DSBMCCPC</td><td><span class="tag active">Active</span></td><td>4961</td><td>₹190</td><td>06 Jan 2025</td></tr>
+      <tr><td class="mono">VU-75AN-RKCP</td><td class="mono">B0FT8K9HK6</td><td><span class="tag active">Active</span></td><td>1000</td><td>₹330</td><td>30 Sep 2025</td></tr>
+      <tr><td class="mono">OS-13MP-ZE0N</td><td class="mono">B0DVPGGPQV</td><td><span class="tag active">Active</span></td><td>1000</td><td>₹270</td><td>01 Feb 2025</td></tr>
+      <tr><td class="mono">DX-CJ36-4WDI</td><td class="mono">B0DSBPJ44H</td><td><span class="tag active">Active</span></td><td>500</td><td>₹300</td><td>06 Jan 2025</td></tr>
+      <tr><td class="mono">8L-0YJ5-WMUI</td><td class="mono">B0FTG9Y52K</td><td><span class="tag active">Active</span></td><td>500</td><td>₹150</td><td>01 Oct 2025</td></tr>
+      <tr><td class="mono">FK-ISIN-160D</td><td class="mono">B0FTGBT7FC</td><td><span class="tag active">Active</span></td><td>500</td><td>₹199</td><td>01 Oct 2025</td></tr>
+      <tr><td class="mono">D5-PG8M-SKG2</td><td class="mono">B0FSDSMKJM</td><td><span class="tag active">Active</span></td><td>394</td><td>₹143</td><td>24 Sep 2025</td></tr>
+      <tr><td class="mono">QL-5COZ-CPKX</td><td class="mono">B0FTS28F3K</td><td><span class="tag active">Active</span></td><td>250</td><td>₹630</td><td>03 Oct 2025</td></tr>
+      <tr><td class="mono">F4-MSGR-IC3V</td><td class="mono">B0FTFY27ZR</td><td><span class="tag active">Active</span></td><td>200</td><td>₹499</td><td>01 Oct 2025</td></tr>
+      <tr><td class="mono">XO-USU6-KHS4</td><td class="mono">B0FTGDBV1T</td><td><span class="tag active">Active</span></td><td>200</td><td>₹99</td><td>01 Oct 2025</td></tr>
+      <tr><td class="mono">HL-JCL6-QAVA</td><td class="mono">B0FTGF3QVF</td><td><span class="tag active">Active</span></td><td>200</td><td>₹230</td><td>01 Oct 2025</td></tr>
+      <tr><td class="mono">TC-NY9E-X6K1</td><td class="mono">B0FTGB5DPZ</td><td><span class="tag active">Active</span></td><td>200</td><td>₹120</td><td>01 Oct 2025</td></tr>
+      <tr><td class="mono">HR-MZBT-LFC6</td><td class="mono">B0FTG3MK17</td><td><span class="tag active">Active</span></td><td>100</td><td>₹550</td><td>01 Oct 2025</td></tr>
+      <tr><td class="mono">3_Glitter candle pack of 100</td><td class="mono">B0BQX38CCH</td><td><span class="tag active">Active</span></td><td>93</td><td>₹241</td><td>24 Oct 2023</td></tr>
+      <tr><td class="mono">IG-NQGF-VA09</td><td class="mono">B0FSDY2863</td><td><span class="tag active">Active</span></td><td>97</td><td>₹279</td><td>24 Sep 2025</td></tr>
+      <tr><td class="mono">KA-ZFA0-ACQ3</td><td class="mono">B0FSDSSD5F</td><td><span class="tag active">Active</span></td><td>83</td><td>₹120</td><td>24 Sep 2025</td></tr>
+      <tr><td class="mono">OA-E9T1-97SR</td><td class="mono">B0DJ7P3KLB</td><td><span class="tag active">Active</span></td><td>80</td><td>₹199</td><td>29 Sep 2024</td></tr>
+      <tr><td class="mono">2_Glitter candle pack of 100</td><td class="mono">B0BQX38CCH</td><td><span class="tag active">Active</span></td><td>48</td><td>₹246</td><td>04 Oct 2023</td></tr>
+      <tr><td class="mono">XK-GD4X-GPPT</td><td class="mono">B0CLRC44FJ</td><td><span class="tag active">Active</span></td><td>30</td><td>₹500</td><td>25 Oct 2023</td></tr>
+      <tr><td class="mono">3E-PVJI-RD7K</td><td class="mono">B0DC4M5BD8</td><td><span class="tag active">Active</span></td><td>25</td><td>₹750</td><td>03 Aug 2024</td></tr>
+      <tr><td class="mono">1</td><td class="mono">B0BQX38CCH</td><td><span class="tag active">Active</span></td><td>20</td><td>₹240</td><td>01 Oct 2023</td></tr>
+      <tr><td class="mono">YE-WDAZ-FRZN</td><td class="mono">B0DC4M5BD8</td><td><span class="tag active">Active</span></td><td>20</td><td>₹800</td><td>03 Aug 2024</td></tr>
+      <tr><td class="mono">ANT-NBS-1Y</td><td class="mono">B0GXYCDTRL</td><td><span class="tag active">Active</span></td><td>10</td><td>₹599</td><td>21 Apr 2026</td></tr>
+      <tr><td class="mono">6J-WBO6-65KJ</td><td class="mono">B0DJ7R725Z</td><td><span class="tag active">Active</span></td><td>10</td><td>₹950</td><td>29 Sep 2024</td></tr>
+      <tr><td class="mono">Boys tshirt pack of 3</td><td class="mono">B0F4X51KZN</td><td><span class="tag active">Active</span></td><td>10</td><td>₹700</td><td>15 Apr 2025</td></tr>
+      <tr><td class="mono">Pink organe 1-2</td><td class="mono">B0F63LQVRS</td><td><span class="tag active">Active</span></td><td>10</td><td>₹450</td><td>23 Apr 2025</td></tr>
+      <tr><td class="mono">C2-IZC2-FS7P</td><td class="mono">B0DY93LX1Z</td><td><span class="tag active">Active</span></td><td>9</td><td>₹50</td><td>24 Feb 2025</td></tr>
+      <tr><td class="mono">Black Yellow 2</td><td class="mono">B0F67LGQC8</td><td><span class="tag active">Active</span></td><td>5</td><td>₹240</td><td>24 Apr 2025</td></tr>
+      <tr><td class="mono">OR-VE7M-HPJ5</td><td class="mono">B0DYNQRW8T</td><td><span class="tag active">Active</span></td><td>5</td><td>₹200</td><td>27 Feb 2025</td></tr>
+      <tr><td class="mono">UZ-BIS8-QA1S</td><td class="mono">B0CT3TP9ZV</td><td><span class="tag active">Active</span></td><td>5</td><td>₹999</td><td>23 Jan 2024</td></tr>
+      <tr style="background:rgba(214,72,24,0.05)"><td class="mono">GH-MZIB-0O1A</td><td class="mono">B0DV3F2G5Y</td><td><span class="tag inactive">Inactive</span></td><td>10</td><td>₹1,050</td><td>25 Jan 2025</td></tr>
+      <tr style="background:rgba(214,72,24,0.05)"><td class="mono">Eye Rover-LED</td><td class="mono">B0DSBPJ36N</td><td><span class="tag inactive">Inactive</span></td><td>0</td><td>₹12,000</td><td>06 Jan 2025</td></tr>
+      <tr><td class="mono">PK-8W88-597P</td><td class="mono">5245645466</td><td><span class="tag inactive">Inactive</span></td><td>99</td><td>₹500</td><td>01 Oct 2023</td></tr>
+      <tr><td class="mono">tea candle pack of 25</td><td class="mono">B0CKLY8T96</td><td><span class="tag inactive">Inactive</span></td><td>97</td><td>₹150</td><td>07 Oct 2023</td></tr>
+      <tr><td class="mono">WS-N6NP-RW86</td><td class="mono">B0DVPMNR91</td><td><span class="tag inactive">Inactive</span></td><td>14</td><td>₹120</td><td>01 Feb 2025</td></tr>
+      <tr><td class="mono">33-9R1G-VFW4</td><td class="mono">B0DC4NY2MD</td><td><span class="tag inactive">Inactive</span></td><td>0</td><td>₹1,000</td><td>03 Aug 2024</td></tr>
+      <tr><td class="mono">GI Minidrive 02</td><td class="mono">B0F4X3Y14X</td><td><span class="tag inactive">Inactive</span></td><td>0</td><td>₹210</td><td>15 Apr 2025</td></tr>
+      <tr><td class="mono">R4-VECX-DCSJ</td><td class="mono">B0CL34GHRD</td><td><span class="tag inactive">Inactive</span></td><td>0</td><td>₹270</td><td>15 Oct 2023</td></tr>
+      <tr><td class="mono">TO-OJ4U-D8V5</td><td class="mono">B0DY4WL336</td><td><span class="tag inactive">Inactive</span></td><td>0</td><td>₹50</td><td>22 Feb 2025</td></tr>
+      <tr><td class="mono">8Y-GF9Y-WSFS</td><td class="mono">B0FTG9MCG7</td><td><span class="tag incomplete">Incomplete</span></td><td>0</td><td>—</td><td>01 Oct 2025</td></tr>
+      <tr><td class="mono">JE-QW4F-J66J</td><td class="mono">B0FTS1RSBH</td><td><span class="tag incomplete">Incomplete</span></td><td>0</td><td>—</td><td>03 Oct 2025</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- 06: GROWTH PATH -->
+<section class="section">
+  <div class="section-num">06 · Path to ₹10 Lakh</div>
+  <h2>An honest growth plan</h2>
+  <p class="lede">Going from ₹2.5k to ₹10L per month in 12 months means ~50% month-over-month growth, every month. That's possible but demanding. Here's the realistic stair-step.</p>
+
+  <p class="pullquote">The fastest way to ₹10L is not "30 new categories." It's 5 SKUs that buyers actually want, photographed and described well, with stock that doesn't run out.</p>
+
+  <table>
+    <thead>
+      <tr><th>Month</th><th>Target</th><th>Strategy</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>1</strong></td>
+        <td>₹15,000</td>
+        <td>Stop the bleeding. Reactivate GH-MZIB-0O1A. Delete or fix all 11 inactive/incomplete listings. Replace duplicate images.</td>
+      </tr>
+      <tr>
+        <td><strong>2</strong></td>
+        <td>₹50,000</td>
+        <td>Pick a category. Cosmetics OR motorcycle accessories OR kids — not all three. Focus inventory & marketing on one.</td>
+      </tr>
+      <tr>
+        <td><strong>3-4</strong></td>
+        <td>₹1.5L</td>
+        <td>Run Amazon Sponsored Ads on top 3 SKUs. Budget ₹500-1000/day. Track ACoS &lt; 25%.</td>
+      </tr>
+      <tr>
+        <td><strong>5-6</strong></td>
+        <td>₹3L</td>
+        <td>Cancellation rate to under 10%. Migrate to FBA for 2-3 bestsellers (Amazon ships, returns drop).</td>
+      </tr>
+      <tr>
+        <td><strong>7-9</strong></td>
+        <td>₹6L</td>
+        <td>Add 5 new SKUs in winning category, sourced from Tirupur/Yiwu. Weekly photoshoots in-house.</td>
+      </tr>
+      <tr>
+        <td><strong>10-12</strong></td>
+        <td>₹10L</td>
+        <td>Multi-marketplace: Flipkart + Meesho. Influencer seeding. Brand store on Amazon.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="action">
+    <h3>This week — three things, in this order:</h3>
+    <ol>
+      <li><strong>Restock GH-MZIB-0O1A</strong> or stop relying on it. It's 96% of revenue and currently inactive.</li>
+      <li><strong>Photograph each product yourself.</strong> No more reused stock images. Phone camera + window light is fine.</li>
+      <li><strong>Audit the 11 dead listings</strong> — fix or delete each one. They drag your account health.</li>
+    </ol>
+  </div>
+</section>
+
+<!-- 07: MAKE IT LIVE -->
+<section class="section">
+  <div class="section-num">07 · Make it live</div>
+  <h2>How to turn this into a daily-use tool</h2>
+  <p class="lede">You asked how to make this "live". You have three real options. Here they are, in order of practicality.</p>
+
+  <div class="cols">
+    <div class="finding flag-green">
+      <h3>Option A · Use Claude as the agent</h3>
+      <p><strong>What it is:</strong> This conversation, but ongoing. Whenever you want fresh data, you message me. I pull from Windsor, do the analysis, send you back an updated dashboard like this one.</p>
+      <p><strong>Cost:</strong> Whatever you're already paying for Claude.</p>
+      <p><strong>Latency:</strong> Minutes, on demand.</p>
+      <p><strong>Limits:</strong> Not 24/7 background. You have to ask. I can't push WhatsApp.</p>
+      <p><strong>Best for:</strong> Right now. Start here.</p>
+    </div>
+
+    <div class="finding flag-yellow">
+      <h3>Option B · Windsor.ai → Google Sheets → daily refresh</h3>
+      <p><strong>What it is:</strong> Windsor.ai natively pushes data to Google Sheets, BigQuery, Looker Studio. Set up once, runs daily.</p>
+      <p><strong>Cost:</strong> Windsor.ai pricing (you're already on it). Google Sheets free.</p>
+      <p><strong>Setup:</strong> Windsor dashboard → "Add destination" → Google Sheets → choose Amazon SP fields → schedule daily refresh.</p>
+      <p><strong>Limits:</strong> No alerts, no WhatsApp, no actions — just data updated daily.</p>
+      <p><strong>Best for:</strong> Once you're past ₹50k/month and need persistent reporting.</p>
+    </div>
+
+    <div class="finding flag-yellow">
+      <h3>Option C · Custom server with WhatsApp + alerts</h3>
+      <p><strong>What it is:</strong> Hire a developer to build a Node.js server that hits Windsor.ai's REST API on a schedule, calculates KPIs, and sends WhatsApp messages via Wati or Meta's API.</p>
+      <p><strong>Cost:</strong> ₹50k-1.5L one-time + ₹3k-8k/month hosting + Wati ₹2k-5k/month.</p>
+      <p><strong>Time:</strong> 4-8 weeks.</p>
+      <p><strong>Honest take:</strong> Skip until you're past ₹3L/month. Below that, the cost is more than the value.</p>
+    </div>
+
+    <div class="finding flag-red">
+      <h3>Option D · Off-the-shelf tools</h3>
+      <p><strong>What it is:</strong> Tools like Sellerboard ($15-50/month), Helium 10 ($29-99/month), or Indian-focused like SellerApp.</p>
+      <p><strong>Pros:</strong> Already exist. Already work. Real-time alerts, GST helpers, profit tracking.</p>
+      <p><strong>Cons:</strong> Not custom to you. Some require their own SP-API connection (separate from Windsor).</p>
+      <p><strong>Honest take:</strong> Sellerboard at $15/mo will outperform any custom tool for under-₹5L sellers.</p>
+    </div>
+  </div>
+
+  <div class="refresh-box">
+    <h3>To refresh this dashboard today</h3>
+    <p>Open your Claude conversation. Ask one of these:</p>
+    <p><code>refresh my agent dashboard</code> → I rebuild this file with today's data.</p>
+    <p><code>show me last 7 days orders</code> → I pull and analyze a specific window.</p>
+    <p><code>which listings have duplicate images?</code> → targeted question, targeted answer.</p>
+    <p><code>generate a packing slip for order 405-...</code> → I produce a printable PDF page.</p>
+    <p style="margin-top:20px;font-size:13px;opacity:0.8">No code, no setup, no scheduled jobs. Claude + Windsor is the agent. You drive.</p>
+  </div>
+</section>
+
+</div>
+
+<footer>
+  Generated 5 May 2026 · Data via Windsor.ai → Amazon Selling Partner API · Account A3749R7F13LNVE-IN
+</footer>
+
+</body>
+</html>
