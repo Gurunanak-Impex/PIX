@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Auranestt Kids Playbook · Complete Seller Strategy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,800;9..144,900&family=JetBrains+Mono:wght@400;500;600&family=Inter+Tight:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0a0a0a; --paper:#f4f1ea; --paper-2:#ebe6db; --paper-3:#dfd8c8;
+  --accent:#d64818; --green:#1a4d3a; --gold:#b8902a; --teal:#2d6a6a;
+  --muted:#6b6660; --line:#1a1a1a;
+  --good:#1a4d3a; --warn:#b8902a; --bad:#d64818;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  background:var(--paper);color:var(--ink);
+  font-family:'Inter Tight',sans-serif;font-size:14px;line-height:1.55;
+}
+.wrap{max-width:1180px;margin:0 auto;padding:0 32px}
+
+/* Masthead */
+.masthead{
+  border-bottom:3px solid var(--ink);padding:40px 32px 24px;
+  background:var(--paper);text-align:center;
+}
+.masthead .kicker{
+  font-family:'JetBrains Mono',monospace;font-size:10px;
+  letter-spacing:0.3em;text-transform:uppercase;color:var(--muted);
+  margin-bottom:16px;
+}
+.masthead h1{
+  font-family:'Fraunces',serif;font-weight:900;
+  font-size:64px;letter-spacing:-0.04em;line-height:0.92;
+  margin-bottom:12px;
+}
+.masthead .sub{
+  font-family:'Fraunces',serif;font-style:italic;
+  font-size:20px;color:var(--muted);max-width:600px;margin:0 auto;
+}
+.masthead .meta{
+  font-family:'JetBrains Mono',monospace;font-size:10px;
+  letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);
+  margin-top:20px;
+}
+.live-dot{
+  display:inline-block;width:6px;height:6px;border-radius:50%;
+  background:var(--good);margin-right:6px;vertical-align:middle;
+  animation:pulse 2s infinite;
+}
+@keyframes pulse{50%{opacity:0.3}}
+
+/* Sticky nav */
+.toc{
+  position:sticky;top:0;z-index:100;
+  background:var(--ink);color:var(--paper);
+  padding:12px 32px;
+  display:flex;gap:8px;justify-content:center;flex-wrap:wrap;
+  border-bottom:1px solid rgba(255,255,255,0.1);
+}
+.toc a{
+  font-family:'JetBrains Mono',monospace;font-size:10px;
+  letter-spacing:0.1em;text-transform:uppercase;
+  color:rgba(244,241,234,0.7);text-decoration:none;
+  padding:5px 10px;border:1px solid transparent;transition:all 0.2s;
+}
+.toc a:hover{color:var(--paper);border-color:rgba(255,255,255,0.3)}
+
+/* Section */
+.section{padding:56px 0;border-bottom:1px solid rgba(0,0,0,0.08)}
+.section-num{
+  font-family:'JetBrains Mono',monospace;font-size:11px;
+  letter-spacing:0.2em;color:var(--accent);
+  margin-bottom:12px;
+}
+.section h2{
+  font-family:'Fraunces',serif;font-weight:800;
+  font-size:42px;letter-spacing:-0.03em;line-height:1;
+  margin-bottom:12px;
+}
+.section .lede{
+  font-family:'Fraunces',serif;font-style:italic;
+  font-size:19px;line-height:1.5;color:var(--muted);
+  max-width:720px;margin-bottom:36px;
+}
+
+/* KPI grid */
+.kpi-grid{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:1px;background:var(--line);border:1px solid var(--line);
+  margin-bottom:32px;
+}
+.kpi{background:var(--paper);padding:20px 24px;}
+.kpi.bad{background:var(--accent);color:var(--paper)}
+.kpi.warn{background:var(--gold);color:var(--paper)}
+.kpi.good{background:var(--green);color:var(--paper)}
+.kpi .label{
+  font-family:'JetBrains Mono',monospace;font-size:9px;
+  letter-spacing:0.2em;text-transform:uppercase;
+  margin-bottom:8px;opacity:0.75;
+}
+.kpi .value{
+  font-family:'Fraunces',serif;font-weight:800;
+  font-size:34px;letter-spacing:-0.02em;line-height:1;
+}
+.kpi .sub{margin-top:6px;font-size:12px;opacity:0.85;}
+@media(max-width:900px){.kpi-grid{grid-template-columns:repeat(2,1fr)}}
+
+/* Verdict */
+.verdict{
+  background:var(--ink);color:var(--paper);
+  padding:32px;margin:32px 0;border-left:6px solid var(--accent);
+}
+.verdict .vlabel{
+  font-family:'JetBrains Mono',monospace;font-size:10px;
+  letter-spacing:0.2em;text-transform:uppercase;
+  color:var(--accent);margin-bottom:12px;
+}
+.verdict .vtext{
+  font-family:'Fraunces',serif;font-weight:600;
+  font-size:23px;line-height:1.35;
+}
+.verdict strong{color:var(--gold)}
+
+/* Cols / findings */
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.cols-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+@media(max-width:800px){.cols,.cols-3{grid-template-columns:1fr}}
+.finding{border:1px solid var(--ink);padding:20px;background:var(--paper);}
+.finding.flag-red{border-left:6px solid var(--bad)}
+.finding.flag-yellow{border-left:6px solid var(--warn)}
+.finding.flag-green{border-left:6px solid var(--good)}
+.finding h3{font-family:'Fraunces',serif;font-weight:600;font-size:18px;margin-bottom:8px;}
+.finding p{font-size:13px;line-height:1.55;margin-bottom:8px}
+.finding .num{
+  font-family:'Fraunces',serif;font-weight:800;font-size:30px;
+  color:var(--accent);line-height:1;display:block;margin-bottom:6px;
+}
+
+/* Tables */
+table{width:100%;border-collapse:collapse;margin:16px 0;font-size:13px}
+th{
+  text-align:left;padding:10px 12px;
+  font-family:'JetBrains Mono',monospace;font-size:9px;
+  letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);
+  border-bottom:2px solid var(--ink);
+}
+td{padding:10px 12px;border-bottom:1px solid rgba(0,0,0,0.08);vertical-align:top}
+tr:hover td{background:rgba(0,0,0,0.02)}
+td.r,th.r{text-align:right}
+.mono{font-family:'JetBrains Mono',monospace;font-size:12px}
+.hl{background:rgba(26,77,58,0.08)}
+.tag{
+  display:inline-block;padding:2px 7px;font-size:10px;font-weight:600;
+  font-family:'JetBrains Mono',monospace;letter-spacing:0.05em;
+  border:1px solid currentColor;
+}
+.tag.yes,.tag.good{color:var(--good)}
+.tag.no,.tag.bad{color:var(--bad)}
+.tag.partial,.tag.warn{color:var(--gold)}
+
+/* Checklist */
+.checklist{display:grid;gap:1px;background:var(--line);border:1px solid var(--line);margin-top:16px}
+.check-item{
+  background:var(--paper);padding:18px 24px;
+  display:grid;grid-template-columns:44px 1fr 130px;gap:16px;align-items:start;
+}
+.check-num{font-family:'Fraunces',serif;font-weight:800;font-size:28px;color:var(--muted);line-height:1;}
+.check-body h4{font-family:'Fraunces',serif;font-weight:600;font-size:16px;margin-bottom:4px;}
+.check-body p{font-size:12px;color:var(--muted);line-height:1.5}
+.check-status{
+  font-family:'JetBrains Mono',monospace;font-size:9px;
+  letter-spacing:0.12em;text-transform:uppercase;
+  padding:6px 9px;text-align:center;border:1px solid currentColor;align-self:start;
+}
+.s-yes{color:var(--good)}.s-partial{color:var(--warn)}.s-no{color:var(--bad)}.s-needs{color:var(--muted)}
+@media(max-width:700px){.check-item{grid-template-columns:1fr}.check-status{justify-self:start}}
+
+/* Pullquote */
+.pullquote{
+  font-family:'Fraunces',serif;font-style:italic;font-weight:400;
+  font-size:27px;line-height:1.35;
+  border-left:4px solid var(--accent);padding:8px 0 8px 24px;margin:32px 0;
+}
+
+/* Action box */
+.action{background:var(--paper-2);border:2px solid var(--ink);padding:24px;margin:20px 0;}
+.action h3{font-family:'Fraunces',serif;font-weight:700;font-size:22px;margin-bottom:8px;}
+.action ol{padding-left:22px;margin-top:12px}
+.action ol li{margin-bottom:10px;font-size:14px;line-height:1.5}
+.action code,.refresh-box code{
+  font-family:'JetBrains Mono',monospace;font-size:12px;
+  background:var(--paper-3);padding:2px 6px;border:1px solid rgba(0,0,0,0.1);
+}
+
+/* Phase ramp */
+.phase{
+  display:grid;grid-template-columns:130px 1fr;gap:0;
+  border:1px solid var(--ink);margin-bottom:1px;background:var(--paper);
+}
+.phase-head{background:var(--ink);color:var(--paper);padding:18px;}
+.phase-head .pname{font-family:'Fraunces',serif;font-weight:700;font-size:18px;margin-bottom:4px}
+.phase-head .pweeks{font-family:'JetBrains Mono',monospace;font-size:10px;opacity:0.7;letter-spacing:0.1em}
+.phase-body{padding:18px;display:flex;flex-wrap:wrap;gap:24px;align-items:center}
+.phase-stat .pl{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted)}
+.phase-stat .pv{font-family:'Fraunces',serif;font-weight:700;font-size:24px;line-height:1.1}
+
+/* Refresh box */
+.refresh-box{background:var(--ink);color:var(--paper);padding:32px;margin:32px 0;}
+.refresh-box h3{font-family:'Fraunces',serif;font-weight:700;font-size:24px;margin-bottom:16px;}
+.refresh-box p{margin-bottom:10px;line-height:1.6}
+.refresh-box code{background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.2);color:var(--paper)}
+
+/* Big action plan */
+.master-plan{counter-reset:step;margin-top:24px}
+.step{
+  display:grid;grid-template-columns:60px 1fr;gap:20px;
+  padding:24px 0;border-bottom:1px solid rgba(0,0,0,0.1);
+}
+.step::before{
+  counter-increment:step;content:counter(step);
+  font-family:'Fraunces',serif;font-weight:800;font-size:44px;
+  color:var(--accent);line-height:0.9;
+}
+.step h4{font-family:'Fraunces',serif;font-weight:700;font-size:20px;margin-bottom:6px}
+.step p{font-size:14px;line-height:1.55;color:var(--muted)}
+.step .when{
+  font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:0.15em;
+  text-transform:uppercase;color:var(--ink);background:var(--paper-3);
+  padding:3px 8px;display:inline-block;margin-bottom:8px;
+}
+
+footer{
+  padding:40px 32px;text-align:center;
+  font-family:'JetBrains Mono',monospace;font-size:10px;
+  letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);
+  border-top:3px solid var(--ink);
+}
+
+@media print{
+  body{background:white}
+  .toc{display:none}
+  .section{page-break-inside:avoid}
+}
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="kicker">The Complete Seller Strategy · Account A3749R7F13LNVE-IN</div>
+  <h1>The Auranestt Kids<br>Playbook</h1>
+  <p class="sub">Everything in one place — your real numbers, your problems, your new product, your pricing, your ads, your plan.</p>
+  <div class="meta"><span class="live-dot"></span>Built on real Windsor.ai data · May 2026</div>
+</header>
+
+<nav class="toc">
+  <a href="#reality">01 Reality</a>
+  <a href="#problems">02 Problems</a>
+  <a href="#asks">03 Your 12 Asks</a>
+  <a href="#product">04 New Product</a>
+  <a href="#pricing">05 Pricing</a>
+  <a href="#categories">06 What to Sell</a>
+  <a href="#ads">07 Ads</a>
+  <a href="#live">08 Run It Daily</a>
+  <a href="#plan">09 Master Plan</a>
+</nav>
+
+<div class="wrap">
+
+<!-- 01 REALITY -->
+<section class="section" id="reality">
+  <div class="section-num">01 · Reality Check</div>
+  <h2>Where you actually are</h2>
+  <p class="lede">No mock numbers. Every figure is computed from your real Amazon Selling Partner data, pulled through Windsor.ai.</p>
+
+  <div class="kpi-grid">
+    <div class="kpi">
+      <div class="label">Net Revenue · 60d</div>
+      <div class="value">₹4,970</div>
+      <div class="sub">From 8 delivered orders</div>
+    </div>
+    <div class="kpi bad">
+      <div class="label">Cancellation Rate</div>
+      <div class="value">56%</div>
+      <div class="sub">15 of 27 orders cancelled</div>
+    </div>
+    <div class="kpi bad">
+      <div class="label">Return Rate</div>
+      <div class="value">33%</div>
+      <div class="sub">4 of 12 shipped came back</div>
+    </div>
+    <div class="kpi warn">
+      <div class="label">Monthly Run-Rate</div>
+      <div class="value">₹2,485</div>
+      <div class="sub">Target: ₹10,00,000</div>
+    </div>
+  </div>
+
+  <div class="verdict">
+    <div class="vlabel">The honest verdict</div>
+    <div class="vtext">You're at <strong>0.25%</strong> of your ₹10L/month target. Closing that gap means growing <strong>402×</strong>. That's not optimization — it's a rebuild. The good news: the new kids' set (Section 04) is your first product that actually fits your brand. Start there.</div>
+  </div>
+</section>
+
+<!-- 02 PROBLEMS -->
+<section class="section" id="problems">
+  <div class="section-num">02 · What's Wrong</div>
+  <h2>Seven leaks to plug first</h2>
+  <p class="lede">Pouring inventory or ad spend into a 56%-cancel funnel just multiplies losses. Fix these before scaling anything.</p>
+
+  <div class="cols">
+    <div class="finding flag-red">
+      <span class="num">56%</span>
+      <h3>Cancellation rate is catastrophic</h3>
+      <p>15 of 27 orders cancelled before shipping. Benchmark is 2-5%. Likely cause: your bestseller went out of stock, so orders couldn't be fulfilled.</p>
+    </div>
+    <div class="finding flag-red">
+      <span class="num">33%</span>
+      <h3>Return rate is 7× the safe line</h3>
+      <p>Amazon flags accounts above 8-10%. You're above 30%. The motorcycle LED SKU had a 100% return rate. Read return comments to find the pattern.</p>
+    </div>
+    <div class="finding flag-red">
+      <span class="num">96%</span>
+      <h3>Revenue trapped in one inactive product</h3>
+      <p>SKU GH-MZIB-0O1A (₹950) made 96% of revenue. It's now <strong>Inactive with 0 stock</strong>. Restock it or you have no revenue stream.</p>
+    </div>
+    <div class="finding flag-red">
+      <span class="num">5×</span>
+      <h3>Same image on multiple listings</h3>
+      <p>One image file appears on 5 different SKUs. Buyers see identical photos for different products, get confused, leave. Kills click-through and inflates returns.</p>
+    </div>
+    <div class="finding flag-yellow">
+      <span class="num">11</span>
+      <h3>Dead listings dragging account health</h3>
+      <p>9 Inactive + 2 Incomplete of 41 total. Fix or delete each one.</p>
+    </div>
+    <div class="finding flag-yellow">
+      <span class="num">∞</span>
+      <h3>No category focus</h3>
+      <p>Candles + makeup + motorcycle LEDs + kids apparel under one account. Pick ONE. Your brand is Auranestt Kids — lean into kids.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 03 ASKS -->
+<section class="section" id="asks">
+  <div class="section-num">03 · Your 12 Requests</div>
+  <h2>Answered honestly</h2>
+  <p class="lede">What an "agent" running on your connected tools can and cannot do for you right now.</p>
+
+  <div class="checklist">
+    <div class="check-item"><div class="check-num">01</div><div class="check-body"><h4>Review Seller Central account</h4><p>Done — real data throughout this playbook. Refresh anytime by asking Claude.</p></div><div class="check-status s-yes">Done</div></div>
+    <div class="check-item"><div class="check-num">02</div><div class="check-body"><h4>Audit & fix listings</h4><p>I identify issues; you make edits in Seller Central. Windsor.ai is read-only.</p></div><div class="check-status s-partial">Read only</div></div>
+    <div class="check-item"><div class="check-num">03</div><div class="check-body"><h4>30 categories of new products</h4><p>Researched — see Section 06. Live per-SKU velocity needs Helium 10 (₹3-8k/mo).</p></div><div class="check-status s-yes">Done</div></div>
+    <div class="check-item"><div class="check-num">04</div><div class="check-body"><h4>Return-prevention strategy</h4><p>Better photos + honest sizing + accurate descriptions. Detailed in Section 04.</p></div><div class="check-status s-yes">Yes</div></div>
+    <div class="check-item"><div class="check-num">05</div><div class="check-body"><h4>Order alerts + WhatsApp PDF</h4><p>Windsor can't send WhatsApp. Needs WhatsApp Business API (Wati/Interakt, ₹2-5k/mo). I generate packing slips; you forward.</p></div><div class="check-status s-no">Not via Windsor</div></div>
+    <div class="check-item"><div class="check-num">06</div><div class="check-body"><h4>Dispatch + payment dashboard</h4><p>Settlement data flows through Windsor. I can build monthly views.</p></div><div class="check-status s-yes">Yes</div></div>
+    <div class="check-item"><div class="check-num">07</div><div class="check-body"><h4>Returns highlight & status</h4><p>FBA returns report available with disposition status.</p></div><div class="check-status s-yes">Yes</div></div>
+    <div class="check-item"><div class="check-num">08</div><div class="check-body"><h4>Monthly GST report on WhatsApp</h4><p>I calculate it; WhatsApp send needs separate setup (same as #5).</p></div><div class="check-status s-partial">Calc only</div></div>
+    <div class="check-item"><div class="check-num">09</div><div class="check-body"><h4>Distance to ₹10L target</h4><p>Computed live: ₹9,97,515 short on ₹2,485/month.</p></div><div class="check-status s-yes">Yes</div></div>
+    <div class="check-item"><div class="check-num">10</div><div class="check-body"><h4>What to source next</h4><p>From your data + market research. See Sections 04 & 06.</p></div><div class="check-status s-yes">Done</div></div>
+    <div class="check-item"><div class="check-num">11</div><div class="check-body"><h4>Where to source (India/China)</h4><p>Tirupur (apparel), Baddi (cosmetics), Saharanpur/Channapatna (toys), Yiwu/1688 (China). General guidance, not live supplier data.</p></div><div class="check-status s-needs">Guidance</div></div>
+    <div class="check-item"><div class="check-num">12</div><div class="check-body"><h4>CRM with customer Excel</h4><p>Shipping city/state available. Buyer emails encrypted by Amazon (their policy). Best you can build: delivery-zone CRM.</p></div><div class="check-status s-partial">Amazon-limited</div></div>
+  </div>
+</section>
+
+<!-- 04 NEW PRODUCT -->
+<section class="section" id="product">
+  <div class="section-num">04 · Your New Product</div>
+  <h2>The kids' space-themed set</h2>
+  <p class="lede">Pink space-bear t-shirt + green train shorts. Your first product that actually matches the Auranestt Kids brand. Here's how to launch it right.</p>
+
+  <p class="pullquote">This is the product to build the brand around. Stop being candles-plus-motorcycle-LEDs. Be a kids' brand.</p>
+
+  <div class="cols">
+    <div class="finding flag-green">
+      <h3>✓ What's working in your photos</h3>
+      <p>Clean white background, sharp focus, both front and back angles, natural colour. Good studio basics.</p>
+    </div>
+    <div class="finding flag-yellow">
+      <h3>+ What you must add before listing</h3>
+      <p>1. A child <em>wearing</em> the outfit (lifestyle shot — converts ~40% better)<br>2. Close-up of the space-bear graphic<br>3. Close-up of shorts detail (drawstring, train)<br>4. Folded "2-piece set" shot<br>5. Size chart graphic with measurements</p>
+    </div>
+  </div>
+
+  <div class="action">
+    <h3>Return-prevention built into the listing</h3>
+    <p>Your 33% return rate is the thing that will kill this product. Prevent returns at the listing stage:</p>
+    <ol>
+      <li><strong>Accurate size chart</strong> — chest width, length, shorts waist & length for every size. Most kids' apparel returns are sizing.</li>
+      <li><strong>Honest photos</strong> — show the real colour. The pink is fuchsia/hot pink; don't let filters make it look coral.</li>
+      <li><strong>Material clarity</strong> — state the fabric (cotton / cotton blend), GSM if known, wash care.</li>
+      <li><strong>Set expectations</strong> — "Pink t-shirt + green shorts as shown" so no one expects matching colours.</li>
+    </ol>
+  </div>
+</section>
+
+<!-- 05 PRICING -->
+<section class="section" id="pricing">
+  <div class="section-num">05 · Pricing Strategy</div>
+  <h2>Exact prices, backed by math</h2>
+  <p class="lede">Big change: since 16 March 2026, Amazon India charges 0% referral fee on products under ₹1,000 in apparel. Your margins just got much better.</p>
+
+  <div class="verdict">
+    <div class="vlabel">The recommendation</div>
+    <div class="vtext">At ₹200 cost: launch at <strong>₹449</strong>, settle at <strong>₹499</strong>, ramp to <strong>₹599-649</strong>. Display MRP <strong>₹999</strong>. The ₹499 price hits your 25%+ margin target with a realistic 10% return reserve.</div>
+  </div>
+
+  <h3 style="font-family:'Fraunces',serif;font-weight:700;font-size:22px;margin:32px 0 8px">The math at ₹200 cost</h3>
+  <table>
+    <thead><tr>
+      <th>Selling price</th><th class="r">Closing</th><th class="r">Shipping</th><th class="r">GST on fees</th><th class="r">Packaging</th><th class="r">Cost</th><th class="r">Return 10%</th><th class="r">Net profit</th><th class="r">Margin</th>
+    </tr></thead>
+    <tbody>
+      <tr><td>₹449</td><td class="r">₹26</td><td class="r">₹55</td><td class="r">₹14.58</td><td class="r">₹20</td><td class="r">₹200</td><td class="r">₹44.90</td><td class="r">₹88.52</td><td class="r">19.7%</td></tr>
+      <tr class="hl"><td><strong>₹499</strong></td><td class="r">₹26</td><td class="r">₹55</td><td class="r">₹14.58</td><td class="r">₹20</td><td class="r">₹200</td><td class="r">₹49.90</td><td class="r"><strong>₹133.52</strong></td><td class="r"><strong>26.8%</strong></td></tr>
+      <tr><td>₹549</td><td class="r">₹30</td><td class="r">₹55</td><td class="r">₹15.30</td><td class="r">₹20</td><td class="r">₹200</td><td class="r">₹54.90</td><td class="r">₹173.80</td><td class="r">31.7%</td></tr>
+      <tr><td>₹599</td><td class="r">₹30</td><td class="r">₹55</td><td class="r">₹15.30</td><td class="r">₹20</td><td class="r">₹200</td><td class="r">₹59.90</td><td class="r">₹218.80</td><td class="r">36.5%</td></tr>
+      <tr><td>₹699</td><td class="r">₹30</td><td class="r">₹55</td><td class="r">₹15.30</td><td class="r">₹20</td><td class="r">₹200</td><td class="r">₹69.90</td><td class="r">₹308.80</td><td class="r">44.2%</td></tr>
+    </tbody>
+  </table>
+  <p style="font-size:12px;color:var(--muted)">Referral fee = ₹0 on all rows (Amazon India under-₹1,000 apparel, March 2026). Excludes ad spend and GST input credit.</p>
+
+  <h3 style="font-family:'Fraunces',serif;font-weight:700;font-size:22px;margin:36px 0 16px">The 4-phase ramp</h3>
+
+  <div class="phase">
+    <div class="phase-head"><div class="pname">🚀 Launch</div><div class="pweeks">Weeks 1-4</div></div>
+    <div class="phase-body">
+      <div class="phase-stat"><div class="pl">Price</div><div class="pv">₹449</div></div>
+      <div class="phase-stat"><div class="pl">MRP shown</div><div class="pv">₹999</div></div>
+      <div class="phase-stat"><div class="pl">Margin</div><div class="pv">~20%</div></div>
+      <div class="phase-stat"><div class="pl">Goal</div><div class="pv" style="font-size:15px;max-width:240px">First 10-20 sales + reviews. Trade margin for velocity.</div></div>
+    </div>
+  </div>
+  <div class="phase">
+    <div class="phase-head"><div class="pname">📈 Stabilize</div><div class="pweeks">Weeks 5-8</div></div>
+    <div class="phase-body">
+      <div class="phase-stat"><div class="pl">Price</div><div class="pv">₹499</div></div>
+      <div class="phase-stat"><div class="pl">MRP shown</div><div class="pv">₹999</div></div>
+      <div class="phase-stat"><div class="pl">Margin</div><div class="pv">~27%</div></div>
+      <div class="phase-stat"><div class="pl">Goal</div><div class="pv" style="font-size:15px;max-width:240px">Best Seller Rank moves. Ads turn profitable.</div></div>
+    </div>
+  </div>
+  <div class="phase">
+    <div class="phase-head"><div class="pname">💪 Optimize</div><div class="pweeks">Weeks 9-16</div></div>
+    <div class="phase-body">
+      <div class="phase-stat"><div class="pl">Price</div><div class="pv">₹549</div></div>
+      <div class="phase-stat"><div class="pl">MRP shown</div><div class="pv">₹1,099</div></div>
+      <div class="phase-stat"><div class="pl">Margin</div><div class="pv">~32%</div></div>
+      <div class="phase-stat"><div class="pl">Goal</div><div class="pv" style="font-size:15px;max-width:240px">Rating above 4★, ranking stable.</div></div>
+    </div>
+  </div>
+  <div class="phase">
+    <div class="phase-head"><div class="pname">👑 Premium</div><div class="pweeks">Month 4+</div></div>
+    <div class="phase-body">
+      <div class="phase-stat"><div class="pl">Price</div><div class="pv">₹599-649</div></div>
+      <div class="phase-stat"><div class="pl">MRP shown</div><div class="pv">₹1,299</div></div>
+      <div class="phase-stat"><div class="pl">Margin</div><div class="pv">~38%</div></div>
+      <div class="phase-stat"><div class="pl">Goal</div><div class="pv" style="font-size:15px;max-width:240px">Brand equity built. Repeat buyers.</div></div>
+    </div>
+  </div>
+
+  <div class="action" style="margin-top:24px">
+    <h3>What to set in Seller Central at launch</h3>
+    <table style="margin:8px 0">
+      <tr><td><strong>Selling price</strong></td><td>₹449</td></tr>
+      <tr><td><strong>MRP</strong></td><td>₹999 (shows 55% off)</td></tr>
+      <tr><td><strong>Quantity</strong></td><td>At least 30 units (avoid out-of-stock cancellations)</td></tr>
+      <tr><td><strong>Handling time</strong></td><td>1 day (beat competitors)</td></tr>
+      <tr><td><strong>Sale end date</strong></td><td>30 days out (adds urgency tag)</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- 06 CATEGORIES -->
+<section class="section" id="categories">
+  <div class="section-num">06 · What to Sell Next</div>
+  <h2>Top 5 picks from 30 researched</h2>
+  <p class="lede">Filtered for your brand, your proven price point (₹500-1500), and Indian sourcing access. Pick one to add after the kids' set is stable — not all five.</p>
+
+  <div class="cols-3">
+    <div class="finding flag-green">
+      <h3>1 · Baby Sunscreen Bundle</h3>
+      <p><strong>Best brand fit.</strong> ₹399-999. India contract manufacture (Baddi), MOQ 1000. Aligns with Auranestt Kids. Tuco proves the Launchpad path.</p>
+    </div>
+    <div class="finding flag-green">
+      <h3>2 · Kids Cotton T-Shirt 5-Packs</h3>
+      <p><strong>Tirupur advantage.</strong> ₹499-1499. You already list a t-shirt pack. Tirupur is your local sourcing edge.</p>
+    </div>
+    <div class="finding flag-yellow">
+      <h3>3 · No-Drill Wall Hooks</h3>
+      <p><strong>Mass margin.</strong> ₹8 cost → ₹149-399 sale. Low returns, light shipping. Easy Alibaba sourcing. Off-brand but profitable.</p>
+    </div>
+    <div class="finding flag-yellow">
+      <h3>4 · Fix Your Motorcycle LED</h3>
+      <p><strong>Use dead stock.</strong> 4,961 units sitting with 100% returns. Get one inspected, fix photos & description, relaunch at ₹250-300.</p>
+    </div>
+    <div class="finding flag-green">
+      <h3>5 · Educational Wooden Toys</h3>
+      <p><strong>Year-round brand fit.</strong> ₹399-1499. Channapatna / Saharanpur clusters. Premium-tolerant, "Made in India" angle.</p>
+    </div>
+  </div>
+
+  <p style="font-size:13px;color:var(--muted);margin-top:20px"><strong>Full 30-category research</strong> (7 tiers: Skincare, Home Organization, Personal Care, Auto, Pet, Kids, Niche) lives in the separate <span class="mono">30-categories-report.html</span>. Each has real Amazon India prices, top brands, sourcing routes, and demand signals.</p>
+</section>
+
+<!-- 07 ADS -->
+<section class="section" id="ads">
+  <div class="section-num">07 · Advertising</div>
+  <h2>The Sponsored Products plan</h2>
+  <p class="lede">Honest truth: Amazon Sponsored Products has no state/city targeting in India. You target keywords, not locations. Real geo-targeting needs Amazon DSP (₹3-5L/mo minimum) — not for you yet.</p>
+
+  <div class="cols-3">
+    <div class="finding flag-green">
+      <h3>Campaign A · Auto Discovery</h3>
+      <p>₹50/day. Dynamic bids - down only. Finds what buyers search. Harvest winners into Campaign B.</p>
+    </div>
+    <div class="finding flag-green">
+      <h3>Campaign B · Manual Exact</h3>
+      <p>₹100/day. Your workhorse. Bid hard on proven-converting keywords. Top-of-search +25% after week 2.</p>
+    </div>
+    <div class="finding flag-green">
+      <h3>Campaign C · Manual Phrase</h3>
+      <p>₹50/day. Catches search variations containing your seed terms.</p>
+    </div>
+  </div>
+
+  <div class="action">
+    <h3>The economics</h3>
+    <p>Total ad budget: ₹200/day = ₹6,000/month. Heavy relative to current revenue — treat the first 90 days as investment, not revenue-funded.</p>
+    <table style="margin-top:12px">
+      <thead><tr><th>ACoS</th><th class="r">Ad spend per ₹950 sale</th><th>Verdict</th></tr></thead>
+      <tbody>
+        <tr><td>25%</td><td class="r">₹238</td><td><span class="tag good">Healthy target</span></td></tr>
+        <tr><td>35%</td><td class="r">₹333</td><td><span class="tag warn">Acceptable early</span></td></tr>
+        <tr><td>62%</td><td class="r">₹589</td><td><span class="tag bad">Break-even ceiling</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p style="font-size:13px;color:var(--muted);margin-top:16px">Six legitimate South-India concentration tactics (regional keywords, listing resonance, product targeting, day-parting, operations-led, Sponsored Display retargeting) are detailed in <span class="mono">amazon-ads-campaign-blueprint.md</span>.</p>
+</section>
+
+<!-- 08 LIVE -->
+<section class="section" id="live">
+  <div class="section-num">08 · Run It Daily</div>
+  <h2>How to keep this live</h2>
+  <p class="lede">You asked for something that "always changes with the market." Here's the honest version that works today.</p>
+
+  <p class="pullquote">Claude + Windsor IS the live agent. You ask, I pull fresh data, I rebuild. No server, no daemon, no monthly fee beyond what you already pay.</p>
+
+  <div class="refresh-box">
+    <h3>To refresh anything, just ask</h3>
+    <p><code>refresh my agent dashboard</code> → I re-pull Windsor data, rebuild Section 01.</p>
+    <p><code>show me orders from this week</code> → targeted query, current data.</p>
+    <p><code>update the 30 categories with this week's bestsellers</code> → re-search the web.</p>
+    <p><code>generate a packing slip for order 407-XXXX</code> → printable PDF.</p>
+    <p><code>calculate GST for last month</code> → settlement-based tax summary.</p>
+    <p><code>give me the full listing copy for the kids set</code> → title, bullets, A+ content, keywords.</p>
+  </div>
+
+  <table>
+    <thead><tr><th>When you outgrow this</th><th>Trigger</th><th>Solution</th></tr></thead>
+    <tbody>
+      <tr><td>WhatsApp order alerts</td><td>Missing orders</td><td>Wati / Interakt (₹2-5k/mo)</td></tr>
+      <tr><td>Daily auto-reports</td><td>Past ₹50k/mo</td><td>Windsor → Google Sheets scheduled refresh</td></tr>
+      <tr><td>Competitor price tracking</td><td>Past ₹2L/mo</td><td>Helium 10 / SellerApp</td></tr>
+      <tr><td>Custom CRM + automation</td><td>Past ₹5L/mo</td><td>Hire dev (₹1L+) on Windsor REST API</td></tr>
+    </tbody>
+  </table>
+  <p style="font-size:13px;color:var(--muted);margin-top:12px">Below ₹3-5L/month, off-the-shelf <strong>Sellerboard (~$15/mo)</strong> outperforms any custom build. Don't over-engineer.</p>
+</section>
+
+<!-- 09 MASTER PLAN -->
+<section class="section" id="plan">
+  <div class="section-num">09 · The Master Plan</div>
+  <h2>What to do, in order</h2>
+  <p class="lede">Everything above collapses into this sequence. Do them in this order — each unblocks the next.</p>
+
+  <div class="master-plan">
+    <div class="step">
+      <div>
+        <span class="when">This week</span>
+        <h4>Reactivate GH-MZIB-0O1A</h4>
+        <p>It was 96% of your revenue and it's sitting inactive with 0 stock. Restock or you have no income stream. Single highest-leverage action.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div>
+        <span class="when">This week</span>
+        <h4>Diagnose the 56% cancellation rate</h4>
+        <p>Seller Central → Reports → Cancelled Orders. Read every cancel reason. Most are probably out-of-stock or late-dispatch. Fix the root cause before spending on ads.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div>
+        <span class="when">This week</span>
+        <h4>Shoot 5 more photos of the kids' set</h4>
+        <p>Child wearing it, graphic close-up, shorts detail, folded set, size chart. This is what makes the listing convert and keeps returns down.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div>
+        <span class="when">Next week</span>
+        <h4>List the kids' set at ₹449 / MRP ₹999</h4>
+        <p>Ask me for the full listing copy. List with 30+ units, 1-day handling, accurate size chart. This is your brand-building product.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div>
+        <span class="when">Next week</span>
+        <h4>Clean up the catalog</h4>
+        <p>Delete or fix the 11 dead listings. Replace every duplicate image. Pick a category focus — kids.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div>
+        <span class="when">Week 3-4</span>
+        <h4>Launch Sponsored Products</h4>
+        <p>Only after cancellation rate is under 20%. Start Auto + Manual Exact at ₹150/day combined. Optimize weekly.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div>
+        <span class="when">Month 2</span>
+        <h4>Add product #2 from the top-5 picks</h4>
+        <p>Once the kids' set is stable with reviews, add one adjacent product. Baby sunscreen or wooden toys keep you on-brand.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div>
+        <span class="when">Ongoing</span>
+        <h4>Ask Claude to refresh the data weekly</h4>
+        <p>Pull fresh numbers, re-check bestsellers, regenerate this playbook. The agent is on-call — use it.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+</div>
+
+<footer>
+  The Auranestt Kids Playbook · All real data via Windsor.ai → Amazon SP-API · Account A3749R7F13LNVE-IN · May 2026<br>
+  Refresh anytime by asking Claude.
+</footer>
+
+</body>
+</html>
