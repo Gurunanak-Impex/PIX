@@ -1,0 +1,1286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no" />
+<title>Speaking Buddy — RiSync</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#FFF8EC;
+    --cream-deep:#FFF1DB;
+    --ink:#2D2A4A;
+    --ink-soft:#5B5680;
+    --coral:#FF6B5B;
+    --coral-deep:#E8503F;
+    --teal:#3FBFB5;
+    --teal-deep:#2FA199;
+    --sun:#FFC857;
+    --sun-deep:#F0AC2E;
+    --leaf:#6FBE73;
+    --leaf-deep:#56A45A;
+    --paper:#FFFFFF;
+    --line:#EFE6D3;
+    --shadow: 0 8px 24px rgba(45,42,74,0.10);
+    --shadow-lg: 0 16px 40px rgba(45,42,74,0.16);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(circle at 12% 8%, rgba(255,200,87,0.18) 0%, transparent 38%),
+      radial-gradient(circle at 92% 18%, rgba(63,191,181,0.14) 0%, transparent 42%),
+      radial-gradient(circle at 50% 95%, rgba(255,107,91,0.10) 0%, transparent 45%),
+      var(--cream);
+    font-family:'Nunito', sans-serif;
+    color:var(--ink);
+    min-height:100vh;
+    overflow-x:hidden;
+  }
+  .app{
+    max-width:980px;
+    margin:0 auto;
+    padding:18px 18px 56px;
+  }
+
+  /* ---------- Top bar ---------- */
+  .topbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    margin-bottom:18px;
+    flex-wrap:wrap;
+  }
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .brand-logo-img{
+    height:42px;
+    width:auto;
+    object-fit:contain;
+    flex-shrink:0;
+  }
+  .brand-text{
+    font-family:'Baloo 2', sans-serif;
+    font-weight:700;
+    font-size:19px;
+    line-height:1.1;
+  }
+  .brand-text small{
+    display:block;
+    font-family:'Nunito', sans-serif;
+    font-weight:700;
+    font-size:11px;
+    letter-spacing:0.06em;
+    color:var(--ink-soft);
+    text-transform:uppercase;
+  }
+  .stats-pill{
+    display:flex;
+    gap:10px;
+    align-items:center;
+  }
+  .stat-chip{
+    background:var(--paper);
+    border-radius:999px;
+    padding:7px 14px 7px 10px;
+    display:flex;
+    align-items:center;
+    gap:6px;
+    font-weight:800;
+    font-size:14px;
+    box-shadow: var(--shadow);
+    border:1px solid var(--line);
+  }
+  .stat-chip .icon{font-size:16px;}
+  .stat-chip.stars{color:var(--sun-deep);}
+  .stat-chip.coins{color:var(--coral-deep);}
+
+  /* ---------- Level/Topic chooser ---------- */
+  .chooser-row{
+    display:flex;
+    gap:10px;
+    margin-bottom:14px;
+    flex-wrap:wrap;
+  }
+  .level-tabs{
+    display:flex;
+    background:var(--paper);
+    border-radius:999px;
+    padding:5px;
+    box-shadow: var(--shadow);
+    border:1px solid var(--line);
+    gap:4px;
+  }
+  .level-tab{
+    border:none;
+    background:transparent;
+    font-family:'Nunito',sans-serif;
+    font-weight:800;
+    font-size:13px;
+    padding:9px 16px;
+    border-radius:999px;
+    cursor:pointer;
+    color:var(--ink-soft);
+    transition: all .18s ease;
+    white-space:nowrap;
+  }
+  .level-tab.active{
+    background:var(--ink);
+    color:#fff;
+  }
+  .topic-select-btn{
+    flex:1;
+    min-width:200px;
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:999px;
+    padding:11px 18px;
+    font-family:'Nunito',sans-serif;
+    font-weight:800;
+    font-size:14px;
+    color:var(--ink);
+    cursor:pointer;
+    box-shadow: var(--shadow);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+  }
+  .topic-select-btn .tlabel{display:flex;align-items:center;gap:8px;}
+  .topic-select-btn .chev{color:var(--ink-soft); transition: transform .2s;}
+  .topic-select-btn .chev.open{transform:rotate(180deg);}
+
+  .topic-panel{
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:18px;
+    box-shadow:var(--shadow-lg);
+    padding:14px;
+    margin-bottom:14px;
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(140px,1fr));
+    gap:10px;
+    animation: dropIn .18s ease;
+  }
+  @keyframes dropIn{from{opacity:0; transform:translateY(-6px);} to{opacity:1; transform:translateY(0);}}
+  .topic-card{
+    border:2px solid var(--line);
+    background:var(--cream);
+    border-radius:14px;
+    padding:12px 10px;
+    text-align:center;
+    cursor:pointer;
+    font-weight:800;
+    font-size:13.5px;
+    transition: all .15s ease;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:6px;
+  }
+  .topic-card .temoji{font-size:26px;}
+  .topic-card:hover{border-color:var(--coral); transform:translateY(-2px);}
+  .topic-card.active{
+    border-color:var(--coral);
+    background: linear-gradient(160deg, #FFF1DB, #FFE8DA);
+    box-shadow: 0 6px 16px rgba(255,107,91,0.18);
+  }
+
+  /* ---------- Main Stage ---------- */
+  .stage{
+    position:relative;
+    background: linear-gradient(165deg, #FFFFFF 0%, #FFF6E8 100%);
+    border-radius:32px;
+    border:1px solid var(--line);
+    box-shadow: var(--shadow-lg);
+    padding:30px 26px 26px;
+    overflow:hidden;
+  }
+  .stage::before{
+    content:"";
+    position:absolute;
+    top:-60px; right:-60px;
+    width:200px;height:200px;
+    border-radius:50%;
+    background: radial-gradient(circle, rgba(255,200,87,0.35), transparent 70%);
+  }
+  .stage-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:12px;
+    margin-bottom:6px;
+    position:relative;
+    z-index:1;
+  }
+  .topic-banner{
+    font-family:'Baloo 2', sans-serif;
+    font-size:13px;
+    font-weight:700;
+    color:var(--coral-deep);
+    background:#FFF0EC;
+    border:1px solid #FFDCD4;
+    padding:6px 14px;
+    border-radius:999px;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+  }
+  .progress-dots{
+    display:flex;
+    gap:5px;
+    align-items:center;
+  }
+  .pdot{
+    width:9px;height:9px;border-radius:50%;
+    background:var(--line);
+    transition: background .2s;
+  }
+  .pdot.done{background:var(--leaf);}
+  .pdot.now{background:var(--sun-deep); width:11px; height:11px;}
+
+  .mira-row{
+    display:flex;
+    gap:18px;
+    align-items:flex-start;
+    margin-top:10px;
+    position:relative;
+    z-index:1;
+  }
+  .mira-avatar{
+    flex-shrink:0;
+    width:84px;height:84px;
+    border-radius:24px;
+    background: linear-gradient(155deg, var(--teal), var(--teal-deep));
+    display:flex;align-items:center;justify-content:center;
+    font-size:42px;
+    box-shadow: 0 10px 22px rgba(63,191,181,0.35);
+    position:relative;
+    transition: transform .25s ease;
+  }
+  .mira-avatar.talking{ animation: bob 0.5s ease-in-out infinite alternate; }
+  @keyframes bob{ from{transform:translateY(0) rotate(-2deg);} to{transform:translateY(-4px) rotate(2deg);} }
+  .mira-name-tag{
+    position:absolute;
+    bottom:-9px; left:50%; transform:translateX(-50%);
+    background:var(--ink);
+    color:#fff;
+    font-size:10px;
+    font-weight:800;
+    padding:2px 9px;
+    border-radius:999px;
+    white-space:nowrap;
+    letter-spacing:.02em;
+  }
+  .speech-bubble{
+    flex:1;
+    background:var(--paper);
+    border:2px solid var(--line);
+    border-radius:20px;
+    padding:18px 20px;
+    position:relative;
+    min-height:64px;
+  }
+  .speech-bubble::before{
+    content:"";
+    position:absolute;
+    left:-9px; top:24px;
+    width:18px;height:18px;
+    background:var(--paper);
+    border-left:2px solid var(--line);
+    border-bottom:2px solid var(--line);
+    transform:rotate(45deg);
+  }
+  .mira-line{
+    font-family:'Baloo 2', sans-serif;
+    font-size:19px;
+    font-weight:600;
+    line-height:1.45;
+    color:var(--ink);
+  }
+  .mira-line .hint{
+    display:block;
+    margin-top:8px;
+    font-family:'Nunito',sans-serif;
+    font-size:13.5px;
+    font-weight:700;
+    color:var(--ink-soft);
+  }
+  .replay-btn{
+    margin-top:10px;
+    border:none;
+    background:var(--cream-deep);
+    color:var(--ink-soft);
+    font-weight:800;
+    font-size:12px;
+    padding:6px 12px;
+    border-radius:999px;
+    cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    gap:5px;
+  }
+  .replay-btn:hover{background:var(--line);}
+
+  /* ---------- Vocabulary boost card ---------- */
+  .word-bank{
+    margin-top:14px;
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    position:relative;
+    z-index:1;
+  }
+  .word-chip{
+    background:#EAF8F6;
+    border:1px solid #C9ECE8;
+    color:var(--teal-deep);
+    font-weight:800;
+    font-size:12.5px;
+    padding:6px 12px;
+    border-radius:999px;
+  }
+
+  /* ---------- Mic stage ---------- */
+  .mic-zone{
+    margin-top:26px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:12px;
+    position:relative;
+    z-index:1;
+  }
+  .mic-ring-wrap{
+    position:relative;
+    width:152px; height:152px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .ring{
+    position:absolute;
+    border-radius:50%;
+    border:3px solid rgba(255,107,91,0.35);
+    opacity:0;
+  }
+  .listening .ring{
+    animation: ripple 1.6s ease-out infinite;
+  }
+  .ring:nth-child(1){animation-delay:0s;}
+  .ring:nth-child(2){animation-delay:.5s;}
+  .ring:nth-child(3){animation-delay:1s;}
+  @keyframes ripple{
+    0%{width:84px; height:84px; opacity:0.7;}
+    100%{width:152px; height:152px; opacity:0;}
+  }
+  .mic-btn{
+    width:84px;height:84px;
+    border-radius:50%;
+    border:none;
+    background: linear-gradient(155deg, var(--coral), var(--coral-deep));
+    color:#fff;
+    font-size:30px;
+    cursor:pointer;
+    box-shadow: 0 12px 26px rgba(255,107,91,0.4);
+    display:flex;align-items:center;justify-content:center;
+    transition: transform .12s ease;
+    position:relative;
+    z-index:2;
+  }
+  .mic-btn:active{transform:scale(0.93);}
+  .mic-btn.is-listening{
+    background: linear-gradient(155deg, var(--leaf), var(--leaf-deep));
+    box-shadow: 0 12px 26px rgba(111,190,115,0.45);
+  }
+  .mic-btn:disabled{opacity:0.5; cursor:not-allowed;}
+  .mic-caption{
+    font-weight:800;
+    font-size:13.5px;
+    color:var(--ink-soft);
+    min-height:18px;
+  }
+  .live-transcript{
+    max-width:420px;
+    text-align:center;
+    font-family:'Baloo 2', sans-serif;
+    font-size:16px;
+    color:var(--coral-deep);
+    min-height:24px;
+    font-weight:600;
+  }
+
+  /* ---------- Feedback card ---------- */
+  .feedback-card{
+    margin-top:18px;
+    border-radius:20px;
+    padding:16px 18px;
+    display:none;
+    position:relative;
+    z-index:1;
+    animation: popIn .25s ease;
+  }
+  @keyframes popIn{from{opacity:0; transform:scale(.96);} to{opacity:1; transform:scale(1);}}
+  .feedback-card.show{display:block;}
+  .feedback-card.good{background:#EEF8EC; border:1.5px solid #CFE9CB;}
+  .feedback-card.tip{background:#FFF6E5; border:1.5px solid #F5E1B0;}
+  .fc-head{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-family:'Baloo 2', sans-serif;
+    font-weight:700;
+    font-size:16px;
+    margin-bottom:4px;
+  }
+  .fc-head.good{color:var(--leaf-deep);}
+  .fc-head.tip{color:var(--sun-deep);}
+  .fc-body{font-size:14px; font-weight:700; color:var(--ink-soft); line-height:1.5;}
+  .fc-body b{color:var(--ink);}
+
+  .stage-actions{
+    margin-top:18px;
+    display:flex;
+    justify-content:center;
+    gap:10px;
+    position:relative;
+    z-index:1;
+  }
+  .next-btn{
+    border:none;
+    background:var(--ink);
+    color:#fff;
+    font-family:'Baloo 2', sans-serif;
+    font-weight:700;
+    font-size:15px;
+    padding:13px 28px;
+    border-radius:999px;
+    cursor:pointer;
+    box-shadow: var(--shadow);
+    display:none;
+    align-items:center;
+    gap:8px;
+  }
+  .next-btn.show{display:inline-flex;}
+  .next-btn:hover{transform:translateY(-1px);}
+
+  /* ---------- Reward toast ---------- */
+  .toast{
+    position:fixed;
+    top:18px; left:50%;
+    transform:translate(-50%,-120%);
+    background:var(--ink);
+    color:#fff;
+    font-family:'Baloo 2', sans-serif;
+    font-weight:700;
+    font-size:15px;
+    padding:13px 24px;
+    border-radius:999px;
+    box-shadow: var(--shadow-lg);
+    display:flex; align-items:center; gap:8px;
+    transition: transform .35s cubic-bezier(.2,.9,.3,1.3);
+    z-index:50;
+  }
+  .toast.show{transform:translate(-50%, 12px);}
+
+  /* ---------- Badges drawer ---------- */
+  .badge-strip{
+    margin-top:16px;
+    display:flex;
+    gap:10px;
+    overflow-x:auto;
+    padding-bottom:4px;
+  }
+  .badge{
+    flex-shrink:0;
+    width:78px;
+    text-align:center;
+    font-size:11px;
+    font-weight:800;
+    color:var(--ink-soft);
+  }
+  .badge .bicon{
+    width:54px;height:54px;
+    border-radius:16px;
+    background:var(--paper);
+    border:2px dashed var(--line);
+    display:flex;align-items:center;justify-content:center;
+    font-size:24px;
+    margin:0 auto 5px;
+    filter: grayscale(1) opacity(.45);
+  }
+  .badge.earned .bicon{
+    border:2px solid var(--sun);
+    background: linear-gradient(155deg,#FFF6DD,#FFEBB8);
+    filter:none;
+    box-shadow: 0 6px 14px rgba(255,200,87,0.35);
+  }
+  .badge.earned{color:var(--ink);}
+
+  footer.note{
+    text-align:center;
+    margin-top:22px;
+    font-size:12.5px;
+    color:var(--ink-soft);
+    font-weight:700;
+    line-height:1.6;
+  }
+
+  /* ---------- Setup / permission card ---------- */
+  .setup-card{
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:20px;
+    padding:18px 20px;
+    margin-bottom:14px;
+    display:flex;
+    align-items:center;
+    gap:14px;
+    box-shadow:var(--shadow);
+  }
+  .setup-card .sicon{font-size:28px; flex-shrink:0;}
+  .setup-card .stext{font-size:13.5px; font-weight:700; color:var(--ink-soft); flex:1;}
+  .setup-card button{
+    border:none;
+    background:var(--coral);
+    color:#fff;
+    font-weight:800;
+    font-size:13px;
+    padding:10px 18px;
+    border-radius:999px;
+    cursor:pointer;
+    white-space:nowrap;
+    flex-shrink:0;
+  }
+
+  @media (max-width:560px){
+    .mira-row{flex-direction:column; align-items:center; text-align:center;}
+    .speech-bubble::before{display:none;}
+    .mira-line{font-size:17px;}
+    .stage{padding:22px 16px 20px;}
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .mira-avatar.talking, .ring, .toast, .feedback-card, .topic-panel{animation:none !important; transition:none !important;}
+  }
+
+  :focus-visible{ outline:3px solid var(--teal-deep); outline-offset:2px; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="topbar">
+    <div class="brand">
+      <img src="https://risync.in/logo.png" alt="RiSync Logo" class="brand-logo-img" />
+      <div class="brand-text">Speaking Buddy
+        <small>by RiSync &middot; Cambridge English YLE</small>
+      </div>
+    </div>
+    <div class="stats-pill">
+      <div class="stat-chip stars"><span class="icon">⭐</span><span id="starCount">0</span></div>
+      <div class="stat-chip coins"><span class="icon">🪙</span><span id="coinCount">0</span></div>
+    </div>
+  </div>
+
+  <div class="setup-card" id="setupCard">
+    <div class="sicon">🎙️</div>
+    <div class="stext">Speaking Buddy listens with your microphone, just like a real conversation. Tap "Let's go" and allow microphone access when your browser asks. If your child answers in Hindi, Mira understands and gently helps them say it in English too! 🌉</div>
+    <button id="enableMicBtn">Let's go</button>
+  </div>
+
+  <div class="chooser-row">
+    <div class="level-tabs" id="levelTabs">
+      <button class="level-tab active" data-level="starters">Starters</button>
+      <button class="level-tab" data-level="movers">Movers</button>
+      <button class="level-tab" data-level="flyers">Flyers</button>
+    </div>
+    <button class="topic-select-btn" id="topicBtn">
+      <span class="tlabel"><span id="topicEmoji">👨‍👩‍👧</span><span id="topicLabel">My Family</span></span>
+      <span class="chev" id="topicChev">▾</span>
+    </button>
+  </div>
+
+  <div class="topic-panel" id="topicPanel" style="display:none;"></div>
+
+  <div class="stage">
+    <div class="stage-top">
+      <div class="topic-banner" id="stageTopicBanner">👨‍👩‍👧 My Family &middot; Starters</div>
+      <div class="progress-dots" id="progressDots"></div>
+    </div>
+
+    <div class="mira-row">
+      <div class="mira-avatar" id="miraAvatar">🦜<div class="mira-name-tag">Mira</div></div>
+      <div class="speech-bubble">
+        <div class="mira-line" id="miraLine">Hello! I'm Mira. Tap the microphone, and let's talk about your family! 🌟</div>
+        <button class="replay-btn" id="replayBtn">🔊 Hear it again</button>
+      </div>
+    </div>
+
+    <div class="word-bank" id="wordBank"></div>
+
+    <div class="mic-zone">
+      <div class="mic-ring-wrap" id="ringWrap">
+        <div class="ring"></div><div class="ring"></div><div class="ring"></div>
+        <button class="mic-btn" id="micBtn" aria-label="Tap to speak">🎤</button>
+      </div>
+      <div class="mic-caption" id="micCaption">Tap to speak</div>
+      <div class="live-transcript" id="liveTranscript"></div>
+    </div>
+
+    <div class="feedback-card" id="feedbackCard">
+      <div class="fc-head" id="fcHead">🌟 Great job!</div>
+      <div class="fc-body" id="fcBody"></div>
+    </div>
+
+    <div class="stage-actions">
+      <button class="next-btn" id="nextBtn">Next question →</button>
+    </div>
+  </div>
+
+  <div class="badge-strip" id="badgeStrip"></div>
+
+  <footer class="note">
+    Speaking Buddy gives gentle, encouraging feedback only — there are no wrong answers, just brave tries. 💛<br>
+    Works best in Chrome or Edge, with microphone access allowed.
+  </footer>
+</div>
+
+<div class="toast" id="toast">⭐ +1 star for trying!</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ============== CAMBRIDGE YLE CONTENT BANK ============== */
+  const TOPICS = {
+    family:   { emoji:"👨‍👩‍👧", label:"My Family" },
+    school:   { emoji:"🏫", label:"My School" },
+    friends:  { emoji:"🧑‍🤝‍🧑", label:"My Friends" },
+    toys:     { emoji:"🧸", label:"My Toys" },
+    pets:     { emoji:"🐶", label:"My Pets" },
+    hobbies:  { emoji:"🎨", label:"My Hobbies" },
+    food:     { emoji:"🍎", label:"Food & Drinks" },
+    weather:  { emoji:"☀️", label:"Weather" },
+    travel:   { emoji:"✈️", label:"Travel" },
+    sports:   { emoji:"⚽", label:"Sports" },
+  };
+
+  const BANK = {
+    starters: {
+      family: [
+        { q:"How many people are in your family?", listen:["mother","father","mom","dad","sister","brother","one","two","three","four","five","family"], tip:{word:"family", hear:"FAM-uh-lee", use:"I have a big family."} },
+        { q:"Who is the tallest in your family?", listen:["father","dad","mother","mom","brother","sister","tall","tallest"], tip:{word:"tall", hear:"TAWL", use:"My dad is very tall."} },
+        { q:"What is your mother's name?", listen:["mother","mom","name","is","her"], tip:{word:"mother", hear:"MUH-ther", use:"My mother's name is Anita."} },
+        { q:"Do you have a brother or a sister?", listen:["brother","sister","yes","no","have"], tip:{word:"sister", hear:"SIS-ter", use:"I have one sister."} },
+      ],
+      school: [
+        { q:"What is your favourite subject at school?", listen:["math","english","art","science","favourite","subject"], tip:{word:"favourite", hear:"FAY-vrit", use:"My favourite subject is art."} },
+        { q:"What colour is your school bag?", listen:["red","blue","green","yellow","black","pink","purple","colour"], tip:{word:"colour", hear:"KUH-ler", use:"My bag is blue."} },
+        { q:"Who is your teacher?", listen:["teacher","miss","mr","mrs","name"], tip:{word:"teacher", hear:"TEE-cher", use:"My teacher is Miss Rao."} },
+      ],
+      friends: [
+        { q:"What is your best friend's name?", listen:["friend","name","best"], tip:{word:"friend", hear:"FREND", use:"My best friend is Aryan."} },
+        { q:"What do you like to play with your friends?", listen:["play","football","game","tag","hide","seek"], tip:{word:"play", hear:"PLAY", use:"We like to play football."} },
+      ],
+      toys: [
+        { q:"What is your favourite toy?", listen:["car","doll","ball","robot","teddy","toy","favourite"], tip:{word:"toy", hear:"TOY", use:"My favourite toy is a robot."} },
+        { q:"What colour is your favourite toy?", listen:["red","blue","green","yellow","colour"], tip:{word:"colour", hear:"KUH-ler", use:"It is red and yellow."} },
+      ],
+      pets: [
+        { q:"Do you have a pet? What is it?", listen:["dog","cat","fish","bird","pet","yes","no"], tip:{word:"pet", hear:"PET", use:"I have a pet dog."} },
+        { q:"What is your pet's name?", listen:["name","is"], tip:{word:"name", hear:"NAYM", use:"My pet's name is Bruno."} },
+      ],
+      hobbies: [
+        { q:"What do you like doing after school?", listen:["draw","dance","sing","read","play","football","cycle"], tip:{word:"hobby", hear:"HOB-ee", use:"My hobby is drawing."} },
+      ],
+      food: [
+        { q:"What is your favourite food?", listen:["pizza","rice","chicken","fruit","ice cream","favourite","food"], tip:{word:"favourite", hear:"FAY-vrit", use:"My favourite food is pizza."} },
+        { q:"What do you drink in the morning?", listen:["milk","juice","water","tea","drink"], tip:{word:"drink", hear:"DRINK", use:"I drink milk in the morning."} },
+      ],
+      weather: [
+        { q:"Is it sunny or rainy today?", listen:["sunny","rainy","cloudy","hot","cold","today"], tip:{word:"sunny", hear:"SUH-nee", use:"It is sunny today."} },
+      ],
+      travel: [
+        { q:"How do you go to school?", listen:["bus","car","walk","bike","cycle","train"], tip:{word:"bus", hear:"BUSS", use:"I go to school by bus."} },
+      ],
+      sports: [
+        { q:"What sport do you like?", listen:["football","cricket","swim","run","sport","like"], tip:{word:"sport", hear:"SPORT", use:"I like playing football."} },
+      ],
+    },
+    movers: {
+      family: [
+        { q:"Can you tell me about your family? Who do you live with?", listen:["live","mother","father","sister","brother","grandmother","grandfather","with"], tip:{word:"grandmother", hear:"GRAND-muh-ther", use:"I live with my grandmother too."} },
+        { q:"What does your father do? Does he go to work?", listen:["work","office","job","doctor","engineer","teacher","works"], tip:{word:"job", hear:"JOB", use:"My father's job is an engineer."} },
+      ],
+      school: [
+        { q:"What did you learn at school yesterday?", listen:["learned","learnt","math","science","english","yesterday"], tip:{word:"yesterday", hear:"YES-ter-day", use:"Yesterday I learned about plants."} },
+        { q:"What is your school timetable like? What's your first class?", listen:["first","class","math","english","timetable","subject"], tip:{word:"timetable", hear:"TIME-tay-bul", use:"My first class is English."} },
+      ],
+      friends: [
+        { q:"Tell me about a fun day you had with your friends.", listen:["fun","played","went","party","park","day"], tip:{word:"fun", hear:"FUN", use:"We had a fun day at the park."} },
+      ],
+      toys: [
+        { q:"If you could get a new toy, what would you choose and why?", listen:["because","want","choose","robot","bicycle","game"], tip:{word:"choose", hear:"CHOOZ", use:"I want a bicycle because it's fast."} },
+      ],
+      pets: [
+        { q:"What do you do to take care of your pet?", listen:["feed","walk","clean","water","food","care"], tip:{word:"feed", hear:"FEED", use:"I feed my dog every morning."} },
+      ],
+      hobbies: [
+        { q:"How often do you practice your hobby?", listen:["everyday","every day","weekend","often","sometimes","always"], tip:{word:"everyday", hear:"EV-ree-day", use:"I practice everyday after school."} },
+      ],
+      food: [
+        { q:"What did you eat for breakfast this morning?", listen:["bread","egg","milk","paratha","cereal","breakfast","ate"], tip:{word:"breakfast", hear:"BREK-fust", use:"I ate eggs for breakfast."} },
+      ],
+      weather: [
+        { q:"What is the weather like in your favourite season?", listen:["summer","winter","rain","hot","cold","season"], tip:{word:"season", hear:"SEE-zun", use:"I like the rainy season."} },
+      ],
+      travel: [
+        { q:"Tell me about a place you have visited.", listen:["went","visited","trip","beach","mountains","city"], tip:{word:"visited", hear:"VIZ-it-ed", use:"I visited my grandparents' village."} },
+      ],
+      sports: [
+        { q:"Why do you like playing your favourite sport?", listen:["because","fun","fast","team","win","exciting"], tip:{word:"exciting", hear:"ex-SY-ting", use:"Football is exciting because it's fast."} },
+      ],
+    },
+    flyers: {
+      family: [
+        { q:"Describe a special celebration your family has. What happens?", listen:["birthday","festival","diwali","celebrate","family","together","happy"], tip:{word:"celebrate", hear:"SEL-uh-brayt", use:"We celebrate Diwali together."} },
+      ],
+      school: [
+        { q:"What would you change about your school if you were the principal?", listen:["change","library","playground","more","would","if"], tip:{word:"playground", hear:"PLAY-grownd", use:"I would build a bigger playground."} },
+      ],
+      friends: [
+        { q:"What makes someone a good friend, in your opinion?", listen:["kind","share","help","honest","listen","good friend"], tip:{word:"kind", hear:"KYND", use:"A good friend is kind and helpful."} },
+      ],
+      toys: [
+        { q:"Compare two of your toys. Which do you prefer and why?", listen:["prefer","better","because","more","than"], tip:{word:"prefer", hear:"pri-FUR", use:"I prefer my robot because it talks."} },
+      ],
+      pets: [
+        { q:"If you could have any animal as a pet, what would you choose? Why?", listen:["because","would","choose","lion","panda","dolphin","fun"], tip:{word:"choose", hear:"CHOOZ", use:"I would choose a dolphin because it's clever."} },
+      ],
+      hobbies: [
+        { q:"How did you start your hobby, and how have you improved?", listen:["started","better","improved","practice","learned","years"], tip:{word:"improved", hear:"im-PROOVD", use:"I have improved a lot this year."} },
+      ],
+      food: [
+        { q:"Describe how to make your favourite snack, step by step.", listen:["first","then","next","after","mix","cook","finally"], tip:{word:"first", hear:"FURST", use:"First, I mix the flour and water."} },
+      ],
+      weather: [
+        { q:"How does weather change what you do during the day?", listen:["because","rain","sunny","stay","inside","outside","play"], tip:{word:"because", hear:"bi-KOZ", use:"I stay inside because it's raining."} },
+      ],
+      travel: [
+        { q:"Describe your dream holiday. Where would you go and what would you do?", listen:["would","dream","beach","mountains","visit","because"], tip:{word:"dream", hear:"DREEM", use:"My dream holiday is to visit Japan."} },
+      ],
+      sports: [
+        { q:"Explain the rules of your favourite sport to someone who has never played it.", listen:["rules","team","score","goal","points","player"], tip:{word:"rules", hear:"ROOLZ", use:"The rules are simple: score more goals."} },
+      ],
+    }
+  };
+
+  const PRAISE = ["Wonderful! 🌟","Lovely try! 🌈","Super speaking! ✨","Great job! 🎉","I love that! 💛","Fantastic! 🌟","You're doing brilliantly! 🌈"];
+  const ENCOURAGE = ["That's okay — every try makes you better! 🌱","Good try! Let's learn a new word together. 🌟","Nice attempt! Here's a little tip to make it even better. 💡"];
+
+  const BADGES = [
+    {id:"firstWord", icon:"🥇", label:"First Try"},
+    {id:"fiveStars", icon:"⭐", label:"5 Stars"},
+    {id:"talker", icon:"🗣️", label:"Big Talker"},
+    {id:"family5", icon:"👨‍👩‍👧", label:"Family Pro"},
+    {id:"moverUp", icon:"🚀", label:"Level Up"},
+    {id:"tenStars", icon:"🏆", label:"10 Stars"},
+  ];
+
+  /* ============== STATE ============== */
+  let state = {
+    level: "starters",
+    topic: "family",
+    qIndex: 0,
+    stars: 0,
+    coins: 0,
+    attemptsThisQuestion: 0,
+    earnedBadges: new Set(),
+    sessionAttempts: 0,
+  };
+
+  const els = {
+    setupCard: document.getElementById('setupCard'),
+    enableMicBtn: document.getElementById('enableMicBtn'),
+    levelTabs: document.getElementById('levelTabs'),
+    topicBtn: document.getElementById('topicBtn'),
+    topicChev: document.getElementById('topicChev'),
+    topicPanel: document.getElementById('topicPanel'),
+    topicEmoji: document.getElementById('topicEmoji'),
+    topicLabel: document.getElementById('topicLabel'),
+    stageTopicBanner: document.getElementById('stageTopicBanner'),
+    progressDots: document.getElementById('progressDots'),
+    miraAvatar: document.getElementById('miraAvatar'),
+    miraLine: document.getElementById('miraLine'),
+    replayBtn: document.getElementById('replayBtn'),
+    wordBank: document.getElementById('wordBank'),
+    micBtn: document.getElementById('micBtn'),
+    ringWrap: document.getElementById('ringWrap'),
+    micCaption: document.getElementById('micCaption'),
+    liveTranscript: document.getElementById('liveTranscript'),
+    feedbackCard: document.getElementById('feedbackCard'),
+    fcHead: document.getElementById('fcHead'),
+    fcBody: document.getElementById('fcBody'),
+    nextBtn: document.getElementById('nextBtn'),
+    starCount: document.getElementById('starCount'),
+    coinCount: document.getElementById('coinCount'),
+    badgeStrip: document.getElementById('badgeStrip'),
+    toast: document.getElementById('toast'),
+  };
+
+  /* ============== SPEECH SYNTHESIS ============== */
+  let voices = [];
+  function loadVoices(){ voices = window.speechSynthesis ? window.speechSynthesis.getVoices() : []; }
+  if (window.speechSynthesis){
+    loadVoices();
+    window.speechSynthesis.onvoiceschanged = loadVoices;
+  }
+  function pickVoice(){
+    if (!voices.length) return null;
+    const preferred = voices.find(v => /en-GB/i.test(v.lang) && /female|woman/i.test(v.name)) ||
+                       voices.find(v => /en-GB/i.test(v.lang)) ||
+                       voices.find(v => /en-/i.test(v.lang));
+    return preferred || voices[0];
+  }
+  function speak(text, onend){
+    if (!window.speechSynthesis){ if(onend) onend(); return; }
+    window.speechSynthesis.cancel();
+    const utter = new SpeechSynthesisUtterance(text);
+    const v = pickVoice();
+    if (v) utter.voice = v;
+    utter.rate = 0.92;
+    utter.pitch = 1.15;
+    els.miraAvatar.classList.add('talking');
+    utter.onend = () => { els.miraAvatar.classList.remove('talking'); if(onend) onend(); };
+    utter.onerror = () => { els.miraAvatar.classList.remove('talking'); if(onend) onend(); };
+    window.speechSynthesis.speak(utter);
+  }
+
+  /* ============== BRIDGE COGNITION ============== */
+  const HI_TO_EN = {
+    "mera":"my", "meri":"my", "naam":"name", "parivar":"family", "maa":"mother", "mama":"mother",
+    "mummy":"mother", "ammi":"mother", "papa":"father", "pita":"father", "daddy":"father",
+    "bhai":"brother", "behen":"sister", "didi":"sister", "dada":"grandfather", "dadi":"grandmother",
+    "nana":"grandfather", "nani":"grandmother", "ghar":"home", "saath":"with",
+    "school":"school", "vidyalaya":"school", "padhai":"studies", "padhna":"to read", "kitaab":"book",
+    "kitab":"book", "teacher":"teacher", "shikshak":"teacher", "class":"class",
+    "dost":"friend", "mitra":"friend", "khelna":"to play",
+    "khilona":"toy", "gudiya":"doll", "gend":"ball",
+    "kutta":"dog", "kutte":"dog", "billi":"cat", "machli":"fish", "chidiya":"bird", "janwar":"animal",
+    "pyaara":"lovely", "pyara":"lovely",
+    "khana":"food", "khaana":"food", "doodh":"milk", "paani":"water", "roti":"bread", "chawal":"rice",
+    "meetha":"sweet", "namkeen":"savoury", "pasand":"favourite", "achha":"good", "accha":"good",
+    "garmi":"heat", "garam":"hot", "thand":"cold", "thanda":"cold", "baarish":"rain", "barish":"rain",
+    "dhoop":"sunshine", "suraj":"sun",
+    "gaadi":"car", "gadi":"car", "train":"train", "paidal":"on foot", "safar":"journey",
+    "khel":"sport", "daud":"running",
+    "laal":"red", "lal":"red", "neela":"blue", "neel":"blue", "hara":"green", "peela":"yellow",
+    "ek":"one", "do":"two", "teen":"three", "char":"four", "paanch":"five",
+    "hai":"is", "hain":"are", "ka":"of", "ki":"of", "ke":"of", "aur":"and", "bahut":"very",
+    "mujhe":"I", "main":"I", "muje":"I", "lagta":"feel", "lagti":"feel",
+  };
+  const HI_WORD_LIST = Object.keys(HI_TO_EN);
+
+  function containsDevanagari(text){
+    return /[\u0900-\u097F]/.test(text);
+  }
+  function hinglishScore(text){
+    const words = text.toLowerCase().split(/\s+/).filter(Boolean);
+    if (!words.length) return 0;
+    const hits = words.filter(w => HI_WORD_LIST.includes(w.replace(/[^a-z]/g,''))).length;
+    return hits / words.length;
+  }
+  function isLikelyHindi(text){
+    if (!text) return false;
+    if (containsDevanagari(text)) return true;
+    return hinglishScore(text) >= 0.34;
+  }
+  function bridgeHindiToEnglish(text){
+    const words = text.split(/\s+/).filter(Boolean);
+    const englishWords = words.map(w => {
+      const clean = w.toLowerCase().replace(/[^a-z\u0900-\u097F]/g,'');
+      return HI_TO_EN[clean] || null;
+    }).filter(Boolean);
+    const deduped = englishWords.filter((w,i) => i === 0 || w !== englishWords[i-1]);
+    return deduped.join(" ");
+  }
+
+  /* ============== SPEECH RECOGNITION ============== */
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let recognizer = null;
+  let hiRecognizer = null;
+  let micReady = false;
+  let isListening = false;
+  let fallbackTimer = null;
+
+  function buildRecognizer(lang){
+    const r = new SpeechRecognition();
+    r.lang = lang;
+    r.interimResults = true;
+    r.continuous = false;
+    r.maxAlternatives = 3;
+    return r;
+  }
+
+  function setupRecognizer(){
+    if (!SpeechRecognition){
+      els.micCaption.textContent = "Speech recognition isn't supported in this browser. Try Chrome or Edge.";
+      els.micBtn.disabled = true;
+      return;
+    }
+    recognizer = buildRecognizer("en-GB");
+
+    recognizer.onstart = () => {
+      isListening = true;
+      els.ringWrap.classList.add('listening');
+      els.micBtn.classList.add('is-listening');
+      els.micBtn.textContent = "⏹️";
+      els.micCaption.textContent = "Listening… speak now!";
+      
+      clearTimeout(fallbackTimer);
+      fallbackTimer = setTimeout(() => {
+        if (isListening && !els.liveTranscript.textContent.trim()) {
+          try { recognizer.stop(); } catch(err){}
+        }
+      }, 7000);
+    };
+
+    recognizer.onresult = (event) => {
+      let interim = "", final = "";
+      for (let i = 0; i < event.results.length; i++){
+        const t = event.results[i][0].transcript;
+        if (event.results[i].isFinal) final += t;
+        else interim += t;
+      }
+      
+      const textToShow = final || interim;
+      if (textToShow.trim()) {
+        els.liveTranscript.textContent = textToShow;
+        clearTimeout(fallbackTimer);
+      }
+      
+      if (final.trim()) {
+        routeTranscript(final.trim());
+      }
+    };
+
+    recognizer.onerror = (e) => {
+      stopListeningUI();
+      if (e.error === 'not-allowed' || e.error === 'permission-denied'){
+        els.micCaption.textContent = "Microphone access is blocked. Please allow it in browser settings.";
+      } else if (e.error === 'no-speech'){
+        els.micCaption.textContent = "I didn't catch that — tap the mic and try again!";
+      } else {
+        els.micCaption.textContent = "Connection reset. Tap to speak.";
+      }
+    };
+
+    recognizer.onend = () => {
+      stopListeningUI();
+    };
+  }
+
+  function setupHindiRecognizer(){
+    hiRecognizer = buildRecognizer("hi-IN");
+    hiRecognizer.onstart = () => {
+      els.ringWrap.classList.add('listening');
+      els.micBtn.classList.add('is-listening');
+      els.micCaption.textContent = "Listening in Hindi…";
+    };
+    hiRecognizer.onresult = (event) => {
+      let final = "";
+      for (let i = 0; i < event.results.length; i++){
+        if (event.results[i].isFinal) final += event.results[i][0].transcript;
+      }
+      if (final.trim()) handleHindiTranscript(final.trim());
+    };
+    hiRecognizer.onerror = () => { stopListeningUI(); };
+    hiRecognizer.onend = () => { stopListeningUI(); };
+  }
+
+  function stopListeningUI(){
+    isListening = false;
+    clearTimeout(fallbackTimer);
+    els.ringWrap.classList.remove('listening');
+    els.micBtn.classList.remove('is-listening');
+    els.micBtn.textContent = "🎤";
+    if (els.micCaption.textContent === "Listening… speak now!" || els.micCaption.textContent === "Listening in Hindi…") {
+      els.micCaption.textContent = "Tap to speak";
+    }
+  }
+
+  function routeTranscript(text){
+    if (!text || text.length < 2) return;
+    if (isLikelyHindi(text)){
+      els.micCaption.textContent = "Translating…";
+      if (!hiRecognizer) setupHindiRecognizer();
+      try { 
+        hiRecognizer.start(); 
+      } catch(e) { 
+        handleHindiTranscript(text); 
+      }
+      return;
+    }
+    handleTranscript(text);
+  }
+
+  function handleHindiTranscript(text){
+    const englishMeaning = bridgeHindiToEnglish(text);
+    state.sessionAttempts++;
+    state.stars += 1;
+    updateStatBar();
+    showToast("⭐ +1 star for trying — let's say it in English!");
+    checkBadges();
+
+    if (englishMeaning){
+      showFeedback('tip',
+        "I heard you in Hindi! 🌉",
+        `You said something like: <b>"${escapeHtml(text)}"</b><br>In English, that's close to: <b>"${escapeHtml(englishMeaning)}"</b><br>Now it's your turn — tap the mic and try saying it in English! 🎤`);
+      speak(`I think you said that in Hindi. In English, you can say: ${englishMeaning}. Now you try it in English!`);
+    } else {
+      showFeedback('tip',
+        "I heard you in Hindi! 🌉",
+        `That sounded like Hindi to me. Let's practise in English! Listen to Mira, and then try saying the answer in English. 🎤`);
+      speak("I think you said that in Hindi. Let's try it in English this time!");
+    }
+    els.nextBtn.classList.add('show');
+  }
+
+  els.micBtn.addEventListener('click', () => {
+    if (!recognizer) return;
+    if (isListening){
+      try { recognizer.stop(); } catch(e){}
+      if (hiRecognizer) try{ hiRecognizer.stop(); }catch(e){}
+      return;
+    }
+    els.feedbackCard.classList.remove('show');
+    els.nextBtn.classList.remove('show');
+    try { 
+      window.speechSynthesis.cancel();
+      recognizer.start(); 
+    } catch(e){
+      setupRecognizer();
+      try { recognizer.start(); } catch(err){}
+    }
+  });
+
+  els.enableMicBtn.addEventListener('click', () => {
+    if (!SpeechRecognition){
+      els.setupCard.querySelector('.stext').textContent = "This browser doesn't support speech recognition. Please open Speaking Buddy in Chrome or Edge.";
+      return;
+    }
+    setupRecognizer();
+    try {
+      recognizer.start();
+      setTimeout(() => { if (isListening) recognizer.stop(); }, 300);
+    } catch(e){}
+    micReady = true;
+    els.setupCard.style.display = 'none';
+    greetForTopic(true);
+  });
+
+  /* ============== CONVERSATION ENGINE ============== */
+  function currentQuestionList(){
+    return (BANK[state.level] && BANK[state.level][state.topic]) || BANK.starters.family;
+  }
+  function currentQuestion(){
+    const list = currentQuestionList();
+    return list[state.qIndex % list.length];
+  }
+
+  function renderProgressDots(){
+    const list = currentQuestionList();
+    els.progressDots.innerHTML = "";
+    list.forEach((_, i) => {
+      const d = document.createElement('div');
+      d.className = 'pdot' + (i < state.qIndex ? ' done' : (i === state.qIndex ? ' now' : ''));
+      els.progressDots.appendChild(d);
+    });
+  }
+
+  function renderWordBank(q){
+    els.wordBank.innerHTML = "";
+    const sample = q.listen.slice(0, 5);
+    sample.forEach(w => {
+      const chip = document.createElement('span');
+      chip.className = 'word-chip';
+      chip.textContent = w;
+      els.wordBank.appendChild(chip);
+    });
+  }
+
+  function setMiraLine(text, hint, speakAloud){
+    els.miraLine.innerHTML = escapeHtml(text) + (hint ? `<span class="hint">${escapeHtml(hint)}</span>` : "");
+    if (speakAloud !== false) speak(text);
+  }
+  function escapeHtml(s){
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  els.replayBtn.addEventListener('click', () => {
+    const q = currentQuestion();
+    speak(q.q);
+  });
+
+  function askCurrentQuestion(){
+    const q = currentQuestion();
+    renderProgressDots();
+    renderWordBank(q);
+    els.feedbackCard.classList.remove('show');
+    els.nextBtn.classList.remove('show');
+    els.liveTranscript.textContent = "";
+    setMiraLine(q.q, "Try to use one of the words below in your answer!");
+    state.attemptsThisQuestion = 0;
+  }
+
+  function greetForTopic(spoken){
+    const t = TOPICS[state.topic];
+    const greetings = [
+      `Let's talk about ${t.label.toLowerCase()}! `,
+      `Ooh, I love talking about ${t.label.toLowerCase()}! `,
+      `Time for some questions about ${t.label.toLowerCase()}! `,
+    ];
+    const opener = greetings[Math.floor(Math.random()*greetings.length)];
+    state.qIndex = 0;
+    const q = currentQuestion();
+    renderProgressDots();
+    renderWordBank(q);
+    setMiraLine(opener + q.q, "Try to use one of the words below in your answer!", spoken !== false);
+  }
+
+  function handleTranscript(text){
+    state.sessionAttempts++;
+    const lower = text.toLowerCase();
+    const q = currentQuestion();
+    const hitWord = q.listen.find(w => lower.includes(w.toLowerCase()));
+    const spokeEnough = lower.split(/\s+/).filter(Boolean).length >= 2;
+
+    state.stars += 1;
+    state.coins += hitWord ? 2 : 1;
+    updateStatBar();
+    showToast(hitWord ? "⭐ +1 star, 🪙 +2 coins!" : "⭐ +1 star for trying!");
+    checkBadges();
+
+    if (hitWord && spokeEnough){
+      showFeedback('good',
+        PRAISE[Math.floor(Math.random()*PRAISE.length)],
+        `You said: <b>"${escapeHtml(text)}"</b><br>Nice use of the word <b>${hitWord}</b>! Your English is growing every day. 🌱`);
+      speak("Wonderful! That was lovely speaking.");
+    } else {
+      const tip = q.tip;
+      showFeedback('tip',
+        ENCOURAGE[Math.floor(Math.random()*ENCOURAGE.length)],
+        `You said: <b>"${escapeHtml(text)}"</b><br>Here's a helpful word: <b>${tip.word}</b> (say it: <i>${tip.hear}</i>).<br>Try this next time: <b>"${tip.use}"</b>`);
+      speak(`Good try. Here's a tip. The word is ${tip.word}. You can say, ${tip.use}`);
+    }
+    els.nextBtn.classList.add('show');
+  }
+
+  function showFeedback(kind, headline, bodyHtml){
+    els.feedbackCard.className = 'feedback-card show ' + kind;
+    els.fcHead.className = 'fc-head ' + kind;
+    els.fcHead.textContent = (kind === 'good' ? '🌟 ' : '💡 ') + headline;
+    els.fcBody.innerHTML = bodyHtml;
+  }
+
+  els.nextBtn.addEventListener('click', () => {
+    const list = currentQuestionList();
+    state.qIndex = (state.qIndex + 1) % list.length;
+    askCurrentQuestion();
+  });
+
+  /* ============== TOPIC / LEVEL UI ============== */
+  function buildTopicPanel(){
+    els.topicPanel.innerHTML = "";
+    Object.entries(TOPICS).forEach(([key, t]) => {
+      const card = document.createElement('div');
+      card.className = 'topic-card' + (key === state.topic ? ' active' : '');
+      card.innerHTML = `<span class="temoji">${t.emoji}</span><span>${t.label}</span>`;
+      card.addEventListener('click', () => {
+        state.topic = key;
+        els.topicEmoji.textContent = t.emoji;
+        els.topicLabel.textContent = t.label;
+        els.stageTopicBanner.textContent = `${t.emoji} ${t.label} · ${capitalize(state.level)}`;
+        els.topicPanel.style.display = 'none';
+        els.topicChev.classList.remove('open');
+        greetForTopic(true);
+        [...els.topicPanel.children].forEach(c => c.classList.remove('active'));
+        card.classList.add('active');
+      });
+      els.topicPanel.appendChild(card);
+    });
+  }
+  function capitalize(s){ return s.charAt(0).toUpperCase() + s.slice(1); }
+
+  els.topicBtn.addEventListener('click', () => {
+    const isOpen = els.topicPanel.style.display !== 'none';
+    els.topicPanel.style.display = isOpen ? 'none' : 'grid';
+    els.topicChev.classList.toggle('open', !isOpen);
+  });
+
+  els.levelTabs.addEventListener('click', (e) => {
+    const btn = e.target.closest('.level-tab');
+    if (!btn) return;
+    [...els.levelTabs.children].forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    state.level = btn.dataset.level;
+    els.stageTopicBanner.textContent = `${TOPICS[state.topic].emoji} ${TOPICS[state.topic].label} · ${capitalize(state.level)}`;
+    greetForTopic(true);
+    if (state.level !== 'starters') maybeAwardBadge('moverUp', 'You unlocked a new level! 🚀');
+  });
+
+  /* ============== GAMIFICATION ============== */
+  function updateStatBar(){
+    els.starCount.textContent = state.stars;
+    els.coinCount.textContent = state.coins;
+  }
+  let toastTimer = null;
+  function showToast(msg){
+    els.toast.textContent = msg;
+    els.toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => els.toast.classList.remove('show'), 1800);
+  }
+  function maybeAwardBadge(id, msg){
+    if (state.earnedBadges.has(id)) return;
+    state.earnedBadges.add(id);
+    renderBadges();
+    showToast("🏆 New badge: " + msg);
+  }
+  function checkBadges(){
+    if (state.sessionAttempts >= 1) maybeAwardBadge('firstWord', 'First Try!');
+    if (state.stars >= 5) maybeAwardBadge('fiveStars', '5 Stars!');
+    if (state.stars >= 10) maybeAwardBadge('tenStars', '10 Stars!');
+    if (state.sessionAttempts >= 8) maybeAwardBadge('talker', 'Big Talker!');
+    if (state.topic === 'family' && state.sessionAttempts >= 3) maybeAwardBadge('family5', 'Family Pro!');
+  }
+  function renderBadges(){
+    els.badgeStrip.innerHTML = "";
+    BADGES.forEach(b => {
+      const earned = state.earnedBadges.has(b.id);
+      const el = document.createElement('div');
+      el.className = 'badge' + (earned ? ' earned' : '');
+      el.innerHTML = `<div class="bicon">${b.icon}</div>${b.label}`;
+      els.badgeStrip.appendChild(el);
+    });
+  }
+
+  /* ============== INIT ============== */
+  function init(){
+    buildTopicPanel();
+    renderBadges();
+    updateStatBar();
+    askCurrentQuestion();
+    if (!SpeechRecognition){
+      els.setupCard.querySelector('.stext').textContent = "This browser doesn't fully support speech recognition. For the best experience, open Speaking Buddy in Chrome or Edge.";
+    }
+  }
+  init();
+})();
+</script>
+</body>
+</html>
