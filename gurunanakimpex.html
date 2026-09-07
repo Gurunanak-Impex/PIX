@@ -491,7 +491,10 @@ tr:hover td{background:#f8faff;}
               <div class="form-grid">
                 <div class="form-row">
                   <label>Sales Lead <span class="small text-mut">(who sold this — internal only, never printed)</span></label>
-                  <select id="billSalesLead"></select>
+                  <div class="flex gap8">
+                    <select id="billSalesLead" style="flex:1;"></select>
+                    <button type="button" class="btn btn-sm" onclick="ModalUI.openSalesLead(null, true)">+ New</button>
+                  </div>
                 </div>
               </div>
               <div id="selectedCustomerBox" class="small text-mut"></div>
@@ -796,6 +799,7 @@ tr:hover td{background:#f8faff;}
           <span class="chip" onclick="SettingsUI.tab('billing',this)">Bill Numbering &amp; Tax</span>
           <span class="chip" onclick="SettingsUI.tab('segmentation',this)">Customer Segmentation</span>
           <span class="chip" onclick="SettingsUI.tab('users',this)">User Management</span>
+          <span class="chip" onclick="SettingsUI.tab('salesleads',this)">Sales Leads</span>
           <span class="chip" onclick="SettingsUI.tab('backup',this)">Backup &amp; Restore</span>
           <span class="chip" onclick="SettingsUI.tab('security',this)">Security Rules</span>
         </div>
@@ -849,6 +853,12 @@ tr:hover td{background:#f8faff;}
           <div class="table-wrap"><table><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Active</th><th></th></tr></thead><tbody id="usersTableBody"></tbody></table></div>
         </div>
 
+        <div class="settings-pane card hidden" id="settings-salesleads">
+          <div class="flex-between"><p class="small text-mut">Manage the list of sales team members who can be attributed to a bill or pipeline deal. This is purely internal — never shown to customers.</p>
+          <button class="btn btn-primary btn-sm" onclick="ModalUI.openSalesLead()">+ Add Sales Lead</button></div>
+          <div class="table-wrap"><table><thead><tr><th>Name</th><th>Active</th><th></th></tr></thead><tbody id="salesLeadsTableBody"></tbody></table></div>
+        </div>
+
         <div class="settings-pane card hidden" id="settings-backup">
           <h4>Backup Data</h4>
           <p class="small text-mut">Exports all business records (customers, products, bills, settings) into one JSON file.</p>
@@ -866,6 +876,8 @@ tr:hover td{background:#f8faff;}
             <button class="btn btn-sm" onclick="Backup.exportCollection('bills')">Export Bills</button>
             <button class="btn btn-sm" onclick="Backup.exportCollection('suppliers')">Export Suppliers</button>
             <button class="btn btn-sm" onclick="Backup.exportCollection('purchaseBills')">Export Purchase Bills</button>
+            <button class="btn btn-sm" onclick="Backup.exportCollection('salesLeads')">Export Sales Leads</button>
+            <button class="btn btn-sm" onclick="Backup.exportCollection('leads')">Export Pipeline Deals</button>
           </div>
           <hr/>
           <h4>Demo Data</h4>
@@ -1024,6 +1036,18 @@ tr:hover td{background:#f8faff;}
   </div>
 </div>
 
+<div class="modal-overlay" id="modalSalesLead">
+  <div class="modal">
+    <div class="modal-head"><h3 id="mslTitle">Add Sales Lead</h3><button class="modal-close" onclick="ModalUI.close('modalSalesLead')">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="mslId"/>
+      <div class="form-row"><label>Name *</label><input id="mslName" placeholder="Sales team member's name"/></div>
+      <div class="form-row"><label><input type="checkbox" id="mslActive" style="width:auto;" checked/> Active</label></div>
+    </div>
+    <div class="modal-foot"><button class="btn" onclick="ModalUI.close('modalSalesLead')">Cancel</button><button class="btn btn-primary" onclick="ModalUI.saveSalesLead()">Save</button></div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="modalVoid">
   <div class="modal">
     <div class="modal-head"><h3 id="voidModalTitle">Void Bill</h3><button class="modal-close" onclick="ModalUI.close('modalVoid')">✕</button></div>
@@ -1032,7 +1056,7 @@ tr:hover td{background:#f8faff;}
       <input type="hidden" id="voidType" value="sale"/>
       <div class="form-row"><label>Reason for voiding *</label><textarea id="voidReason" rows="3"></textarea></div>
     </div>
-    <div class="modal-foot"><button class="btn" onclick="ModalUI.close('modalVoid')">Cancel</button><button class="btn btn-danger" onclick="ModalUI.confirmVoid()">Void</button></div>
+    <div class="modal-foot"><button class="btn" onclick="ModalUI.close('modalVoid')">Cancel</button><button class="btn btn-danger" onclick="BillsList.confirmVoid()">Void</button></div>
   </div>
 </div>
 
@@ -1109,7 +1133,18 @@ const State = {
   currentPurchase: { items: [], supplier: null },
   purchasesCache: [],
   purchasesLastDoc: null,
+  salesLeads: [],         // internal sales team members who can be attributed a bill/lead
+  leads: [],              // sales pipeline deals
 };
+
+const LEAD_STAGES = [
+  { code:'PRESENTATION', label:'Initial Presentation Made' },
+  { code:'PROPOSAL', label:'Proposal / Price Quote' },
+  { code:'WON', label:'Closed Won' },
+  { code:'LOST', label:'Lost' },
+  { code:'DORMANT', label:'Dormant / Parked' }
+];
+function stageLabel(code){ return (LEAD_STAGES.find(s=>s.code===code)||{}).label || code; }
 
 function isAdmin(){ return State.profile && State.profile.role === 'ADMIN'; }
 function isActive(){ return State.profile && State.profile.active !== false; }
@@ -1272,6 +1307,35 @@ const UsersDAL = {
   async setRole(uidVal, data){
     await setDoc(doc(db,'users',uidVal), {...data, createdAt: serverTimestamp(), active:true}, {merge:true});
     await Audit.log('User Actions', uidVal, {op:'role-assigned', ...data});
+  }
+};
+
+const SalesLeadsDAL = {
+  col: () => collection(db,'salesLeads'),
+  async all(){ const snap = await getDocs(this.col()); return snap.docs.map(d=>({id:d.id,...d.data()})); },
+  async create(data){
+    const ref = await addDoc(this.col(), {...data, active:true, createdAt: serverTimestamp()});
+    await Audit.log('Sales Lead Created', ref.id, {name:data.name});
+    return ref.id;
+  },
+  async update(id, data){
+    await updateDoc(doc(db,'salesLeads',id), data);
+    await Audit.log('Sales Lead Updated', id, data);
+  }
+};
+
+const LeadsDAL = {
+  col: () => collection(db,'leads'),
+  async all(){ const snap = await getDocs(this.col()); return snap.docs.map(d=>({id:d.id,...d.data()})); },
+  async get(id){ const s = await getDoc(doc(db,'leads',id)); return s.exists()? {id:s.id,...s.data()}: null; },
+  async create(data){
+    const ref = await addDoc(this.col(), {...data, createdAt: serverTimestamp(), updatedAt: serverTimestamp()});
+    await Audit.log('Lead Created', ref.id, {firmName:data.firmName, stage:data.stage});
+    return ref.id;
+  },
+  async update(id, data){
+    await updateDoc(doc(db,'leads',id), {...data, updatedAt: serverTimestamp()});
+    await Audit.log('Lead Updated', id, {stage:data.stage});
   }
 };
 
@@ -1557,6 +1621,8 @@ const Router = {
     if(view==='customers') CustomersList.load();
     if(view==='products') ProductsList.load();
     if(view==='profitability') Profitability.render();
+    if(view==='pipeline') PipelineUI.load();
+    if(view==='salesperformance') SalesPerformance.load();
     if(view==='reports') { /* wait for user to run */ }
     if(view==='settings') SettingsUI.load();
     if(view==='help') HelpUI.render();
@@ -1767,6 +1833,7 @@ const BillUI = {
     document.getElementById('tTax').value = 0;
     document.getElementById('tPaid').value = 0;
     document.getElementById('paymentMode').value = 'Cash';
+    this.populateSalesLeadSelect();
     this.renderItems();
     this.recalc();
     document.getElementById('profitColHead').style.display = isAdmin() ? '' : 'none';
@@ -1774,6 +1841,14 @@ const BillUI = {
     document.getElementById('tProfitRow').style.display = isAdmin() ? '' : 'none';
     document.getElementById('tMarginRow').style.display = isAdmin() ? '' : 'none';
     document.getElementById('billNumPreview').textContent = '(bill number generated on save)';
+  },
+  populateSalesLeadSelect(){
+    const sel = document.getElementById('billSalesLead');
+    if(!sel) return;
+    const cur = sel.value;
+    const active = State.salesLeads.filter(s=>s.active!==false);
+    sel.innerHTML = '<option value="">— Select Sales Lead —</option>' + active.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+    if(active.some(s=>s.id===cur)) sel.value = cur;
   },
   searchCustomer(val){
     const list = document.getElementById('custAcList');
@@ -1884,6 +1959,10 @@ const BillUI = {
   async save(printAfter){
     if(!State.currentBill.customer){ Toast.show('Please select a customer','err'); return; }
     if(!State.currentBill.items.length){ Toast.show('Add at least one product','err'); return; }
+    const activeLeads = State.salesLeads.filter(s=>s.active!==false);
+    const salesLeadId = document.getElementById('billSalesLead').value;
+    if(activeLeads.length && !salesLeadId){ Toast.show('Please select the Sales Lead who made this sale','err'); return; }
+    const salesLeadName = (activeLeads.find(s=>s.id===salesLeadId)||{}).name || '';
     const c = State.currentBill.customer;
     const calcItems = State.currentBill.items.map(it=>{
       const calc = Logic.calcLineItem({quantity:it.quantity, sellingPrice:it.sellingPriceSnapshot, costPrice:it.costPriceSnapshot, discountPct:it.discount, taxPct:it.taxPct});
@@ -1903,8 +1982,9 @@ const BillUI = {
     const {billNumber} = await BillsDAL.nextBillNumber();
     const billDoc = {
       billNumber, customerId: c.id,
-      customerSnapshot: { name:c.name, phone:c.phone||'', address:c.address||'', gstin:c.gstin||'' },
+      customerSnapshot: { name:c.name, firmName:c.firmName||'', phone:c.phone||'', email:c.email||'', address:c.address||'', gstin:c.gstin||'' },
       date: Timestamp.now(), createdBy: { uid: State.currentUser.uid, name: State.profile?.name || State.currentUser.email },
+      salesLeadId: salesLeadId||null, salesLeadName, // internal attribution only — never shown on customer print
       paymentMode, subtotal: totals.subtotal, discount, tax, grandTotal: totals.grandTotal,
       paidAmount: paid, balance, status:'active',
       totalCost: totals.totalCost, grossProfit: totals.grossProfit, grossMargin: totals.grossMargin,
@@ -1938,10 +2018,14 @@ const BillsList = {
   async loadMore(){ await this.load(false); },
   render(){
     const admin = isAdmin();
+    const leadHead = document.getElementById('billSalesLeadColHead');
+    if(leadHead) leadHead.style.display = admin ? '' : 'none';
     document.getElementById('billsTableBody').innerHTML = State.billsCache.map(b=>{
       const itemCount = (b.items||[]).length;
       return `<tr>
-        <td>${b.billNumber}</td><td>${fmtDate(b.date)}</td><td>${b.customerSnapshot?.name||''}</td><td>${itemCount}</td>
+        <td>${b.billNumber}</td><td>${fmtDate(b.date)}</td><td>${b.customerSnapshot?.name||''}</td>
+        <td style="${admin?'':'display:none;'}">${b.salesLeadName||'—'}</td>
+        <td>${itemCount}</td>
         <td>${money(b.grandTotal)}</td>
         <td>${admin? money(b.totalCost): '—'}</td>
         <td>${admin? money(b.grossProfit): '—'}</td>
@@ -1952,7 +2036,7 @@ const BillsList = {
           ${b.status!=='void' && admin ? `<button class="btn btn-sm btn-danger" onclick="BillsList.openVoid('${b.id}')">Void</button>` : ''}
         </td>
       </tr>`;
-    }).join('') || `<tr><td colspan="12" class="text-mut" style="text-align:center;padding:20px;">No bills found for this range.</td></tr>`;
+    }).join('') || `<tr><td colspan="13" class="text-mut" style="text-align:center;padding:20px;">No bills found for this range.</td></tr>`;
     document.getElementById('billsPageInfo').textContent = `${State.billsCache.length} bills loaded`;
   },
   view(id){
@@ -1962,7 +2046,8 @@ const BillsList = {
     const admin = isAdmin();
     document.getElementById('billViewBody').innerHTML = `
       <div class="flex-between"><b>${b.billNumber}</b><span>${fmtDate(b.date)}</span></div>
-      <div class="small text-mut">${b.customerSnapshot?.name} · ${b.customerSnapshot?.phone}</div>
+      <div class="small text-mut">${b.customerSnapshot?.name}${b.customerSnapshot?.firmName?(' — '+b.customerSnapshot.firmName):''} · ${b.customerSnapshot?.phone}</div>
+      ${admin && b.salesLeadName? `<div class="small text-mut">Sales Lead (internal only): <b>${b.salesLeadName}</b></div>`:''}
       ${b.status==='void'? `<div class="badge badge-red mt8">VOIDED — ${b.voidReason||''} (by ${b.voidedBy||''})</div>`:''}
       <table class="mt16"><thead><tr><th>Product</th><th>Qty</th><th>Rate</th><th>Amount</th>${admin?'<th>Profit</th>':''}</tr></thead>
       <tbody>${(b.items||[]).map(it=>`<tr><td>${it.productNameSnapshot}</td><td>${it.quantity}</td><td>${money(it.sellingPriceSnapshot)}</td><td>${money(it.revenue)}</td>${admin?`<td>${money(it.profit)}</td>`:''}</tr>`).join('')}</tbody></table>
@@ -2001,12 +2086,13 @@ const CustomersList = {
   render(){
     const search = (document.getElementById('custListSearch')?.value||'').toLowerCase();
     const seg = document.getElementById('custSegFilter')?.value||'';
-    let list = State.customers.filter(c=> (c.name||'').toLowerCase().includes(search) || (c.phone||'').includes(search));
+    let list = State.customers.filter(c=> (c.name||'').toLowerCase().includes(search) || (c.phone||'').includes(search) || (c.firmName||'').toLowerCase().includes(search));
     if(seg) list = list.filter(c=>c._segment===seg);
     list.sort((a,b)=>(b._lifetimeRevenue||0)-(a._lifetimeRevenue||0));
     document.getElementById('customersTableBody').innerHTML = list.map(c=>`
       <tr>
         <td><a href="#" onclick="CustomerDetail.open('${c.id}');return false;">${c.name}</a></td>
+        <td>${c.firmName||'—'}</td>
         <td>${c.phone||''}</td>
         <td>${c._totalBills||0}</td>
         <td>${money(c._lifetimeRevenue||0)}</td>
@@ -2015,14 +2101,17 @@ const CustomersList = {
         <td>${money(c._avgBill||0)}</td>
         <td>${c._lastPurchase? fmtDate(c._lastPurchase):'—'}</td>
         <td><span class="badge badge-orange">${c._segment||'NEW'}</span></td>
-        <td><button class="btn btn-sm" onclick="CustomerDetail.open('${c.id}')">View</button></td>
-      </tr>`).join('') || `<tr><td colspan="10" class="text-mut" style="text-align:center;padding:20px;">No customers yet.</td></tr>`;
+        <td><button class="btn btn-sm" onclick="CustomerDetail.open('${c.id}')">View</button> <button class="btn btn-sm" onclick="ModalUI.openCustomer(null,'${c.id}')">Edit</button></td>
+      </tr>`).join('') || `<tr><td colspan="11" class="text-mut" style="text-align:center;padding:20px;">No customers yet.</td></tr>`;
   }
 };
 
 const CustomerDetail = {
+  _id: null,
+  edit(){ if(this._id) ModalUI.openCustomer(null, this._id); },
   async open(id){
     Router.go('customerDetail');
+    this._id = id;
     const c = State.customers.find(x=>x.id===id) || await CustomersDAL.get(id);
     const bills = await BillsDAL.listByCustomer(id);
     const active = bills.filter(b=>b.status!=='void');
@@ -2036,8 +2125,8 @@ const CustomerDetail = {
     const margin = revenue>0? profit/revenue*100:0;
     const avgBill = active.length? revenue/active.length:0;
     const lastPurchase = active.length? dateFromTS(active[0].date) : null;
-    document.getElementById('cdName').textContent = c.name;
-    document.getElementById('cdMeta').textContent = `${c.phone||''} · ${c.address||''} ${c.gstin?('· GSTIN '+c.gstin):''}`;
+    document.getElementById('cdName').textContent = c.name + (c.firmName? ' — '+c.firmName : '');
+    document.getElementById('cdMeta').textContent = `${c.phone||''}${c.email? (' · '+c.email) : ''} · ${c.address||''} ${c.gstin?('· GSTIN '+c.gstin):''}`;
     document.getElementById('cdKPIs').innerHTML = [
       kpi('Lifetime Revenue', money(revenue)),
       kpi('Lifetime Gross Profit', money(profit)),
@@ -2073,6 +2162,137 @@ const CustomerDetail = {
       <tr><td>${fmtDate(b.date)}</td><td>${b.billNumber}</td><td>${(b.items||[]).map(i=>i.productNameSnapshot).join(', ')}</td>
       <td>${money(b.grandTotal)}</td><td>${isAdmin()?money(b.totalCost):'—'}</td><td>${isAdmin()?money(b.grossProfit):'—'}</td>
       <td><button class="btn btn-sm" onclick="BillsList._viewing=${JSON.stringify(b).replace(/"/g,'&quot;')};ModalUI.open('modalBillView');BillsList.view('${b.id}')">View</button></td></tr>`).join('');
+  }
+};
+
+/* ---------------------------- SALES PIPELINE (internal CRM — never on customer bill printouts) ---------------------------- */
+const PipelineUI = {
+  async load(){
+    State.leads = await LeadsDAL.all().catch(()=>[]);
+    this.populateSelects();
+    this.render();
+  },
+  populateSelects(){
+    const leadFilter = document.getElementById('pipelineLeadFilter');
+    if(leadFilter){
+      const cur = leadFilter.value;
+      leadFilter.innerHTML = '<option value="">All Sales Leads</option>' + State.salesLeads.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+      leadFilter.value = cur;
+    }
+  },
+  weighted(l){ return (Number(l.value)||0) * (Number(l.probability)||0) / 100; },
+  render(){
+    const leadFilter = document.getElementById('pipelineLeadFilter')?.value || '';
+    const stageFilter = document.getElementById('pipelineStageFilter')?.value || '';
+    let leads = State.leads.slice();
+    if(leadFilter) leads = leads.filter(l=>l.salesLeadId===leadFilter);
+    if(stageFilter) leads = leads.filter(l=>l.stage===stageFilter);
+
+    const open = leads.filter(l=>['PRESENTATION','PROPOSAL','DORMANT'].includes(l.stage));
+    const openValue = open.reduce((s,l)=>s+(Number(l.value)||0),0);
+    const weightedValue = open.reduce((s,l)=>s+this.weighted(l),0);
+    const wonLeads = leads.filter(l=>l.stage==='WON');
+    const lostLeads = leads.filter(l=>l.stage==='LOST');
+    const wonValue = wonLeads.reduce((s,l)=>s+(Number(l.value)||0),0);
+    const winRate = (wonLeads.length+lostLeads.length)>0 ? wonLeads.length/(wonLeads.length+lostLeads.length)*100 : 0;
+    document.getElementById('pipelineStageKPIs').innerHTML = [
+      kpi('Open Pipeline Value', money(openValue), open.length+' open deals', 'trending_up'),
+      kpi('Weighted Pipeline', money(weightedValue), 'Probability-adjusted', 'query_stats', 'purple'),
+      kpi('Closed Won Value', money(wonValue), wonLeads.length+' won deals', 'verified', 'green'),
+      kpi('Win Rate', pct(winRate), wonLeads.length+' won / '+lostLeads.length+' lost', 'leaderboard', 'amber')
+    ].join('');
+
+    const board = document.getElementById('pipelineBoard');
+    board.innerHTML = LEAD_STAGES.map(st=>{
+      const colLeads = leads.filter(l=>l.stage===st.code);
+      return `<div class="kanban-col">
+        <div class="kanban-col-head">${st.label} <span class="kanban-col-count">${colLeads.length}</span></div>
+        ${colLeads.map(l=>`
+          <div class="lead-card" onclick="ModalUI.openLead('${l.id}')">
+            <div class="lead-card-name">${l.firmName}</div>
+            <div class="lead-card-sub">${l.contactName||''} ${l.salesLeadName? ('· '+l.salesLeadName) : ''}</div>
+            <div class="lead-card-val"><span>${money(l.value||0)}</span><span>${l.probability||0}%</span></div>
+          </div>`).join('') || `<div class="text-mut small" style="padding:6px;">No deals</div>`}
+      </div>`;
+    }).join('');
+  }
+};
+
+/* ---------------------------- SALES LEAD PERFORMANCE (internal dashboard, admin-only) ---------------------------- */
+const SalesPerformance = {
+  async load(){
+    const gate = document.getElementById('spGate');
+    const content = document.getElementById('spContent');
+    if(!isAdmin()){
+      gate.innerHTML = `<div class="card text-mut" style="text-align:center;padding:30px;">Only Admins can view Sales Lead Performance.</div>`;
+      content.classList.add('hidden');
+      return;
+    }
+    gate.innerHTML = '';
+    content.classList.remove('hidden');
+    State.leads = await LeadsDAL.all().catch(()=>[]);
+    const fromDate = new Date(Date.now() - 365*86400000);
+    const bills = await BillsDAL.listAllInRange(fromDate, new Date()).catch(()=>[]);
+    const activeBills = bills.filter(b=>b.status!=='void');
+    this.render(activeBills, State.leads);
+  },
+  render(activeBills, leads){
+    // ---- Funnel-wide KPIs ----
+    const open = leads.filter(l=>['PRESENTATION','PROPOSAL','DORMANT'].includes(l.stage));
+    const openValue = open.reduce((s,l)=>s+(Number(l.value)||0),0);
+    const weightedValue = open.reduce((s,l)=>s+PipelineUI.weighted(l),0);
+    const won = leads.filter(l=>l.stage==='WON'), lost = leads.filter(l=>l.stage==='LOST');
+    const winRate = (won.length+lost.length)>0 ? won.length/(won.length+lost.length)*100 : 0;
+    document.getElementById('spFunnelKPIs').innerHTML = [
+      kpi('Total Leads (12 mo view)', leads.length, null, 'groups'),
+      kpi('Open Pipeline Value', money(openValue), 'Weighted: '+money(weightedValue), 'trending_up'),
+      kpi('Closed Won Value', money(won.reduce((s,l)=>s+(Number(l.value)||0),0)), won.length+' deals', 'verified', 'green'),
+      kpi('Overall Win Rate', pct(winRate), won.length+' won / '+lost.length+' lost', 'leaderboard', 'amber')
+    ].join('');
+
+    // ---- Billed performance by sales lead ----
+    const byLeadBills = {};
+    activeBills.forEach(b=>{
+      const key = b.salesLeadName || 'Unassigned';
+      if(!byLeadBills[key]) byLeadBills[key] = {bills:0, revenue:0, cost:0, profit:0};
+      byLeadBills[key].bills++; byLeadBills[key].revenue += b.grandTotal||0;
+      byLeadBills[key].cost += b.totalCost||0; byLeadBills[key].profit += b.grossProfit||0;
+    });
+    const billRows = Object.entries(byLeadBills).sort((a,b)=>b[1].revenue-a[1].revenue);
+    document.getElementById('spBillsBody').innerHTML = billRows.map(([name,d])=>`
+      <tr><td>${name}</td><td>${d.bills}</td><td>${money(d.revenue)}</td><td>${money(d.cost)}</td><td>${money(d.profit)}</td><td>${pct(d.revenue>0? d.profit/d.revenue*100:0)}</td></tr>
+    `).join('') || `<tr><td colspan="6" class="text-mut" style="text-align:center;padding:16px;">No billed sales in the last 12 months.</td></tr>`;
+
+    // ---- Pipeline performance by sales lead, stage-wise ----
+    const byLeadPipeline = {};
+    leads.forEach(l=>{
+      const key = l.salesLeadName || 'Unassigned';
+      if(!byLeadPipeline[key]) byLeadPipeline[key] = {PRESENTATION:0,PROPOSAL:0,WON:0,LOST:0,DORMANT:0, openValue:0, weightedValue:0, wonValue:0, wonCount:0, lostCount:0};
+      const row = byLeadPipeline[key];
+      row[l.stage] = (row[l.stage]||0) + 1;
+      if(['PRESENTATION','PROPOSAL','DORMANT'].includes(l.stage)){ row.openValue += Number(l.value)||0; row.weightedValue += PipelineUI.weighted(l); }
+      if(l.stage==='WON'){ row.wonValue += Number(l.value)||0; row.wonCount++; }
+      if(l.stage==='LOST') row.lostCount++;
+    });
+    const pipeRows = Object.entries(byLeadPipeline).sort((a,b)=>b[1].weightedValue-a[1].weightedValue);
+    document.getElementById('spPipelineBody').innerHTML = pipeRows.map(([name,d])=>{
+      const wr = (d.wonCount+d.lostCount)>0? d.wonCount/(d.wonCount+d.lostCount)*100 : 0;
+      return `<tr><td>${name}</td><td>${d.PRESENTATION}</td><td>${d.PROPOSAL}</td><td>${d.WON}</td><td>${d.LOST}</td><td>${d.DORMANT}</td>
+        <td>${money(d.openValue)}</td><td>${money(d.weightedValue)}</td><td>${money(d.wonValue)}</td><td>${pct(wr)}</td></tr>`;
+    }).join('') || `<tr><td colspan="10" class="text-mut" style="text-align:center;padding:16px;">No pipeline deals recorded yet.</td></tr>`;
+
+    // ---- Won revenue by sales lead chart ----
+    const chartLabels = pipeRows.map(([name])=>name);
+    const chartData = pipeRows.map(([,d])=>d.wonValue);
+    const ctx = document.getElementById('spChart');
+    if(SalesPerformance._chart) SalesPerformance._chart.destroy();
+    if(chartLabels.length){
+      SalesPerformance._chart = new Chart(ctx, {
+        type:'bar',
+        data:{ labels: chartLabels, datasets:[{ label:'Won Value', data: chartData, backgroundColor:'#fd651e', borderRadius:6, maxBarThickness:36 }] },
+        options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}, tooltip:{callbacks:{label:(c)=>' '+money(c.parsed.y)}}}, scales:{ y:{ ticks:{ callback:(v)=>money(v) } } } }
+      });
+    } else if(ctx){ ctx.getContext('2d').clearRect(0,0,ctx.width,ctx.height); }
   }
 };
 
@@ -2255,11 +2475,11 @@ const GlobalSearch = {
     const box = document.getElementById('globalSearchResults');
     if(!val || val.length<2){ box.style.display='none'; return; }
     const v = val.toLowerCase();
-    const customers = State.customers.filter(c=>(c.name||'').toLowerCase().includes(v)||(c.phone||'').includes(v)).slice(0,5);
+    const customers = State.customers.filter(c=>(c.name||'').toLowerCase().includes(v)||(c.phone||'').includes(v)||(c.firmName||'').toLowerCase().includes(v)).slice(0,5);
     const products = State.products.filter(p=>(p.name||'').toLowerCase().includes(v)||(p.sku||'').toLowerCase().includes(v)).slice(0,5);
     const bills = State.billsCache.filter(b=>(b.billNumber||'').toLowerCase().includes(v)).slice(0,5);
     let html = '';
-    if(customers.length) html += `<div class="gsr-group">Customers</div>` + customers.map(c=>`<div class="gsr-item" onclick="CustomerDetail.open('${c.id}');GlobalSearch.close()">${c.name} · ${c.phone||''}</div>`).join('');
+    if(customers.length) html += `<div class="gsr-group">Customers</div>` + customers.map(c=>`<div class="gsr-item" onclick="CustomerDetail.open('${c.id}');GlobalSearch.close()">${c.name}${c.firmName?(' — '+c.firmName):''} · ${c.phone||''}</div>`).join('');
     if(products.length) html += `<div class="gsr-group">Products</div>` + products.map(p=>`<div class="gsr-item" onclick="ProductDetail.open('${p.id}');GlobalSearch.close()">${p.name} · ${p.sku}</div>`).join('');
     if(bills.length) html += `<div class="gsr-group">Bills</div>` + bills.map(b=>`<div class="gsr-item" onclick="Router.go('bills');GlobalSearch.close()">${b.billNumber} · ${b.customerSnapshot?.name||''}</div>`).join('');
     box.innerHTML = html || `<div class="gsr-item text-mut">No matches</div>`;
@@ -2273,33 +2493,51 @@ document.addEventListener('click', (e)=>{ if(!e.target.closest('.search-box')) G
 const ModalUI = {
   open(id){ document.getElementById(id).classList.add('show'); },
   close(id){ document.getElementById(id).classList.remove('show'); },
-  openCustomer(prefillName){
-    document.getElementById('mcName').value = prefillName||'';
-    ['mcPhone','mcAltPhone','mcCity','mcAddress','mcState','mcGstin','mcNotes'].forEach(id=>document.getElementById(id).value='');
-    document.getElementById('mcType').value = 'Retail';
+  openCustomer(prefillName, editId){
+    const c = editId ? State.customers.find(x=>x.id===editId) : null;
+    document.getElementById('mcId').value = editId||'';
+    document.getElementById('mcTitle').textContent = editId ? 'Edit Customer' : 'Add New Customer';
+    document.getElementById('mcName').value = c ? (c.name||'') : (prefillName||'');
+    document.getElementById('mcFirmName').value = c ? (c.firmName||'') : '';
+    document.getElementById('mcPhone').value = c ? (c.phone||'') : '';
+    document.getElementById('mcAltPhone').value = c ? (c.altPhone||'') : '';
+    document.getElementById('mcEmail').value = c ? (c.email||'') : '';
+    document.getElementById('mcCity').value = c ? (c.city||'') : '';
+    document.getElementById('mcAddress').value = c ? (c.address||'') : '';
+    document.getElementById('mcState').value = c ? (c.state||'') : '';
+    document.getElementById('mcGstin').value = c ? (c.gstin||'') : '';
+    document.getElementById('mcNotes').value = c ? (c.notes||'') : '';
+    document.getElementById('mcType').value = c ? (c.type||'Retail') : 'Retail';
     this.open('modalCustomer');
   },
   async saveCustomer(){
+    const id = document.getElementById('mcId').value;
     const name = document.getElementById('mcName').value.trim();
     const phone = document.getElementById('mcPhone').value.trim();
     if(!name || !phone){ Toast.show('Name and phone are required','err'); return; }
     const data = {
-      name, phone, altPhone: document.getElementById('mcAltPhone').value.trim(),
+      name, firmName: document.getElementById('mcFirmName').value.trim(),
+      phone, altPhone: document.getElementById('mcAltPhone').value.trim(),
+      email: document.getElementById('mcEmail').value.trim(),
       address: document.getElementById('mcAddress').value.trim(), city: document.getElementById('mcCity').value.trim(),
       state: document.getElementById('mcState').value.trim(), gstin: document.getElementById('mcGstin').value.trim(),
       type: document.getElementById('mcType').value, notes: document.getElementById('mcNotes').value.trim()
     };
-    const id = await CustomersDAL.create(data);
+    let custId = id;
+    if(id){ await CustomersDAL.update(id, data); }
+    else { custId = await CustomersDAL.create(data); }
     await Loader.reloadCustomersProducts();
     this.close('modalCustomer');
-    Toast.show('Customer added','ok');
+    Toast.show(id ? 'Customer updated' : 'Customer added','ok');
     if(Router.current==='newbill'){
-      const c = State.customers.find(x=>x.id===id);
-      BillUI.pickCustomer(0); // fallback
-      State.currentBill.customer = c;
-      document.getElementById('custSearchInput').value = c.name;
-      document.getElementById('selectedCustomerBox').innerHTML = `📞 ${c.phone||''} &nbsp; ${c.address||''}`;
+      const c = State.customers.find(x=>x.id===custId);
+      if(c){
+        State.currentBill.customer = c;
+        document.getElementById('custSearchInput').value = c.name;
+        document.getElementById('selectedCustomerBox').innerHTML = `📞 ${c.phone||''} &nbsp; ${c.address||''}`;
+      }
     } else if(Router.current==='customers'){ CustomersList.render(); }
+    else if(Router.current==='customerDetail' && custId){ CustomerDetail.open(custId); }
   },
   openProduct(id){
     document.getElementById('mpTitle').textContent = id? 'Edit Product' : 'Add New Product';
@@ -2354,6 +2592,102 @@ const ModalUI = {
     this.close('modalUser');
     Toast.show('Staff role saved','ok');
     SettingsUI.loadUsers();
+  },
+
+  /* ---------------- SALES LEAD (staff member) admin management ---------------- */
+  openSalesLead(editId, fromBill){
+    const sl = editId ? State.salesLeads.find(x=>x.id===editId) : null;
+    document.getElementById('mslId').value = editId||'';
+    document.getElementById('mslTitle').textContent = editId? 'Edit Sales Lead' : 'Add Sales Lead';
+    document.getElementById('mslName').value = sl? (sl.name||'') : '';
+    document.getElementById('mslActive').checked = sl? sl.active!==false : true;
+    this._slFromBill = !!fromBill;
+    this.open('modalSalesLead');
+  },
+  async saveSalesLead(){
+    const id = document.getElementById('mslId').value;
+    const name = document.getElementById('mslName').value.trim();
+    const active = document.getElementById('mslActive').checked;
+    if(!name){ Toast.show('Sales lead name is required','err'); return; }
+    try{
+      let newId = id;
+      if(id){ await SalesLeadsDAL.update(id, {name, active}); }
+      else { newId = await SalesLeadsDAL.create({name, active}); }
+      State.salesLeads = await SalesLeadsDAL.all();
+      this.close('modalSalesLead');
+      Toast.show('Sales lead saved','ok');
+      SettingsUI.loadSalesLeads();
+      PipelineUI.populateSelects();
+      BillUI.populateSalesLeadSelect();
+      if(this._slFromBill){
+        const sel = document.getElementById('billSalesLead');
+        if(sel) sel.value = newId;
+        this._slFromBill = false;
+      }
+    }catch(e){
+      Toast.show('Could not save sales lead: '+e.message,'err');
+    }
+  },
+
+  /* ---------------- SALES PIPELINE LEAD (deal) ---------------- */
+  openLead(editId){
+    const l = editId ? State.leads.find(x=>x.id===editId) : null;
+    document.getElementById('mlId').value = editId||'';
+    document.getElementById('mlTitle').textContent = editId? 'Edit Lead' : 'Add Lead';
+    document.getElementById('mlFirmName').value = l? (l.firmName||'') : '';
+    document.getElementById('mlContactName').value = l? (l.contactName||'') : '';
+    document.getElementById('mlPhone').value = l? (l.phone||'') : '';
+    document.getElementById('mlEmail').value = l? (l.email||'') : '';
+    const custSel = document.getElementById('mlCustomerId');
+    custSel.innerHTML = '<option value="">— None —</option>' + State.customers.map(c=>`<option value="${c.id}">${c.name}${c.firmName?(' — '+c.firmName):''}</option>`).join('');
+    custSel.value = l? (l.customerId||'') : '';
+    const leadSel = document.getElementById('mlSalesLead');
+    const activeLeads = State.salesLeads.filter(s=>s.active!==false);
+    leadSel.innerHTML = activeLeads.map(s=>`<option value="${s.id}">${s.name}</option>`).join('') || '<option value="">— Add a sales lead in Settings first —</option>';
+    if(l && l.salesLeadId) leadSel.value = l.salesLeadId;
+    document.getElementById('mlStage').value = l? (l.stage||'PRESENTATION') : 'PRESENTATION';
+    document.getElementById('mlValue').value = l? (l.value||0) : '';
+    document.getElementById('mlProbability').value = l? (l.probability ?? 25) : 25;
+    document.getElementById('mlCloseDate').value = l? (l.closeDate||'') : '';
+    document.getElementById('mlNotes').value = l? (l.notes||'') : '';
+    this.onLeadStageChange();
+    this.open('modalLead');
+  },
+  onLeadStageChange(){
+    const stage = document.getElementById('mlStage').value;
+    const probInput = document.getElementById('mlProbability');
+    if(stage==='PRESENTATION'){ probInput.value = 25; probInput.disabled = true; }
+    else if(stage==='WON'){ probInput.value = 100; probInput.disabled = true; }
+    else if(stage==='LOST'){ probInput.value = 0; probInput.disabled = true; }
+    else if(stage==='PROPOSAL'){ probInput.disabled = false; if(!probInput.value || Number(probInput.value)===25 || Number(probInput.value)===0 || Number(probInput.value)===100) probInput.value = 50; }
+    else { probInput.disabled = false; } // DORMANT — leave whatever probability it already had, editable
+  },
+  async saveLead(){
+    const id = document.getElementById('mlId').value;
+    const firmName = document.getElementById('mlFirmName').value.trim();
+    const salesLeadId = document.getElementById('mlSalesLead').value;
+    const stage = document.getElementById('mlStage').value;
+    if(!firmName){ Toast.show('Firm / prospect name is required','err'); return; }
+    if(!salesLeadId){ Toast.show('Please select a Sales Lead','err'); return; }
+    const salesLeadName = (State.salesLeads.find(s=>s.id===salesLeadId)||{}).name || '';
+    const customerId = document.getElementById('mlCustomerId').value;
+    const data = {
+      firmName, contactName: document.getElementById('mlContactName').value.trim(),
+      phone: document.getElementById('mlPhone').value.trim(), email: document.getElementById('mlEmail').value.trim(),
+      customerId: customerId||null, salesLeadId, salesLeadName, stage,
+      value: Number(document.getElementById('mlValue').value)||0,
+      probability: Number(document.getElementById('mlProbability').value)||0,
+      closeDate: document.getElementById('mlCloseDate').value||'',
+      notes: document.getElementById('mlNotes').value.trim()
+    };
+    try{
+      if(id){ await LeadsDAL.update(id, data); } else { await LeadsDAL.create(data); }
+      this.close('modalLead');
+      Toast.show('Lead saved','ok');
+      await PipelineUI.load();
+    }catch(e){
+      Toast.show('Could not save lead: '+e.message,'err');
+    }
   }
 };
 
@@ -2387,10 +2721,24 @@ const SettingsUI = {
     document.getElementById('indexList').innerHTML = REQUIRED_INDEXES.map(i=>`<li>${i}</li>`).join('');
     if(isAdmin()) this.loadUsers();
     else document.querySelectorAll('#settings-users, #settings-billing .form-row').forEach(()=>{});
+    this.loadSalesLeads();
   },
   async loadUsers(){
     State.users = await UsersDAL.all();
     document.getElementById('usersTableBody').innerHTML = State.users.map(u=>`<tr><td>${u.name}</td><td>${u.email}</td><td><span class="badge badge-navy">${u.role}</span></td><td>${u.active!==false?'Yes':'No'}</td><td></td></tr>`).join('');
+  },
+  async loadSalesLeads(){
+    try{
+      State.salesLeads = await SalesLeadsDAL.all();
+    }catch(e){
+      Toast.show('Could not load sales leads — make sure the Firestore rules from Security Rules tab are pasted into Firebase Console','err');
+      State.salesLeads = [];
+    }
+    document.getElementById('salesLeadsTableBody').innerHTML = State.salesLeads.map(s=>`
+      <tr><td>${s.name}</td><td>${s.active!==false?'Yes':'No'}</td>
+      <td><button class="btn btn-sm" onclick="ModalUI.openSalesLead('${s.id}')">Edit</button></td></tr>`).join('')
+      || `<tr><td colspan="3" class="text-mut" style="text-align:center;padding:16px;">No sales leads added yet.</td></tr>`;
+    BillUI.populateSalesLeadSelect();
   },
   async saveBusiness(){
     let logoUrl = State.settings.general.logoUrl || '';
@@ -2446,12 +2794,13 @@ const SettingsUI = {
 const Backup = {
   async exportAll(){
     Toast.show('Preparing backup...');
-    const [customers, products, categories, billsSnap, settingsG, settingsB, settingsS] = await Promise.all([
+    const [customers, products, categories, billsSnap, salesLeads, leads, settingsG, settingsB, settingsS] = await Promise.all([
       CustomersDAL.all(), ProductsDAL.all(), CategoriesDAL.all(), getDocs(collection(db,'bills')),
+      SalesLeadsDAL.all(), LeadsDAL.all(),
       SettingsDAL.get('general'), SettingsDAL.get('billing'), SettingsDAL.get('segmentation')
     ]);
     const bills = billsSnap.docs.map(d=>({id:d.id,...d.data()}));
-    const backup = { exportedAt: new Date().toISOString(), customers, products, categories, bills, settings:{general:settingsG, billing:settingsB, segmentation:settingsS} };
+    const backup = { exportedAt: new Date().toISOString(), customers, products, categories, bills, salesLeads, leads, settings:{general:settingsG, billing:settingsB, segmentation:settingsS} };
     downloadJSON('gurunanak_impex_backup_'+todayStr()+'.json', backup);
     Toast.show('Backup downloaded','ok');
   },
@@ -2484,6 +2833,8 @@ const Backup = {
       await importColl(data.products,'products');
       await importColl(data.categories,'categories');
       await importColl(data.bills,'bills');
+      await importColl(data.salesLeads,'salesLeads');
+      await importColl(data.leads,'leads');
       if(data.settings){
         if(data.settings.general) await SettingsDAL.save('general', data.settings.general);
         if(data.settings.billing) await SettingsDAL.save('billing', data.settings.billing);
@@ -2597,7 +2948,7 @@ const Print = {
           <span><b>Bill No:</b> ${bill.billNumber}</span><span><b>Date:</b> ${fmtDate(bill.date)}</span>
         </div>
         <div style="font-size:10.5px;margin-top:3px;">
-          <b>${bill.customerSnapshot?.name||''}</b><br/>${bill.customerSnapshot?.phone||''}<br/>${bill.customerSnapshot?.address||''}
+          <b>${bill.customerSnapshot?.name||''}</b>${bill.customerSnapshot?.firmName? (' — '+bill.customerSnapshot.firmName) : ''}<br/>${bill.customerSnapshot?.phone||''}<br/>${bill.customerSnapshot?.address||''}
           ${bill.customerSnapshot?.gstin? `<br/><b>GSTIN:</b> ${bill.customerSnapshot.gstin}`:''}
         </div>
         <table>
@@ -2653,6 +3004,7 @@ const Loader = {
     State.settings.billing = await SettingsDAL.get('billing');
     State.settings.segmentation = await SettingsDAL.get('segmentation');
     await this.reloadCustomersProducts();
+    State.salesLeads = await SalesLeadsDAL.all().catch(()=>[]);
     Router.go(Router.current);
   }
 };
@@ -2666,11 +3018,16 @@ const HelpUI = {
       <h3>Firestore Collections</h3>
       <ul>
         <li><b>users/{uid}</b> — name, email, role (ADMIN/STAFF), active</li>
-        <li><b>customers/{id}</b>, <b>products/{id}</b>, <b>categories/{id}</b></li>
-        <li><b>bills/{id}</b> — each bill stores its line items as an embedded <code>items[]</code> array (not a subcollection). This was chosen over a subcollection because: (1) a batch of items always saves atomically with the parent bill in one write, (2) typical bill item counts are small (well under Firestore's 1MB document limit), and (3) dashboard/report aggregation can read bills directly without a fan-out subcollection query per bill. A subcollection would be preferable only if a single bill could contain hundreds/thousands of items.</li>
+        <li><b>customers/{id}</b> — name, firmName, phone, altPhone, email, address, city, state, gstin, type, notes.</li>
+        <li><b>products/{id}</b>, <b>categories/{id}</b></li>
+        <li><b>bills/{id}</b> — each bill stores its line items as an embedded <code>items[]</code> array (not a subcollection). This was chosen over a subcollection because: (1) a batch of items always saves atomically with the parent bill in one write, (2) typical bill item counts are small (well under Firestore's 1MB document limit), and (3) dashboard/report aggregation can read bills directly without a fan-out subcollection query per bill. A subcollection would be preferable only if a single bill could contain hundreds/thousands of items. Each bill also stores <code>salesLeadId</code>/<code>salesLeadName</code> for internal attribution — this is never rendered on the customer-facing print layout.</li>
+        <li><b>salesLeads/{id}</b> — name, active. The internal list of sales team members that can be attributed to a bill or a pipeline deal (managed in Settings → Sales Leads). This is deliberately separate from Firebase Auth users so a salesperson can be tracked even without a login account.</li>
+        <li><b>leads/{id}</b> — the Sales Pipeline (CRM) deals: firmName, contactName, phone, email, optional linked customerId, salesLeadId/salesLeadName, stage (PRESENTATION / PROPOSAL / WON / LOST / DORMANT), value, probability, closeDate, notes. Probability is locked to 25% at "Initial Presentation Made", locked to 100%/0% at Won/Lost, and freely editable at Proposal and Dormant/Parked.</li>
         <li><b>settings/general</b>, <b>settings/billing</b>, <b>settings/segmentation</b> — business configuration &amp; the bill-numbering counter (updated inside a Firestore transaction to prevent duplicate bill numbers).</li>
         <li><b>auditLogs/{id}</b> — records every sensitive action (bill created/voided, price changes, settings changes, user actions).</li>
       </ul>
+      <h3>Sales Pipeline &amp; Performance</h3>
+      <p>The Sales Pipeline (kanban board) and the Sales Lead Performance dashboard are internal-only tools. Sales lead attribution and pipeline figures never appear on a customer's printed bill. The Sales Lead Performance page (billed revenue/profit by sales lead, and stage-wise pipeline value/win-rate by sales lead) is restricted to ADMIN in the app UI; note that, consistent with how this app already hides cost/profit from STAFF, this restriction is enforced client-side rather than via Firestore rules — the <code>bills</code> and <code>leads</code> collections remain readable by any active staff member at the database level.</p>
       <h3>Authentication &amp; Roles</h3>
       <p>Firebase Authentication (email/password) is used to sign in. On login, the app reads <code>users/{uid}</code> to get the role. <b>ADMIN</b> has full access. <b>STAFF</b> can create bills and view customers/products/bills, but cannot see cost price, void bills, edit product cost, or manage settings/users — enforced both in the UI and via Firestore Security Rules (Settings → Security Rules tab).</p>
       <h3>Historical Cost Snapshot</h3>
@@ -2736,6 +3093,16 @@ service cloud.firestore {
         (isStaff() &&
          request.resource.data.costPrice == resource.data.costPrice &&
          request.resource.data.minSellingPrice == resource.data.minSellingPrice);
+    }
+
+    match /salesLeads/{id} {
+      allow read, create, update: if isStaff();
+      allow delete: if isAdmin();
+    }
+
+    match /leads/{id} {
+      allow read, create, update: if isStaff();
+      allow delete: if isAdmin();
     }
 
     match /bills/{id} {
@@ -2823,6 +3190,7 @@ window.CustomersList = CustomersList; window.CustomerDetail = CustomerDetail; wi
 window.ProductDetail = ProductDetail; window.Profitability = Profitability; window.Reports = Reports;
 window.SettingsUI = SettingsUI; window.Backup = Backup; window.DemoData = DemoData; window.ModalUI = ModalUI;
 window.GlobalSearch = GlobalSearch; window.Toast = Toast; window.Dashboard = Dashboard; window.Print = Print;
+window.PipelineUI = PipelineUI; window.SalesPerformance = SalesPerformance;
 window.UI = UI;
 </script>
 </body>
