@@ -560,7 +560,10 @@ tr:hover td{background:#f8faff;}
             <div class="card mt16">
               <div class="form-row ac-wrap">
                 <label>Add Product (search name / SKU / category)</label>
-                <input id="prodSearchInput" placeholder="e.g. MOXI" autocomplete="off" oninput="BillUI.searchProduct(this.value)" onkeydown="BillUI.prodKeyNav(event)" />
+                <div class="flex gap8">
+                  <input id="prodSearchInput" style="flex:1;" placeholder="e.g. MOXI" autocomplete="off" oninput="BillUI.searchProduct(this.value)" onkeydown="BillUI.prodKeyNav(event)" />
+                  <button type="button" class="btn btn-sm" onclick="ModalUI.openProduct(null, true)">+ New Product</button>
+                </div>
                 <div class="ac-list" id="prodAcList"></div>
               </div>
               <div class="table-wrap mt16">
@@ -2142,6 +2145,9 @@ const BillUI = {
     const p = this.prodAcItems[i];
     document.getElementById('prodSearchInput').value = '';
     document.getElementById('prodAcList').classList.remove('show');
+    this.addProductObj(p);
+  },
+  addProductObj(p){
     State.currentBill.items.push({
       lineId: uid(), productId: p.id, productNameSnapshot: p.name, skuSnapshot: p.sku,
       quantity: 1, sellingPriceSnapshot: Number(p.sellingPrice)||0, costPriceSnapshot: Number(p.costPrice)||0,
@@ -3173,7 +3179,8 @@ const ModalUI = {
       if(btn){ btn.disabled = false; btn.textContent = 'Save Supplier'; }
     }
   },
-  openProduct(id){
+  openProduct(id, addToBillAfterSave){
+    this.productAddToBillAfterSave = !!addToBillAfterSave;
     document.getElementById('mpTitle').textContent = id? 'Edit Product' : 'Add New Product';
     document.getElementById('mpId').value = id||'';
     document.getElementById('catList').innerHTML = State.categories.map(c=>`<option value="${c.name}">`).join('');
@@ -3204,16 +3211,23 @@ const ModalUI = {
     };
     if(!data.name || !data.sku || !data.costPrice || !data.sellingPrice){ Toast.show('Name, SKU, cost & selling price are required','err'); return; }
     await CategoriesDAL.ensure(data.category);
+    let newId = null;
     if(id){
       const prev = State.products.find(x=>x.id===id);
       await ProductsDAL.update(id, data, prev);
     } else {
-      await ProductsDAL.create(data);
+      newId = await ProductsDAL.create(data);
     }
     await Loader.reloadCustomersProducts();
     this.close('modalProduct');
     Toast.show('Product saved','ok');
     if(Router.current==='products') ProductsList.render();
+    if(newId && this.productAddToBillAfterSave){
+      const p = State.products.find(x=>x.id===newId);
+      if(p && Router.current==='newbill') BillUI.addProductObj(p);
+      Toast.show('Product added to bill','ok');
+    }
+    this.productAddToBillAfterSave = false;
   },
   openUser(){ ['muUid','muName','muEmail'].forEach(id=>document.getElementById(id).value=''); document.getElementById('muRole').value='STAFF'; this.open('modalUser'); },
   async saveUser(){
