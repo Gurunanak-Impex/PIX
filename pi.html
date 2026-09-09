@@ -376,7 +376,7 @@ tr:hover td{background:#f8faff;}
 </head>
 <body>
 
-<!-- ============================= AUTH / SETUP SCREEN ============================= -->
+<!-- ============================= AUTH / LOGIN SCREEN ============================= -->
 <div class="auth-screen" id="authScreen">
   <div class="auth-card">
     <div class="auth-logo">
@@ -385,21 +385,11 @@ tr:hover td{background:#f8faff;}
       <div class="auth-sub">Business Manager — Cloud Billing &amp; Intelligence</div>
     </div>
 
-    <div id="setupBlock" class="hidden">
-      <p class="small text-mut" style="text-align:center;margin-bottom:14px;">No admin account found. Create the first Administrator account to initialize this business.</p>
-      <div class="form-row"><label>Full Name</label><input id="setupName" placeholder="Owner name" /></div>
-      <div class="form-row"><label>Email</label><input id="setupEmail" type="email" placeholder="you@pi.com" /></div>
-      <div class="form-row"><label>Password (min 6 chars)</label><input id="setupPass" type="password" placeholder="••••••••" /></div>
-      <button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="AuthUI.createAdmin()">Create Admin &amp; Initialize Business</button>
-      <p class="small text-mut" style="text-align:center;margin-top:10px;">Already set up? <a href="#" onclick="AuthUI.showLogin();return false;" style="color:var(--orange);font-weight:700;">Go to Login</a></p>
-    </div>
-
     <div id="loginBlock">
       <div class="form-row"><label>Email</label><input id="loginEmail" type="email" placeholder="you@pi.com" /></div>
       <div class="form-row"><label>Password</label><input id="loginPass" type="password" placeholder="••••••••" /></div>
       <button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="AuthUI.login()">Login</button>
       <p id="loginMsg" class="small text-red mt8" style="text-align:center;"></p>
-      <p class="small text-mut" style="text-align:center;margin-top:10px;">First time here? <a href="#" onclick="AuthUI.showSetup();return false;" style="color:var(--orange);font-weight:700;">Set up Admin Account</a></p>
     </div>
   </div>
 </div>
@@ -1258,20 +1248,7 @@ const Auth = {
 };
 
 const AuthUI = {
-  showSetup(){ document.getElementById('setupBlock').classList.remove('hidden'); document.getElementById('loginBlock').classList.add('hidden'); },
-  showLogin(){ document.getElementById('setupBlock').classList.add('hidden'); document.getElementById('loginBlock').classList.remove('hidden'); },
-  async createAdmin(){
-    const name = document.getElementById('setupName').value.trim();
-    const email = document.getElementById('setupEmail').value.trim();
-    const pass = document.getElementById('setupPass').value;
-    if(!name || !email || pass.length < 6){ Toast.show('Fill all fields, password min 6 chars','err'); return; }
-    try{
-      const cred = await Auth.createUser(email, pass);
-      await setDoc(doc(db,'users',cred.user.uid), { name, email, role:'ADMIN', active:true, createdAt: serverTimestamp() });
-      await Bootstrap.initializeBusinessDefaults();
-      Toast.show('Admin account created','ok');
-    }catch(e){ Toast.show(e.message,'err'); }
-  },
+  showLogin(){ document.getElementById('loginBlock').classList.remove('hidden'); },
   async login(){
     const email = document.getElementById('loginEmail').value.trim();
     const pass = document.getElementById('loginPass').value;
@@ -1282,7 +1259,7 @@ const AuthUI = {
   async logout(){ await Auth.logout(); location.reload(); }
 };
 
-/* ---------------------------- BOOTSTRAP (first-run) ---------------------------- */
+/* ---------------------------- BOOTSTRAP (business defaults, run once by an existing admin if needed) ---------------------------- */
 const Bootstrap = {
   async initializeBusinessDefaults(){
     await setDoc(doc(db,'settings','general'), {
@@ -1302,13 +1279,6 @@ const Bootstrap = {
     for(const c of cats){
       await addDoc(collection(db,'categories'), {name:c});
     }
-  },
-  async checkIfAnyAdminExists(){
-    try{
-      const q = query(collection(db,'users'), where('role','==','ADMIN'), limit(1));
-      const snap = await getDocs(q);
-      return !snap.empty;
-    }catch(e){ return false; } // if rules block unauthenticated read, assume setup needed only when explicitly empty-catch
   }
 };
 
@@ -3953,8 +3923,7 @@ async function initApp(){
       State.currentUser = null; State.profile = null;
       document.getElementById('app').classList.remove('ready');
       document.getElementById('authScreen').style.display='flex';
-      const anyAdmin = await Bootstrap.checkIfAnyAdminExists();
-      if(!anyAdmin) AuthUI.showSetup(); else AuthUI.showLogin();
+      AuthUI.showLogin();
     }
   });
 }
