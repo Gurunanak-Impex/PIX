@@ -54,8 +54,9 @@ a{color:inherit;text-decoration:none;}
 .sidebar-toggle:hover{background:rgba(255,255,255,.14);color:#fff;}
 .sidebar-toggle .material-symbols-outlined{font-size:18px !important;}
 /* ---------- COLLAPSED SIDEBAR (desktop icon-rail mode) ---------- */
+.sidebar{transition:width .2s ease,min-width .2s ease;}
 .sidebar.collapsed{width:72px;min-width:72px;}
-.sidebar.collapsed .sidebar-logo{justify-content:center;gap:8px;padding-left:10px;padding-right:10px;}
+.sidebar.collapsed .sidebar-logo{flex-direction:column;justify-content:center;gap:10px;padding:14px 8px;padding-top:calc(14px + env(safe-area-inset-top));}
 .sidebar.collapsed .sidebar-logo-text{display:none;}
 .sidebar.collapsed .nav-item{justify-content:center;font-size:0;padding-left:0;padding-right:0;}
 .sidebar.collapsed .nav-item .nav-icon{font-size:19px !important;}
@@ -403,7 +404,7 @@ tr:hover td{background:#f8faff;}
         <div class="sidebar-title">PI</div>
         <div class="sidebar-sub">Business Manager</div>
       </div>
-      <button class="sidebar-toggle" id="sidebarToggle" onclick="UI.toggleSidebarCollapse()" aria-label="Toggle sidebar"><span class="material-symbols-outlined">menu</span></button>
+      <button class="sidebar-toggle" id="sidebarToggle" onclick="UI.toggleSidebarCollapse()" aria-label="Collapse sidebar" title="Collapse sidebar"><span class="material-symbols-outlined">menu_open</span></button>
       <button class="sidebar-close" id="sidebarClose" onclick="UI.closeSidebar()" aria-label="Close menu"><span class="material-symbols-outlined">close</span></button>
     </div>
     <nav class="nav" id="navMenu">
@@ -583,6 +584,10 @@ tr:hover td{background:#f8faff;}
               <div class="flex gap8 mt16">
                 <button class="btn btn-navy" style="flex:1;justify-content:center;" onclick="BillUI.save(false)">Save Bill</button>
                 <button class="btn btn-primary" style="flex:1;justify-content:center;" onclick="BillUI.save(true)">Save &amp; Print</button>
+              </div>
+              <div class="flex gap8 mt8">
+                <button class="btn btn-sm" style="flex:1;justify-content:center;" onclick="Drafts.saveCurrent()"><span class="material-symbols-outlined" style="font-size:16px !important;">save</span>&nbsp;Save Draft</button>
+                <button class="btn btn-sm" style="flex:1;justify-content:center;" onclick="Drafts.openList()">Drafts&nbsp;<span id="draftCountBadge" class="role-pill" style="display:none;">0</span></button>
               </div>
               <button class="btn btn-sm mt8" style="width:100%;justify-content:center;" onclick="BillUI.reset()">Cancel / Reset</button>
             </div>
@@ -1040,12 +1045,12 @@ tr:hover td{background:#f8faff;}
       <input type="hidden" id="mpId"/>
       <div class="form-grid">
         <div class="form-row"><label>Product Name *</label><input id="mpName"/></div>
-        <div class="form-row"><label>SKU / Code *</label><input id="mpSku"/></div>
+        <div class="form-row"><label>SKU / Code</label><input id="mpSku"/></div>
         <div class="form-row"><label>Category</label><input id="mpCategory" list="catList"/><datalist id="catList"></datalist></div>
         <div class="form-row"><label>Brand</label><input id="mpBrand"/></div>
         <div class="form-row"><label>Unit</label><input id="mpUnit" value="Pcs"/></div>
         <div class="form-row"><label>HSN Code</label><input id="mpHsn"/></div>
-        <div class="form-row"><label>Cost Price *</label><input id="mpCost" type="number"/></div>
+        <div class="form-row"><label>Cost Price</label><input id="mpCost" type="number"/></div>
         <div class="form-row"><label>Selling Price *</label><input id="mpPrice" type="number"/></div>
         <div class="form-row"><label>Minimum Selling Price</label><input id="mpMinPrice" type="number"/></div>
         <div class="form-row"><label>GST Rate %</label><input id="mpGst" type="number" value="0"/></div>
@@ -1147,6 +1152,14 @@ tr:hover td{background:#f8faff;}
     <div class="modal-head"><h3>Purchase Bill Details</h3><button class="modal-close" onclick="ModalUI.close('modalPurchaseView')">✕</button></div>
     <div class="modal-body" id="purchaseViewBody"></div>
     <div class="modal-foot"><button class="btn" onclick="ModalUI.close('modalPurchaseView')">Close</button><button class="btn btn-primary" onclick="PurchasesList.printFromView()">Print</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalDrafts">
+  <div class="modal" style="width:640px;">
+    <div class="modal-head"><h3>Saved Drafts</h3><button class="modal-close" onclick="ModalUI.close('modalDrafts')">✕</button></div>
+    <div class="modal-body" id="draftsListBody"></div>
+    <div class="modal-foot"><button class="btn" onclick="ModalUI.close('modalDrafts')">Close</button></div>
   </div>
 </div>
 
@@ -2223,6 +2236,90 @@ const BillUI = {
   }
 };
 
+/* ---------------------------- BILL DRAFTS (saved locally in this browser, not synced to Firestore) ---------------------------- */
+const Drafts = {
+  KEY: 'pi_bill_drafts',
+  getAll(){
+    try{ return JSON.parse(localStorage.getItem(this.KEY)) || []; }catch(e){ return []; }
+  },
+  persist(list){
+    try{ localStorage.setItem(this.KEY, JSON.stringify(list)); }catch(e){ Toast.show('Could not save draft locally: '+e.message,'err'); }
+    this.updateBadge();
+  },
+  updateBadge(){
+    const badge = document.getElementById('draftCountBadge');
+    if(!badge) return;
+    const n = this.getAll().length;
+    badge.textContent = n;
+    badge.style.display = n ? '' : 'none';
+  },
+  saveCurrent(){
+    if(!State.currentBill.customer && !State.currentBill.items.length){
+      Toast.show('Nothing to save yet — pick a customer or add a product first','err'); return;
+    }
+    const drafts = this.getAll();
+    drafts.unshift({
+      id: uid(),
+      savedAt: Date.now(),
+      customer: State.currentBill.customer,
+      items: State.currentBill.items,
+      discount: Number(document.getElementById('tDiscount').value)||0,
+      tax: Number(document.getElementById('tTax').value)||0,
+      paid: Number(document.getElementById('tPaid').value)||0,
+      paymentMode: document.getElementById('paymentMode').value,
+      salesLeadId: document.getElementById('billSalesLead')?.value || ''
+    });
+    this.persist(drafts);
+    Toast.show('Draft saved — find it under "Drafts"','ok');
+  },
+  openList(){ this.render(); ModalUI.open('modalDrafts'); },
+  render(){
+    const drafts = this.getAll();
+    const body = document.getElementById('draftsListBody');
+    if(!drafts.length){ body.innerHTML = '<div class="text-mut" style="text-align:center;padding:20px;">No saved drafts yet.</div>'; return; }
+    body.innerHTML = drafts.map(d=>{
+      const calcItems = (d.items||[]).map(it=> Logic.calcLineItem({quantity:it.quantity, sellingPrice:it.sellingPriceSnapshot, costPrice:it.costPriceSnapshot, discountPct:it.discount, taxPct:it.taxPct}));
+      const totals = Logic.calcBillTotals(calcItems, d.discount||0, d.tax||0);
+      const when = new Date(d.savedAt).toLocaleString('en-IN',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+      return `<div class="card" style="margin-bottom:10px;">
+        <div class="flex" style="justify-content:space-between;align-items:flex-start;gap:10px;">
+          <div>
+            <b>${d.customer? d.customer.name : '<span class="text-mut">No customer selected</span>'}</b>
+            <div class="small text-mut">${(d.items||[]).length} item(s) · ${money(totals.grandTotal)} · saved ${when}</div>
+          </div>
+          <div class="flex gap8">
+            <button class="btn btn-sm btn-primary" onclick="Drafts.load('${d.id}')">Load</button>
+            <button class="btn btn-sm btn-danger" onclick="Drafts.remove('${d.id}')">Delete</button>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  },
+  load(id){
+    const d = this.getAll().find(x=>x.id===id);
+    if(!d) return;
+    ModalUI.close('modalDrafts');
+    Router.go('newbill'); // clears the form first; we then overlay the draft's data
+    State.currentBill = { items: (d.items||[]).map(it=>({...it})), customer: d.customer||null };
+    document.getElementById('custSearchInput').value = d.customer? d.customer.name : '';
+    document.getElementById('selectedCustomerBox').innerHTML = d.customer ? `📞 ${d.customer.phone||'—'} &nbsp; ${d.customer.address||''} ${d.customer.gstin?('&nbsp; GSTIN: '+d.customer.gstin):''}` : '';
+    document.getElementById('tDiscount').value = d.discount||0;
+    document.getElementById('tTax').value = d.tax||0;
+    document.getElementById('tPaid').value = d.paid||0;
+    document.getElementById('paymentMode').value = d.paymentMode||'Cash';
+    if(d.salesLeadId) document.getElementById('billSalesLead').value = d.salesLeadId;
+    BillUI.renderItems();
+    BillUI.recalc();
+    Toast.show('Draft loaded','ok');
+  },
+  remove(id){
+    const drafts = this.getAll().filter(x=>x.id!==id);
+    this.persist(drafts);
+    this.render();
+  }
+};
+Drafts.updateBadge();
+
 /* ---------------------------- BILLS HISTORY UI ---------------------------- */
 const BillsList = {
   async load(reset){
@@ -3225,7 +3322,8 @@ const ModalUI = {
       minSellingPrice: Number(document.getElementById('mpMinPrice').value)||0, gstRate: Number(document.getElementById('mpGst').value)||0,
       active: document.getElementById('mpActive').checked
     };
-    if(!data.name || !data.sku || !data.costPrice || !data.sellingPrice){ Toast.show('Name, SKU, cost & selling price are required','err'); return; }
+    if(!data.name || !data.sellingPrice){ Toast.show('Product Name and Selling Price are required','err'); return; }
+    if(!data.sku){ data.sku = (data.name.replace(/[^A-Za-z0-9]/g,'').slice(0,4).toUpperCase() || 'PRD') + '-' + uid().slice(0,4).toUpperCase(); }
     await CategoriesDAL.ensure(data.category);
     let newId = null;
     if(id){
@@ -3883,14 +3981,30 @@ const UI = {
     if(window.innerWidth > 1024){
       const collapsed = document.querySelector('.sidebar')?.classList.toggle('collapsed');
       try{ localStorage.setItem('sidebarCollapsed', collapsed ? '1' : '0'); }catch(e){}
+      UI.setSidebarToggleState(collapsed);
     } else {
       UI.closeSidebar();
     }
+  },
+  // Keeps the toggle button's icon/tooltip honest about what clicking it will do next.
+  setSidebarToggleState(collapsed){
+    const btn = document.getElementById('sidebarToggle');
+    if(!btn) return;
+    const icon = btn.querySelector('.material-symbols-outlined');
+    if(icon) icon.textContent = collapsed ? 'menu' : 'menu_open';
+    const label = collapsed ? 'Expand sidebar' : 'Collapse sidebar';
+    btn.setAttribute('aria-label', label);
+    btn.title = label;
   }
 };
 // Restore collapsed state on desktop
 if(window.innerWidth > 1024){
-  try{ if(localStorage.getItem('sidebarCollapsed') === '1') document.querySelector('.sidebar')?.classList.add('collapsed'); }catch(e){}
+  try{
+    if(localStorage.getItem('sidebarCollapsed') === '1'){
+      document.querySelector('.sidebar')?.classList.add('collapsed');
+      UI.setSidebarToggleState(true);
+    }
+  }catch(e){}
 }
 window.addEventListener('resize', ()=>{ if(window.innerWidth > 1024) UI.closeSidebar(); });
 document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') UI.closeSidebar(); });
@@ -3936,7 +4050,7 @@ window.ProductDetail = ProductDetail; window.Profitability = Profitability; wind
 window.SettingsUI = SettingsUI; window.Backup = Backup; window.DemoData = DemoData; window.ModalUI = ModalUI;
 window.GlobalSearch = GlobalSearch; window.Toast = Toast; window.Dashboard = Dashboard; window.Print = Print;
 window.PipelineUI = PipelineUI; window.SalesPerformance = SalesPerformance;
-window.UI = UI;
+window.UI = UI; window.Drafts = Drafts;
 </script>
 </body>
 </html>
