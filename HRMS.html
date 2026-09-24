@@ -40,12 +40,13 @@
 </head>
 <body class="h-full font-sans antialiased text-slate-800 bg-[#f8faff] flex justify-center selection:bg-blue-100 selection:text-blue-900">
 
-  <!-- Responsive Application Container (Spans full width on desktop, acts as mobile frame on small screens) -->
+  <!-- Responsive Application Container -->
   <div id="appContainer" class="w-full max-w-7xl mx-auto min-h-screen bg-[#f8faff] flex flex-col relative shadow-2xl md:shadow-none border-x md:border-x-0 border-slate-200/60 pb-20 md:pb-8 transition-all duration-300">
 
     <!-- VIEW 0: LOGIN SCREEN -->
     <section id="view-login" class="view-container active flex-1 p-6 md:p-10 flex flex-col justify-between min-h-screen bg-gradient-to-b from-[#0F2942] via-[#112F4B] to-[#0A1D30] text-white">
       <div class="w-full max-w-md mx-auto flex flex-col justify-center min-h-[80vh]">
+        
         <!-- Top Status indicator -->
         <div class="flex items-center justify-between text-xs text-blue-200/70 pt-2 mb-8 md:mb-12">
           <span class="flex items-center gap-1.5">
@@ -128,7 +129,7 @@
 
         <div class="flex items-center gap-3 md:gap-4">
           <span id="activeRoleBadge" class="inline-flex items-center gap-1.5 text-[11px] md:text-xs font-bold px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200/60 shadow-sm">
-            <span class="w-1.5 h-1.5 rounded-full bg-blue-600"></span> HR Admin
+            <span class="w-1.5 h-1.5 rounded-full bg-blue-600"></span> Authenticated
           </span>
           <!-- Logout / Sign Out -->
           <button onclick="window.logout()" class="p-2 rounded-lg text-slate-500 hover:text-red-600 hover:bg-red-50 transition" title="Sign Out">
@@ -157,7 +158,7 @@
 
       <!-- Live KPI Grid -->
       <section class="space-y-3 md:space-y-4" id="kpiGridContainer">
-        <!-- KPI Grid injected by JS (Responsive classes built into injection string) -->
+        <!-- KPI Grid injected by JS -->
       </section>
 
       <!-- Active Employee Directory Widget -->
@@ -166,7 +167,6 @@
           <h3 class="text-xs md:text-sm font-bold uppercase tracking-wider text-slate-600">Active Directory Preview</h3>
           <button onclick="window.switchTab('people')" class="text-[10px] md:text-xs font-bold text-blue-600 hover:text-blue-800 transition">View Full Roster →</button>
         </div>
-        <!-- Grid layout managed natively on this container -->
         <div id="dashActiveEmployees" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
             <!-- Active employees injected by JS -->
         </div>
@@ -207,7 +207,6 @@
 
     <!-- VIEW 3: TAB - ATTENDANCE -->
     <main id="view-attendance" class="view-container p-4 md:p-8 space-y-4 md:space-y-6">
-      <!-- Header Module -->
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-4 md:p-6 rounded-2xl md:rounded-3xl border border-slate-200/80 shadow-sm">
         <div>
           <div class="text-[10px] md:text-xs text-slate-400 uppercase font-bold tracking-wider">Daily Attendance Entry</div>
@@ -218,7 +217,6 @@
         </span>
       </div>
 
-      <!-- Marking Grid -->
       <div class="bg-white rounded-2xl md:rounded-3xl p-4 md:p-6 border border-slate-200/80 shadow-sm space-y-4">
         <h3 class="text-xs md:text-sm font-bold uppercase tracking-wider text-slate-600">Mark Roster</h3>
         <div id="attendanceListContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
@@ -229,8 +227,6 @@
 
     <!-- VIEW 4: TAB - APPROVALS & LEAVES -->
     <main id="view-approvals" class="view-container p-4 md:p-8 space-y-4 md:space-y-6">
-      
-      <!-- Top Actions -->
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <span class="text-[10px] md:text-xs font-bold text-amber-600 tracking-wider uppercase flex items-center gap-1.5">
@@ -241,7 +237,6 @@
         <button onclick="window.openApplyLeaveModal()" class="w-full md:w-auto px-5 py-3 md:py-2.5 rounded-xl md:rounded-lg bg-[#0F2942] hover:bg-slate-800 text-white text-xs md:text-sm font-bold shadow-md transition">+ Apply Leave</button>
       </div>
 
-      <!-- Approvals Grid -->
       <div id="approvalsListContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
         <!-- Approvals injected by JS -->
       </div>
@@ -275,7 +270,7 @@
         <div class="flex items-center justify-between border-b border-slate-100 pb-4">
           <div class="flex items-center gap-3">
             <div class="w-8 h-8 rounded-lg bg-[#0F2942] text-white flex items-center justify-center font-bold text-sm">+</div>
-            <h3 class="text-sm md:text-base font-bold text-slate-900" id="empModalTitle">Add Employee to Roster</h3>
+            <h3 class="text-sm md:text-base font-bold text-slate-900" id="empModalTitle">Add Employee</h3>
           </div>
           <button onclick="window.closeModals()" class="text-slate-400 hover:text-slate-700 text-lg font-bold p-1 transition">✕</button>
         </div>
@@ -369,9 +364,13 @@
 
   <!-- Firebase & App Logic -->
   <script type="module">
-    import { initializeApp } from "https://cdn.jsdelivr.net/npm/firebase@10.13.2/firebase-app.js";
-    import { getFirestore, doc, getDoc, setDoc } from "https://cdn.jsdelivr.net/npm/firebase@10.13.2/firebase-firestore.js";
-    import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://cdn.jsdelivr.net/npm/firebase@10.13.2/firebase-auth.js";
+    // Core & Analytics
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-analytics.js";
+    
+    // Auth & Firestore (Required for HRMS functionality)
+    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+    import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAtmg8G_dEqu58paEa-qnRMQy-GCYToBwg",
@@ -379,10 +378,14 @@
       projectId: "gi--hrms",
       storageBucket: "gi--hrms.firebasestorage.app",
       messagingSenderId: "91230577575",
-      appId: "1:91230577575:web:be7f7e4ab64ee6f0190c82"
+      appId: "1:91230577575:web:be7f7e4ab64ee6f0190c82",
+      measurementId: "G-NLR8CP23BN"
     };
-    
+
+    // Initialize Firebase
     const fbApp = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(fbApp);
+
     const fdb = getFirestore(fbApp);
     const auth = getAuth(fbApp);
     const STATE_REF = doc(fdb, 'hrms', 'state');
@@ -456,7 +459,7 @@
       const toast = document.getElementById('toastNotification');
       document.getElementById('toastMsg').innerText = msg;
       toast.classList.remove('hidden');
-      setTimeout(() => toast.classList.add('hidden'), 3500);
+      setTimeout(() => toast.classList.add('hidden'), 4000);
     }
 
     // --- Authentication Logic (Email/Password) ---
@@ -472,12 +475,12 @@
       
       try {
         await signInWithEmailAndPassword(auth, email, password);
-        // onAuthStateChanged will handle the successful login UI flow
+        // onAuthStateChanged will naturally handle the successful login UI flow
       } catch (err) {
         syncStatus.innerText = "Auth Failed";
         btnText.innerText = "Sign In to GI People";
-        showToast("Login Failed: Please check your credentials.");
-        console.error(err);
+        showToast("Login Failed: Please check your email and password.");
+        console.error("Auth Error:", err);
       }
     });
 
@@ -490,20 +493,24 @@
     };
 
     onAuthStateChanged(auth, async (user) => {
+      const syncStatus = document.getElementById('syncStatus');
+      const btnText = document.getElementById('loginBtnText');
+
       if (!user) {
         // Not logged in: Show Login Screen
         window.switchTab('login');
         document.getElementById('mainAppHeader').classList.add('hidden');
         document.getElementById('bottomNavBar').classList.add('hidden');
-        document.getElementById('syncStatus').innerText = "Waiting for Auth...";
-        document.getElementById('loginBtnText').innerText = "Sign In to GI People";
+        syncStatus.innerText = "Waiting for Auth...";
+        btnText.innerText = "Sign In to GI People";
         return;
       }
       
       // Logged in: Fetch Database & Show Dashboard
-      document.getElementById('syncStatus').innerText = "Fetching Master DB...";
+      syncStatus.innerText = "Fetching Master DB...";
       try {
-        DB = await loadDB();
+        DB = await loadDB(); // If this fails, it's usually Firestore Rules blocking read access.
+
         document.getElementById('mainAppHeader').classList.remove('hidden');
         document.getElementById('bottomNavBar').classList.remove('hidden');
         
@@ -520,9 +527,17 @@
 
         window.switchTab('dashboard');
         showToast("Connected securely to Firebase Data");
+
       } catch (err) {
-        document.getElementById('syncStatus').innerText = "DB Load Failed";
-        console.error(err);
+        // ERROR HANDLING IF DATABASE FETCH FAILS (e.g. Permission Denied)
+        console.error("Database Fetch Error:", err);
+        syncStatus.innerText = "DB Permission Denied";
+        btnText.innerText = "Sign In to GI People";
+        
+        alert("Login successful, but Database access was denied.\n\nPlease check your Firestore Database Security Rules in the Firebase Console to ensure authenticated users are allowed to read/write.");
+        
+        // Force sign out so they aren't stuck in a broken authorized state
+        await signOut(auth); 
       }
     });
 
@@ -530,7 +545,9 @@
     window.switchTab = (tabName) => {
       currentTab = tabName;
       document.querySelectorAll('.view-container').forEach(v => v.classList.remove('active'));
-      document.getElementById('view-' + tabName).classList.add('active');
+      
+      const targetView = document.getElementById('view-' + tabName);
+      if(targetView) targetView.classList.add('active');
 
       const headerTitle = document.getElementById('headerTitle');
       if (tabName === 'dashboard') { headerTitle.innerText = "GI PEOPLE"; window.renderDashboard(); }
@@ -566,7 +583,6 @@
       
       document.getElementById('dashDate').innerText = formatDate(attDate);
 
-      // Responsive Grid defined in the wrapper string
       document.getElementById('kpiGridContainer').innerHTML = `
         <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
           <div onclick="window.switchTab('people')" class="bg-white p-4 md:p-5 rounded-xl md:rounded-2xl border border-slate-200/80 shadow-sm cursor-pointer hover:border-blue-300 transition group">
