@@ -40,158 +40,216 @@
 </head>
 <body class="h-full font-sans antialiased text-slate-800 bg-[#f8faff] flex justify-center selection:bg-blue-100 selection:text-blue-900">
 
-  <!-- Mobile Viewport Container -->
-  <div id="appContainer" class="w-full max-w-[430px] min-h-screen bg-[#f8faff] flex flex-col relative shadow-2xl border-x border-slate-200/60 pb-20">
+  <!-- Responsive Application Container (Spans full width on desktop, acts as mobile frame on small screens) -->
+  <div id="appContainer" class="w-full max-w-7xl mx-auto min-h-screen bg-[#f8faff] flex flex-col relative shadow-2xl md:shadow-none border-x md:border-x-0 border-slate-200/60 pb-20 md:pb-8 transition-all duration-300">
 
     <!-- VIEW 0: LOGIN SCREEN -->
-    <section id="view-login" class="view-container active flex-1 p-6 flex flex-col justify-between min-h-screen bg-gradient-to-b from-[#0F2942] via-[#112F4B] to-[#0A1D30] text-white">
-      <div>
-        <div class="flex items-center justify-between text-xs text-blue-200/70 pt-2 mb-8">
+    <section id="view-login" class="view-container active flex-1 p-6 md:p-10 flex flex-col justify-between min-h-screen bg-gradient-to-b from-[#0F2942] via-[#112F4B] to-[#0A1D30] text-white">
+      <div class="w-full max-w-md mx-auto flex flex-col justify-center min-h-[80vh]">
+        <!-- Top Status indicator -->
+        <div class="flex items-center justify-between text-xs text-blue-200/70 pt-2 mb-8 md:mb-12">
           <span class="flex items-center gap-1.5">
-            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Firebase IST Node
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Cloud Firestore IST Node
           </span>
           <span id="syncStatus" class="font-medium tracking-wide">Waiting for Auth...</span>
         </div>
 
-        <div class="text-center my-6">
+        <!-- Brand Emblem & Title -->
+        <div class="text-center my-6 md:my-8">
           <div class="inline-flex items-center justify-center p-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 shadow-xl mb-4">
-            <span class="h-10 w-10 flex items-center justify-center font-black text-xl text-amber-400">Gi</span>
+            <span class="h-12 w-12 flex items-center justify-center font-black text-2xl text-amber-400">Gi</span>
           </div>
-          <h1 class="text-2xl font-extrabold tracking-tight text-white flex items-center justify-center gap-1.5">
+          <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight text-white flex items-center justify-center gap-1.5">
             GI PEOPLE
           </h1>
-          <p class="text-xs uppercase tracking-widest text-amber-300/90 font-semibold mt-0.5">Gurunanak Impex HRMS</p>
+          <p class="text-xs md:text-sm uppercase tracking-widest text-amber-300/90 font-semibold mt-1.5">Gurunanak Impex HRMS</p>
+          <p class="text-xs md:text-sm text-blue-200/80 mt-3 max-w-[320px] mx-auto leading-relaxed">
+            Enterprise Workforce Lifecycle, Biometric Attendance & Payroll Engine
+          </p>
         </div>
 
-        <form id="loginForm" class="space-y-4 mt-8">
-          <button type="submit" id="loginSubmitBtn" class="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 hover:from-amber-300 hover:to-yellow-400 text-slate-950 font-bold text-sm shadow-lg shadow-amber-500/25 flex items-center justify-center gap-2 transition active:scale-[0.99]">
-            <span>Connect & Sign In (Anonymous Auth)</span>
+        <!-- Login Form -->
+        <form id="loginForm" class="space-y-5 bg-white/5 p-6 rounded-3xl border border-white/10 backdrop-blur-sm shadow-2xl">
+          <div>
+            <label class="block text-xs md:text-sm font-medium text-blue-100 mb-1.5">Work Email</label>
+            <div class="relative">
+              <input type="email" id="loginEmail" required placeholder="name@gurunanakimpex.com" 
+                class="w-full px-4 py-3.5 rounded-xl bg-white/10 border border-white/20 text-white placeholder-blue-300/40 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:bg-white/15 transition">
+              <svg class="w-5 h-5 text-blue-300 absolute right-4 top-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.206"></path></svg>
+            </div>
+          </div>
+
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <label class="block text-xs md:text-sm font-medium text-blue-100">Password / Access Key</label>
+              <a href="#" onclick="alert('Contact IT admin for password reset.')" class="text-[11px] md:text-xs text-amber-300 hover:underline">Forgot?</a>
+            </div>
+            <div class="relative">
+              <input type="password" id="loginPassword" required placeholder="••••••••••••" 
+                class="w-full px-4 py-3.5 rounded-xl bg-white/10 border border-white/20 text-white placeholder-blue-300/40 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:bg-white/15 transition">
+              <svg class="w-5 h-5 text-blue-300 absolute right-4 top-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+            </div>
+          </div>
+
+          <!-- Submit Button -->
+          <button type="submit" id="loginSubmitBtn" class="w-full mt-4 py-4 px-4 rounded-xl bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 hover:from-amber-300 hover:to-yellow-400 text-slate-950 font-bold text-sm shadow-lg shadow-amber-500/25 flex items-center justify-center gap-2 transition active:scale-[0.99]">
+            <span id="loginBtnText">Sign In to GI People</span>
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
           </button>
         </form>
       </div>
-      <div class="pt-6 text-center text-[11px] text-blue-300/60 flex items-center justify-center gap-2">
+
+      <!-- Security Footer -->
+      <div class="pt-6 text-center text-[11px] md:text-xs text-blue-300/60 flex items-center justify-center gap-2">
         <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
         <span>Zero-Trust Enterprise Auth • Gurunanak Impex</span>
       </div>
     </section>
 
-    <!-- GLOBAL TOP APP BAR -->
-    <header id="mainAppHeader" class="hidden sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 px-4 py-3">
+    <!-- GLOBAL TOP APP BAR (For Authenticated Tabs) -->
+    <header id="mainAppHeader" class="hidden sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 px-4 md:px-8 py-3 md:py-4">
       <div class="flex items-center justify-between">
-        <div class="flex items-center gap-2.5 cursor-pointer" onclick="window.switchTab('dashboard')">
-          <span class="h-7 w-7 rounded bg-[#0F2942] flex items-center justify-center font-bold text-xs text-white">Gi</span>
+        <!-- Logo -->
+        <div class="flex items-center gap-3 cursor-pointer" onclick="window.switchTab('dashboard')">
+          <span class="h-8 w-8 md:h-10 md:w-10 rounded-lg bg-[#0F2942] flex items-center justify-center font-bold text-sm md:text-lg text-white shadow-sm">Gi</span>
           <div>
-            <div id="headerTitle" class="text-sm font-bold text-[#0F2942] leading-none">GI PEOPLE</div>
-            <div id="headerSubtitle" class="text-[10px] font-medium text-slate-500 uppercase tracking-wider">Gurunanak Impex</div>
+            <div id="headerTitle" class="text-sm md:text-base font-bold text-[#0F2942] leading-none">GI PEOPLE</div>
+            <div id="headerSubtitle" class="text-[10px] md:text-xs font-medium text-slate-500 uppercase tracking-wider mt-0.5">Gurunanak Impex</div>
           </div>
         </div>
-        <div class="flex items-center gap-2">
-          <span id="activeRoleBadge" class="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200/60">
+
+        <!-- Desktop Navigation Center (Hidden on Mobile) -->
+        <nav class="hidden md:flex items-center gap-2 bg-slate-100 p-1 rounded-xl">
+          <button id="deskNav-dashboard" onclick="window.switchTab('dashboard')" class="px-4 py-2 rounded-lg text-sm font-bold transition">Dashboard</button>
+          <button id="deskNav-people" onclick="window.switchTab('people')" class="px-4 py-2 rounded-lg text-sm font-bold transition">Directory</button>
+          <button id="deskNav-attendance" onclick="window.switchTab('attendance')" class="px-4 py-2 rounded-lg text-sm font-bold transition">Attendance</button>
+          <button id="deskNav-approvals" onclick="window.switchTab('approvals')" class="px-4 py-2 rounded-lg text-sm font-bold transition">Approvals</button>
+        </nav>
+
+        <div class="flex items-center gap-3 md:gap-4">
+          <span id="activeRoleBadge" class="inline-flex items-center gap-1.5 text-[11px] md:text-xs font-bold px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200/60 shadow-sm">
             <span class="w-1.5 h-1.5 rounded-full bg-blue-600"></span> HR Admin
           </span>
+          <!-- Logout / Sign Out -->
+          <button onclick="window.logout()" class="p-2 rounded-lg text-slate-500 hover:text-red-600 hover:bg-red-50 transition" title="Sign Out">
+            <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+          </button>
         </div>
       </div>
     </header>
 
     <!-- VIEW 1: TAB - HR DASHBOARD -->
-    <main id="view-dashboard" class="view-container p-4 space-y-4">
-      <div class="rounded-2xl bg-gradient-to-br from-[#0F2942] to-[#1a3d60] p-4 text-white shadow-md relative overflow-hidden">
-        <div class="flex items-center justify-between text-xs text-blue-200 mb-1">
+    <main id="view-dashboard" class="view-container p-4 md:p-8 space-y-4 md:space-y-6">
+      <!-- Hero Banner -->
+      <div class="rounded-2xl md:rounded-3xl bg-gradient-to-br from-[#0F2942] to-[#1a3d60] p-5 md:p-8 text-white shadow-lg relative overflow-hidden">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs md:text-sm text-blue-200 mb-2 md:mb-4">
           <div class="flex items-center gap-1.5 font-medium">
-            <svg class="w-3.5 h-3.5 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+            <svg class="w-4 h-4 md:w-5 md:h-5 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
             <span id="dashDate">Loading...</span>
           </div>
-          <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 text-[10px] font-semibold flex items-center gap-1">
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Firebase Live
+          <span class="inline-flex w-max px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 text-[10px] md:text-xs font-bold items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Firebase Sync Live
           </span>
         </div>
-        <h2 class="text-xl font-bold tracking-tight mt-1 text-white">HR Operations Hub</h2>
-        <p class="text-xs text-blue-200/80 mb-3">Gurunanak Impex • Master Dashboard</p>
+        <h2 class="text-2xl md:text-4xl font-black tracking-tight mt-1 text-white">HR Operations Hub</h2>
+        <p class="text-xs md:text-base text-blue-200/80 mb-1 mt-2">Gurunanak Impex • Master Dashboard</p>
       </div>
 
-      <section class="space-y-2" id="kpiGridContainer">
-        <!-- KPI Grid injected by JS -->
+      <!-- Live KPI Grid -->
+      <section class="space-y-3 md:space-y-4" id="kpiGridContainer">
+        <!-- KPI Grid injected by JS (Responsive classes built into injection string) -->
       </section>
 
-      <section class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm space-y-3">
+      <!-- Active Employee Directory Widget -->
+      <section class="bg-white rounded-2xl md:rounded-3xl p-4 md:p-6 border border-slate-200/80 shadow-sm space-y-4">
         <div class="flex items-center justify-between">
-          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-600">Active Directory Preview</h3>
-          <button onclick="window.switchTab('people')" class="text-[10px] font-bold text-blue-600">View All →</button>
+          <h3 class="text-xs md:text-sm font-bold uppercase tracking-wider text-slate-600">Active Directory Preview</h3>
+          <button onclick="window.switchTab('people')" class="text-[10px] md:text-xs font-bold text-blue-600 hover:text-blue-800 transition">View Full Roster →</button>
         </div>
-        <div id="dashActiveEmployees" class="space-y-2">
+        <!-- Grid layout managed natively on this container -->
+        <div id="dashActiveEmployees" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
             <!-- Active employees injected by JS -->
         </div>
       </section>
     </main>
 
     <!-- VIEW 2: TAB - PEOPLE / DIRECTORY -->
-    <main id="view-people" class="view-container p-4 space-y-4">
-      <div class="space-y-2">
-        <div class="relative">
+    <main id="view-people" class="view-container p-4 md:p-8 space-y-4 md:space-y-6">
+      
+      <!-- Top Filters & Search -->
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="relative w-full md:max-w-md">
           <input type="text" id="employeeSearchInput" placeholder="Search by name, EMP ID..." 
-            class="w-full pl-9 pr-4 py-2.5 rounded-xl bg-white border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-blue-600 shadow-sm">
-          <svg class="w-4 h-4 text-slate-400 absolute left-3 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            class="w-full pl-10 pr-4 py-3 md:py-3.5 rounded-xl bg-white border border-slate-200 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 shadow-sm transition">
+          <svg class="w-4 h-4 md:w-5 md:h-5 text-slate-400 absolute left-3.5 top-3 md:top-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
         </div>
-        <div class="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs" id="empFilterChips">
-          <button onclick="window.setEmpFilter('All')" class="filter-chip px-3 py-1 rounded-full font-bold bg-[#0F2942] text-white whitespace-nowrap shadow-sm" data-val="All">All</button>
-          <button onclick="window.setEmpFilter('Active')" class="filter-chip px-3 py-1 rounded-full font-medium bg-white text-slate-600 border border-slate-200 whitespace-nowrap" data-val="Active">Active</button>
-          <button onclick="window.setEmpFilter('Left')" class="filter-chip px-3 py-1 rounded-full font-medium bg-white text-slate-600 border border-slate-200 whitespace-nowrap" data-val="Left">Former</button>
+        
+        <div class="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 text-xs md:text-sm" id="empFilterChips">
+          <button onclick="window.setEmpFilter('All')" class="filter-chip px-4 py-1.5 md:py-2 rounded-full font-bold bg-[#0F2942] text-white whitespace-nowrap shadow-sm transition" data-val="All">All Staff</button>
+          <button onclick="window.setEmpFilter('Active')" class="filter-chip px-4 py-1.5 md:py-2 rounded-full font-medium bg-white text-slate-600 border border-slate-200 whitespace-nowrap transition hover:bg-slate-50" data-val="Active">Active</button>
+          <button onclick="window.setEmpFilter('Left')" class="filter-chip px-4 py-1.5 md:py-2 rounded-full font-medium bg-white text-slate-600 border border-slate-200 whitespace-nowrap transition hover:bg-slate-50" data-val="Left">Former</button>
         </div>
       </div>
 
-      <div id="employeeDirectoryContainer" class="space-y-3">
+      <!-- Directory Grid -->
+      <div id="employeeDirectoryContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
         <!-- Directory injected by JS -->
       </div>
 
-      <div class="pt-2">
-        <button onclick="window.openNewEmployeeModal()" class="w-full py-3 rounded-xl bg-[#0F2942] hover:bg-[#153a5c] text-white font-bold text-xs shadow-md flex items-center justify-center gap-2 transition">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+      <!-- Add Button -->
+      <div class="pt-2 md:pt-4">
+        <button onclick="window.openNewEmployeeModal()" class="w-full md:max-w-sm mx-auto py-3.5 md:py-4 rounded-xl bg-[#0F2942] hover:bg-[#153a5c] text-white font-bold text-xs md:text-sm shadow-lg flex items-center justify-center gap-2 transition hover:scale-[1.01]">
+          <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
           <span>Enrol New Employee Master</span>
         </button>
       </div>
     </main>
 
     <!-- VIEW 3: TAB - ATTENDANCE -->
-    <main id="view-attendance" class="view-container p-4 space-y-4">
-      <div class="flex items-center justify-between bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-sm">
+    <main id="view-attendance" class="view-container p-4 md:p-8 space-y-4 md:space-y-6">
+      <!-- Header Module -->
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-4 md:p-6 rounded-2xl md:rounded-3xl border border-slate-200/80 shadow-sm">
         <div>
-          <div class="text-[10px] text-slate-400 uppercase font-bold">Daily Attendance Entry</div>
-          <input type="date" id="attDateInput" class="text-sm font-bold text-slate-900 border-none bg-transparent focus:ring-0 p-0 mt-0.5">
+          <div class="text-[10px] md:text-xs text-slate-400 uppercase font-bold tracking-wider">Daily Attendance Entry</div>
+          <input type="date" id="attDateInput" class="text-lg md:text-2xl font-black text-[#0F2942] border-none bg-transparent focus:ring-0 p-0 mt-1 cursor-pointer">
         </div>
-        <span class="px-2.5 py-1 rounded-full bg-blue-100 text-blue-800 text-xs font-bold flex items-center gap-1">
-           Live Mode
+        <span class="w-max px-3 py-1.5 rounded-full bg-blue-100 text-blue-800 text-xs md:text-sm font-bold flex items-center gap-1.5 shadow-sm">
+           Live Entry Mode
         </span>
       </div>
 
-      <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm space-y-3">
-        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-600">Mark Roster</h3>
-        <div id="attendanceListContainer" class="space-y-2">
+      <!-- Marking Grid -->
+      <div class="bg-white rounded-2xl md:rounded-3xl p-4 md:p-6 border border-slate-200/80 shadow-sm space-y-4">
+        <h3 class="text-xs md:text-sm font-bold uppercase tracking-wider text-slate-600">Mark Roster</h3>
+        <div id="attendanceListContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
             <!-- Attendance injected by JS -->
         </div>
       </div>
     </main>
 
     <!-- VIEW 4: TAB - APPROVALS & LEAVES -->
-    <main id="view-approvals" class="view-container p-4 space-y-4">
-      <div class="flex items-center justify-between">
+    <main id="view-approvals" class="view-container p-4 md:p-8 space-y-4 md:space-y-6">
+      
+      <!-- Top Actions -->
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <span class="text-[10px] font-bold text-amber-600 tracking-wider uppercase flex items-center gap-1">
-            <span class="w-1.5 h-1.5 rounded-full bg-amber-600"></span> Action Required
+          <span class="text-[10px] md:text-xs font-bold text-amber-600 tracking-wider uppercase flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span> Action Required Queue
           </span>
-          <h2 class="text-lg font-bold text-slate-900">Leave Approvals</h2>
+          <h2 class="text-xl md:text-3xl font-black text-slate-900 mt-1">Leave Approvals</h2>
         </div>
-        <button onclick="window.openApplyLeaveModal()" class="px-2.5 py-1.5 rounded-lg bg-[#0F2942] text-white text-[10px] font-bold">+ Apply Leave</button>
+        <button onclick="window.openApplyLeaveModal()" class="w-full md:w-auto px-5 py-3 md:py-2.5 rounded-xl md:rounded-lg bg-[#0F2942] hover:bg-slate-800 text-white text-xs md:text-sm font-bold shadow-md transition">+ Apply Leave</button>
       </div>
 
-      <div id="approvalsListContainer" class="space-y-3">
+      <!-- Approvals Grid -->
+      <div id="approvalsListContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
         <!-- Approvals injected by JS -->
       </div>
     </main>
 
-    <!-- GLOBAL BOTTOM NAVIGATION TAB BAR -->
-    <nav id="bottomNavBar" class="hidden fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bg-white/95 backdrop-blur-md border-t border-slate-200/90 z-50 px-2 py-2">
-      <div class="grid grid-cols-4 gap-1">
+    <!-- GLOBAL BOTTOM NAVIGATION TAB BAR (Mobile Only) -->
+    <nav id="bottomNavBar" class="md:hidden fixed bottom-0 left-0 w-full bg-white/95 backdrop-blur-md border-t border-slate-200/90 z-50 px-2 py-2">
+      <div class="grid grid-cols-4 gap-1 max-w-md mx-auto">
         <button type="button" onclick="window.switchTab('dashboard')" id="navTab-dashboard" class="nav-item flex flex-col items-center justify-center py-1 rounded-xl text-blue-700 font-bold transition">
           <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
           <span class="text-[10px] leading-tight">Dashboard</span>
@@ -212,52 +270,52 @@
     </nav>
 
     <!-- MODAL: ADD/EDIT EMPLOYEE -->
-    <div id="newEmployeeModal" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-end justify-center p-0">
-      <div class="w-full max-w-[430px] bg-white rounded-t-3xl p-5 space-y-4 max-h-[85vh] overflow-y-auto">
-        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-          <div class="flex items-center gap-2">
-            <div class="w-7 h-7 rounded-lg bg-[#0F2942] text-white flex items-center justify-center font-bold text-xs">+</div>
-            <h3 class="text-sm font-bold text-slate-900" id="empModalTitle">Add Employee to Roster</h3>
+    <div id="newEmployeeModal" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-end justify-center md:items-center p-0 md:p-4">
+      <div class="w-full max-w-full md:max-w-xl bg-white rounded-t-3xl md:rounded-3xl p-6 space-y-5 max-h-[90vh] overflow-y-auto shadow-2xl">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-[#0F2942] text-white flex items-center justify-center font-bold text-sm">+</div>
+            <h3 class="text-sm md:text-base font-bold text-slate-900" id="empModalTitle">Add Employee to Roster</h3>
           </div>
-          <button onclick="window.closeModals()" class="text-slate-400 hover:text-slate-700 text-sm font-bold p-1">✕</button>
+          <button onclick="window.closeModals()" class="text-slate-400 hover:text-slate-700 text-lg font-bold p-1 transition">✕</button>
         </div>
-        <form onsubmit="window.handleSaveEmployee(event)" class="space-y-3 text-xs">
+        <form onsubmit="window.handleSaveEmployee(event)" class="space-y-4 text-xs md:text-sm">
           <input type="hidden" id="f_empId" value="">
           <div>
-            <label class="block font-medium text-slate-700 mb-1">Full Name *</label>
-            <input type="text" id="f_name" required class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-600 outline-none">
+            <label class="block font-medium text-slate-700 mb-1.5">Full Name *</label>
+            <input type="text" id="f_name" required class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-600 outline-none transition shadow-sm">
           </div>
-          <div class="grid grid-cols-2 gap-2">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label class="block font-medium text-slate-700 mb-1">Mobile</label>
-              <input type="text" id="f_mobile" class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-600 outline-none">
+              <label class="block font-medium text-slate-700 mb-1.5">Mobile Number</label>
+              <input type="text" id="f_mobile" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-600 outline-none transition shadow-sm">
             </div>
             <div>
-              <label class="block font-medium text-slate-700 mb-1">Shift</label>
-              <input type="text" id="f_shift" value="10:00 AM – 7:00 PM" class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none">
-            </div>
-          </div>
-          <div class="grid grid-cols-2 gap-2">
-            <div>
-              <label class="block font-medium text-slate-700 mb-1">Monthly Gross (₹)</label>
-              <input type="number" id="f_salary" value="9000" class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-600 outline-none">
-            </div>
-            <div>
-              <label class="block font-medium text-slate-700 mb-1">Joining Date</label>
-              <input type="date" id="f_joining" required class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none">
+              <label class="block font-medium text-slate-700 mb-1.5">Assigned Shift</label>
+              <input type="text" id="f_shift" value="10:00 AM – 7:00 PM" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-600 outline-none transition shadow-sm">
             </div>
           </div>
-          <div class="grid grid-cols-2 gap-2">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label class="block font-medium text-slate-700 mb-1">Department</label>
-              <input type="text" id="f_department" class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none">
+              <label class="block font-medium text-slate-700 mb-1.5">Monthly Gross Salary (₹)</label>
+              <input type="number" id="f_salary" value="9000" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-600 outline-none transition shadow-sm">
             </div>
             <div>
-              <label class="block font-medium text-slate-700 mb-1">Designation</label>
-              <input type="text" id="f_designation" class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none">
+              <label class="block font-medium text-slate-700 mb-1.5">Joining Date</label>
+              <input type="date" id="f_joining" required class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-600 outline-none transition shadow-sm">
             </div>
           </div>
-          <button type="submit" class="w-full py-3 mt-2 rounded-xl bg-blue-600 text-white font-bold text-xs shadow-md hover:bg-blue-700 transition">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block font-medium text-slate-700 mb-1.5">Department</label>
+              <input type="text" id="f_department" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-600 outline-none transition shadow-sm">
+            </div>
+            <div>
+              <label class="block font-medium text-slate-700 mb-1.5">Designation</label>
+              <input type="text" id="f_designation" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-600 outline-none transition shadow-sm">
+            </div>
+          </div>
+          <button type="submit" class="w-full py-4 mt-4 rounded-xl bg-blue-600 text-white font-bold text-sm shadow-md hover:bg-blue-700 transition">
             Save Record
           </button>
         </form>
@@ -265,36 +323,36 @@
     </div>
 
     <!-- MODAL: APPLY LEAVE -->
-    <div id="applyLeaveModal" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-end justify-center p-0">
-        <div class="w-full max-w-[430px] bg-white rounded-t-3xl p-5 space-y-4 max-h-[85vh] overflow-y-auto">
-          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-            <h3 class="text-sm font-bold text-slate-900">Apply Leave</h3>
-            <button onclick="window.closeModals()" class="text-slate-400 hover:text-slate-700 text-sm font-bold p-1">✕</button>
+    <div id="applyLeaveModal" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-end justify-center md:items-center p-0 md:p-4">
+        <div class="w-full max-w-full md:max-w-xl bg-white rounded-t-3xl md:rounded-3xl p-6 space-y-5 max-h-[90vh] overflow-y-auto shadow-2xl">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+            <h3 class="text-sm md:text-base font-bold text-slate-900">Apply Leave Application</h3>
+            <button onclick="window.closeModals()" class="text-slate-400 hover:text-slate-700 text-lg font-bold p-1 transition">✕</button>
           </div>
-          <form onsubmit="window.submitLeave(event)" class="space-y-3 text-xs">
+          <form onsubmit="window.submitLeave(event)" class="space-y-4 text-xs md:text-sm">
             <div>
-              <label class="block font-medium text-slate-700 mb-1">Employee</label>
-              <select id="l_emp" required class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-600 outline-none"></select>
+              <label class="block font-medium text-slate-700 mb-1.5">Employee Name</label>
+              <select id="l_emp" required class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-600 outline-none transition shadow-sm"></select>
             </div>
             <div>
-                <label class="block font-medium text-slate-700 mb-1">Leave Type</label>
-                <select id="l_type" required class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-600 outline-none"></select>
+                <label class="block font-medium text-slate-700 mb-1.5">Leave Type Code</label>
+                <select id="l_type" required class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-600 outline-none transition shadow-sm"></select>
             </div>
-            <div class="grid grid-cols-2 gap-2">
+            <div class="grid grid-cols-2 gap-4">
               <div>
-                <label class="block font-medium text-slate-700 mb-1">From Date</label>
-                <input type="date" id="l_from" required class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none">
+                <label class="block font-medium text-slate-700 mb-1.5">From Date</label>
+                <input type="date" id="l_from" required class="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none transition shadow-sm">
               </div>
               <div>
-                <label class="block font-medium text-slate-700 mb-1">To Date</label>
-                <input type="date" id="l_to" required class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none">
+                <label class="block font-medium text-slate-700 mb-1.5">To Date</label>
+                <input type="date" id="l_to" required class="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none transition shadow-sm">
               </div>
             </div>
             <div>
-                <label class="block font-medium text-slate-700 mb-1">Reason</label>
-                <textarea id="l_reason" rows="2" class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none"></textarea>
+                <label class="block font-medium text-slate-700 mb-1.5">Reason / Comments</label>
+                <textarea id="l_reason" rows="3" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-600 outline-none transition shadow-sm"></textarea>
             </div>
-            <button type="submit" class="w-full py-3 mt-2 rounded-xl bg-amber-500 text-slate-900 font-bold text-xs shadow-md hover:bg-amber-400 transition">
+            <button type="submit" class="w-full py-4 mt-2 rounded-xl bg-amber-500 text-slate-900 font-bold text-sm shadow-md hover:bg-amber-400 transition">
               Submit Application
             </button>
           </form>
@@ -302,8 +360,8 @@
       </div>
 
     <!-- TOAST NOTIFICATION -->
-    <div id="toastNotification" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 hidden bg-[#0F2942] text-white px-4 py-2.5 rounded-xl shadow-xl border border-blue-400/30 text-xs font-semibold flex items-center gap-2">
-      <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+    <div id="toastNotification" class="fixed top-4 left-1/2 -translate-x-1/2 z-[60] hidden bg-[#0F2942] text-white px-5 py-3 rounded-2xl shadow-xl border border-blue-400/30 text-xs md:text-sm font-semibold flex items-center gap-2.5 transition">
+      <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
       <span id="toastMsg">Action updated.</span>
     </div>
 
@@ -313,7 +371,7 @@
   <script type="module">
     import { initializeApp } from "https://cdn.jsdelivr.net/npm/firebase@10.13.2/firebase-app.js";
     import { getFirestore, doc, getDoc, setDoc } from "https://cdn.jsdelivr.net/npm/firebase@10.13.2/firebase-firestore.js";
-    import { getAuth, signInAnonymously, onAuthStateChanged } from "https://cdn.jsdelivr.net/npm/firebase@10.13.2/firebase-auth.js";
+    import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://cdn.jsdelivr.net/npm/firebase@10.13.2/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAtmg8G_dEqu58paEa-qnRMQy-GCYToBwg",
@@ -323,6 +381,7 @@
       messagingSenderId: "91230577575",
       appId: "1:91230577575:web:be7f7e4ab64ee6f0190c82"
     };
+    
     const fbApp = initializeApp(firebaseConfig);
     const fdb = getFirestore(fbApp);
     const auth = getAuth(fbApp);
@@ -397,23 +456,51 @@
       const toast = document.getElementById('toastNotification');
       document.getElementById('toastMsg').innerText = msg;
       toast.classList.remove('hidden');
-      setTimeout(() => toast.classList.add('hidden'), 3000);
+      setTimeout(() => toast.classList.add('hidden'), 3500);
     }
 
-    // Auth & Navigation
+    // --- Authentication Logic (Email/Password) ---
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
       e.preventDefault();
-      document.getElementById('syncStatus').innerText = "Authenticating...";
+      const email = document.getElementById('loginEmail').value;
+      const password = document.getElementById('loginPassword').value;
+      const syncStatus = document.getElementById('syncStatus');
+      const btnText = document.getElementById('loginBtnText');
+      
+      syncStatus.innerText = "Authenticating...";
+      btnText.innerText = "Authenticating...";
+      
       try {
-        await signInAnonymously(auth);
+        await signInWithEmailAndPassword(auth, email, password);
+        // onAuthStateChanged will handle the successful login UI flow
       } catch (err) {
-        document.getElementById('syncStatus').innerText = "Auth Failed";
+        syncStatus.innerText = "Auth Failed";
+        btnText.innerText = "Sign In to GI People";
+        showToast("Login Failed: Please check your credentials.");
         console.error(err);
       }
     });
 
+    window.logout = async () => {
+      try {
+        await signOut(auth);
+      } catch (err) {
+        console.error("Logout error", err);
+      }
+    };
+
     onAuthStateChanged(auth, async (user) => {
-      if (!user) return;
+      if (!user) {
+        // Not logged in: Show Login Screen
+        window.switchTab('login');
+        document.getElementById('mainAppHeader').classList.add('hidden');
+        document.getElementById('bottomNavBar').classList.add('hidden');
+        document.getElementById('syncStatus').innerText = "Waiting for Auth...";
+        document.getElementById('loginBtnText').innerText = "Sign In to GI People";
+        return;
+      }
+      
+      // Logged in: Fetch Database & Show Dashboard
       document.getElementById('syncStatus').innerText = "Fetching Master DB...";
       try {
         DB = await loadDB();
@@ -432,13 +519,14 @@
         });
 
         window.switchTab('dashboard');
-        showToast("Connected to Gurunanak Impex HRMS");
+        showToast("Connected securely to Firebase Data");
       } catch (err) {
         document.getElementById('syncStatus').innerText = "DB Load Failed";
         console.error(err);
       }
     });
 
+    // --- Responsive Tab Navigation ---
     window.switchTab = (tabName) => {
       currentTab = tabName;
       document.querySelectorAll('.view-container').forEach(v => v.classList.remove('active'));
@@ -451,17 +539,26 @@
       else if (tabName === 'approvals') { headerTitle.innerText = "APPROVALS"; window.renderApprovals(); }
 
       ['dashboard', 'people', 'attendance', 'approvals'].forEach(t => {
-        const btn = document.getElementById('navTab-' + t);
-        if(btn) {
-          btn.className = (t === tabName) 
+        // Mobile Bottom Nav Update
+        const mBtn = document.getElementById('navTab-' + t);
+        if(mBtn) {
+          mBtn.className = (t === tabName) 
             ? "nav-item flex flex-col items-center justify-center py-1 rounded-xl text-blue-700 font-bold transition"
             : "nav-item flex flex-col items-center justify-center py-1 rounded-xl text-slate-500 font-medium hover:text-slate-800 transition";
+        }
+        
+        // Desktop Top Nav Update
+        const dBtn = document.getElementById('deskNav-' + t);
+        if(dBtn) {
+          dBtn.className = (t === tabName)
+            ? "px-4 py-2 rounded-lg bg-white shadow-sm text-[#0F2942] font-extrabold transition scale-100"
+            : "px-4 py-2 rounded-lg text-slate-500 hover:text-[#0F2942] hover:bg-slate-200 font-semibold transition";
         }
       });
       window.scrollTo(0, 0);
     };
 
-    // Render Functions (Translating Firebase Data to Tailwind HTML)
+    // --- Render Functions ---
     window.renderDashboard = () => {
       if(!DB) return;
       const active = DB.employees.filter(e => e.status === 'Active');
@@ -469,62 +566,63 @@
       
       document.getElementById('dashDate').innerText = formatDate(attDate);
 
+      // Responsive Grid defined in the wrapper string
       document.getElementById('kpiGridContainer').innerHTML = `
-        <div class="grid grid-cols-2 gap-2.5">
-          <div onclick="window.switchTab('people')" class="bg-white p-3 rounded-xl border border-slate-200/80 shadow-sm cursor-pointer">
-            <div class="flex items-center justify-between text-slate-500 text-xs mb-1">
-              <span class="font-medium">Total Roster</span>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+          <div onclick="window.switchTab('people')" class="bg-white p-4 md:p-5 rounded-xl md:rounded-2xl border border-slate-200/80 shadow-sm cursor-pointer hover:border-blue-300 transition group">
+            <div class="flex items-center justify-between text-slate-500 text-xs md:text-sm mb-2">
+              <span class="font-bold">Total Roster</span>
             </div>
             <div class="flex items-baseline justify-between">
-              <span class="text-2xl font-black text-[#0F2942]">${DB.employees.length}</span>
-              <span class="text-[11px] font-bold text-slate-500">Enrolled</span>
+              <span class="text-3xl md:text-4xl font-black text-[#0F2942] group-hover:scale-105 transition-transform origin-left">${DB.employees.length}</span>
+              <span class="text-xs font-bold text-slate-500">Enrolled</span>
             </div>
           </div>
-          <div onclick="window.switchTab('people')" class="bg-white p-3 rounded-xl border border-slate-200/80 shadow-sm cursor-pointer">
-            <div class="flex items-center justify-between text-slate-500 text-xs mb-1">
-              <span class="font-medium">Active Status</span>
+          <div onclick="window.switchTab('people')" class="bg-white p-4 md:p-5 rounded-xl md:rounded-2xl border border-slate-200/80 shadow-sm cursor-pointer hover:border-blue-300 transition group">
+            <div class="flex items-center justify-between text-slate-500 text-xs md:text-sm mb-2">
+              <span class="font-bold">Active Status</span>
             </div>
             <div class="flex items-baseline justify-between">
-              <span class="text-2xl font-black text-[#0F2942]">${active.length}</span>
-              <span class="text-[11px] font-bold text-blue-600">Active</span>
+              <span class="text-3xl md:text-4xl font-black text-[#0F2942] group-hover:scale-105 transition-transform origin-left">${active.length}</span>
+              <span class="text-xs font-bold text-blue-600">Active</span>
             </div>
           </div>
-          <div onclick="window.switchTab('attendance')" class="bg-white p-3 rounded-xl border border-slate-200/80 shadow-sm cursor-pointer">
-            <div class="flex items-center justify-between text-slate-500 text-xs mb-1">
-              <span class="font-medium">Present Today</span>
-              <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+          <div onclick="window.switchTab('attendance')" class="bg-white p-4 md:p-5 rounded-xl md:rounded-2xl border border-slate-200/80 shadow-sm cursor-pointer hover:border-emerald-300 transition group">
+            <div class="flex items-center justify-between text-slate-500 text-xs md:text-sm mb-2">
+              <span class="font-bold">Present Today</span>
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm"></span>
             </div>
             <div class="flex items-baseline justify-between">
-              <span class="text-2xl font-black text-emerald-700">${presentToday}</span>
-              <span class="text-[11px] font-bold text-emerald-600">Marked</span>
+              <span class="text-3xl md:text-4xl font-black text-emerald-700 group-hover:scale-105 transition-transform origin-left">${presentToday}</span>
+              <span class="text-xs font-bold text-emerald-600">Marked</span>
             </div>
           </div>
-          <div onclick="window.switchTab('approvals')" class="bg-white p-3 rounded-xl border border-slate-200/80 shadow-sm cursor-pointer">
-            <div class="flex items-center justify-between text-slate-500 text-xs mb-1">
-              <span class="font-medium">Leave Req.</span>
+          <div onclick="window.switchTab('approvals')" class="bg-white p-4 md:p-5 rounded-xl md:rounded-2xl border border-slate-200/80 shadow-sm cursor-pointer hover:border-amber-300 transition group">
+            <div class="flex items-center justify-between text-slate-500 text-xs md:text-sm mb-2">
+              <span class="font-bold">Leave Req.</span>
             </div>
             <div class="flex items-baseline justify-between">
-              <span class="text-2xl font-black text-amber-700">${DB.leaveRequests.filter(r=>r.status==='Pending').length}</span>
-              <span class="text-[11px] font-bold text-amber-600">Pending</span>
+              <span class="text-3xl md:text-4xl font-black text-amber-700 group-hover:scale-105 transition-transform origin-left">${DB.leaveRequests.filter(r=>r.status==='Pending').length}</span>
+              <span class="text-xs font-bold text-amber-600">Pending</span>
             </div>
           </div>
         </div>
       `;
 
       let activeHTML = active.map(e => `
-        <div class="p-3 rounded-xl border border-slate-100 bg-slate-50 flex items-center justify-between">
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-full bg-[#0F2942] text-white font-extrabold text-sm flex items-center justify-center">
+        <div class="p-3.5 md:p-4 rounded-xl border border-slate-100 bg-slate-50 hover:bg-slate-100 transition flex items-center justify-between">
+          <div class="flex items-center gap-3.5">
+            <div class="w-10 h-10 md:w-11 md:h-11 rounded-full bg-[#0F2942] text-white font-black text-sm md:text-base flex items-center justify-center shadow-sm">
               ${e.name.charAt(0)}
             </div>
             <div>
-              <div class="text-xs font-bold text-slate-900">${e.name}</div>
-              <div class="text-[11px] text-slate-500">${e.id} • ${currentPeriod(e).designation || 'Staff'}</div>
+              <div class="text-xs md:text-sm font-bold text-slate-900">${e.name}</div>
+              <div class="text-[10px] md:text-xs text-slate-500 mt-0.5">${e.id} • ${currentPeriod(e).designation || 'Staff'}</div>
             </div>
           </div>
         </div>
       `).join('');
-      if(!activeHTML) activeHTML = `<div class="text-xs text-slate-500 p-2 text-center">No active employees found.</div>`;
+      if(!activeHTML) activeHTML = `<div class="text-sm text-slate-500 p-4 text-center col-span-full">No active employees found.</div>`;
       document.getElementById('dashActiveEmployees').innerHTML = activeHTML;
     };
 
@@ -532,9 +630,9 @@
         empFilterStatus = status;
         document.querySelectorAll('.filter-chip').forEach(c => {
             if(c.dataset.val === status) {
-                c.className = "filter-chip px-3 py-1 rounded-full font-bold bg-[#0F2942] text-white whitespace-nowrap shadow-sm";
+                c.className = "filter-chip px-4 py-1.5 md:py-2 rounded-full font-bold bg-[#0F2942] text-white whitespace-nowrap shadow-sm transition";
             } else {
-                c.className = "filter-chip px-3 py-1 rounded-full font-medium bg-white text-slate-600 border border-slate-200 whitespace-nowrap";
+                c.className = "filter-chip px-4 py-1.5 md:py-2 rounded-full font-medium bg-white text-slate-600 border border-slate-200 whitespace-nowrap transition hover:bg-slate-50";
             }
         });
         window.renderPeople();
@@ -554,53 +652,53 @@
       let html = list.map(e => {
           const isActive = e.status === 'Active';
           return `
-          <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 space-y-3">
+          <div class="bg-white rounded-2xl md:rounded-3xl border border-slate-200 shadow-sm p-4 md:p-6 space-y-4 hover:border-blue-300 transition">
             <div class="flex items-start justify-between">
-              <div class="flex items-center gap-3">
-                <div class="w-12 h-12 rounded-xl bg-[#0F2942] text-white flex items-center justify-center font-black text-lg shadow-sm">
+              <div class="flex items-center gap-3.5">
+                <div class="w-12 h-12 md:w-14 md:h-14 rounded-xl bg-[#0F2942] text-white flex items-center justify-center font-black text-lg md:text-xl shadow-sm">
                   ${e.name.charAt(0)}
                 </div>
                 <div>
                   <div class="flex items-center gap-2">
-                    <h4 class="text-sm font-bold text-slate-900">${e.name}</h4>
+                    <h4 class="text-sm md:text-base font-bold text-slate-900">${e.name}</h4>
                     <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${isActive ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}">
                        ${e.status}
                     </span>
                   </div>
-                  <div class="text-xs text-blue-700 font-semibold">${e.id}</div>
-                  <div class="text-[11px] text-slate-500 mt-0.5">${e.mobile || 'No Mobile'}</div>
+                  <div class="text-xs md:text-sm text-blue-700 font-bold">${e.id}</div>
+                  <div class="text-[11px] md:text-xs text-slate-500 mt-0.5">${e.mobile || 'No Mobile'}</div>
                 </div>
               </div>
-              <button onclick="window.openNewEmployeeModal('${e.id}')" class="text-blue-600 text-[10px] font-bold bg-blue-50 px-2 py-1 rounded-lg">Edit</button>
+              <button onclick="window.openNewEmployeeModal('${e.id}')" class="text-blue-600 text-[10px] md:text-xs font-bold bg-blue-50 px-2.5 py-1.5 rounded-lg hover:bg-blue-100 transition">Edit</button>
             </div>
-            <div class="grid grid-cols-2 gap-2 p-2.5 rounded-xl bg-slate-50 border border-slate-200/70 text-xs">
+            <div class="grid grid-cols-2 gap-3 p-3 md:p-4 rounded-xl bg-slate-50 border border-slate-200/70 text-xs md:text-sm">
               <div>
-                <span class="text-[10px] text-slate-400 uppercase font-semibold block">Department</span>
-                <span class="font-medium text-slate-700">${currentPeriod(e).department || '—'}</span>
+                <span class="text-[10px] md:text-xs text-slate-400 uppercase font-semibold block mb-0.5">Department</span>
+                <span class="font-bold text-slate-700">${currentPeriod(e).department || '—'}</span>
               </div>
               <div>
-                <span class="text-[10px] text-slate-400 uppercase font-semibold block">Designation</span>
-                <span class="font-medium text-slate-700">${currentPeriod(e).designation || '—'}</span>
+                <span class="text-[10px] md:text-xs text-slate-400 uppercase font-semibold block mb-0.5">Designation</span>
+                <span class="font-bold text-slate-700">${currentPeriod(e).designation || '—'}</span>
               </div>
               <div>
-                <span class="text-[10px] text-slate-400 uppercase font-semibold block">Shift</span>
-                <span class="font-medium text-slate-700">${e.shift || '—'}</span>
+                <span class="text-[10px] md:text-xs text-slate-400 uppercase font-semibold block mb-0.5">Shift</span>
+                <span class="font-bold text-slate-700">${e.shift || '—'}</span>
               </div>
               <div>
-                <span class="text-[10px] text-slate-400 uppercase font-semibold block">Salary</span>
-                <span class="font-bold text-[#0F2942]">₹${currentSalary(e)}</span>
+                <span class="text-[10px] md:text-xs text-slate-400 uppercase font-semibold block mb-0.5">Salary</span>
+                <span class="font-black text-[#0F2942]">₹${currentSalary(e)}</span>
               </div>
             </div>
             ${isActive ? `
             <div class="flex items-center justify-end pt-1">
-                <button onclick="window.markLeft('${e.id}')" class="text-[10px] font-bold text-rose-600 px-3 py-1.5 rounded-lg hover:bg-rose-50 border border-rose-100 transition">Mark as Left</button>
+                <button onclick="window.markLeft('${e.id}')" class="text-[10px] md:text-xs font-bold text-rose-600 px-3 py-1.5 rounded-lg hover:bg-rose-50 border border-rose-100 transition">Mark as Left</button>
             </div>
             ` : ''}
           </div>
         `;
       }).join('');
 
-      if(!html) html = `<div class="text-xs text-slate-500 text-center p-4">No employees match criteria.</div>`;
+      if(!html) html = `<div class="text-sm text-slate-500 text-center p-8 col-span-full">No employees match criteria.</div>`;
       document.getElementById('employeeDirectoryContainer').innerHTML = html;
     };
 
@@ -611,24 +709,24 @@
         let html = active.map(e => {
             const key = e.id + '|' + attDate;
             const currentStatus = DB.attendance[key] || '';
-            const opts = ['<option value="">-- Select --</option>']
+            const opts = ['<option value="">-- Select Status --</option>']
                 .concat(ATT_STATUSES.map(s => `<option value="${s}" ${currentStatus === s ? 'selected' : ''}>${s}</option>`))
                 .join('');
                 
             return `
-            <div class="flex items-center justify-between p-3 rounded-xl border border-slate-100 bg-slate-50">
+            <div class="flex items-center justify-between p-3.5 md:p-4 rounded-xl border border-slate-200 bg-slate-50 hover:border-blue-300 transition">
               <div>
-                <div class="text-xs font-bold text-slate-900">${e.name}</div>
-                <div class="text-[10px] text-slate-500">${e.id}</div>
+                <div class="text-xs md:text-sm font-bold text-slate-900">${e.name}</div>
+                <div class="text-[10px] md:text-xs text-slate-500 mt-0.5">${e.id}</div>
               </div>
-              <select onchange="window.setAttendance('${e.id}', this.value)" class="px-2 py-1.5 rounded-lg border border-slate-200 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white shadow-sm font-medium">
+              <select onchange="window.setAttendance('${e.id}', this.value)" class="px-3 py-2 rounded-lg border border-slate-300 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white shadow-sm font-bold text-slate-700 cursor-pointer">
                   ${opts}
               </select>
             </div>
             `;
         }).join('');
         
-        if(!html) html = `<div class="text-xs text-slate-500 text-center p-4">No active employees to mark.</div>`;
+        if(!html) html = `<div class="text-sm text-slate-500 text-center p-8 col-span-full">No active employees to mark.</div>`;
         document.getElementById('attendanceListContainer').innerHTML = html;
     };
 
@@ -650,48 +748,48 @@
             const isPending = r.status === 'Pending';
             
             let statusBadge = '';
-            if(isPending) statusBadge = `<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800">Pending</span>`;
-            else if(r.status === 'Approved') statusBadge = `<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">Approved</span>`;
-            else statusBadge = `<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-rose-100 text-rose-800">Rejected</span>`;
+            if(isPending) statusBadge = `<span class="text-[10px] md:text-xs font-bold px-2.5 py-1 rounded-md bg-amber-100 text-amber-800">Pending</span>`;
+            else if(r.status === 'Approved') statusBadge = `<span class="text-[10px] md:text-xs font-bold px-2.5 py-1 rounded-md bg-emerald-100 text-emerald-800">Approved</span>`;
+            else statusBadge = `<span class="text-[10px] md:text-xs font-bold px-2.5 py-1 rounded-md bg-rose-100 text-rose-800">Rejected</span>`;
 
             return `
-            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 space-y-3">
+            <div class="bg-white rounded-2xl md:rounded-3xl border border-slate-200 shadow-sm p-4 md:p-6 space-y-4">
               <div class="flex items-start justify-between">
-                <div class="flex items-center gap-2.5">
-                  <div class="w-9 h-9 rounded-full bg-[#0F2942] text-white font-bold text-xs flex items-center justify-center">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 md:w-12 md:h-12 rounded-full bg-[#0F2942] text-white font-bold text-sm md:text-lg flex items-center justify-center shadow-sm">
                       ${emp ? emp.name.charAt(0) : '?'}
                   </div>
                   <div>
-                    <div class="text-xs font-bold text-slate-900">${emp ? emp.name : r.empId}</div>
-                    <div class="text-[10px] text-slate-500">${type ? type.name : r.typeId} • ${r.days} Days</div>
+                    <div class="text-xs md:text-sm font-bold text-slate-900">${emp ? emp.name : r.empId}</div>
+                    <div class="text-[10px] md:text-xs text-slate-500 mt-0.5 font-medium">${type ? type.name : r.typeId} • ${r.days} Days</div>
                   </div>
                 </div>
                 ${statusBadge}
               </div>
-              <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/70 text-xs space-y-1.5">
+              <div class="p-3 md:p-4 rounded-xl bg-slate-50 border border-slate-200/70 text-xs md:text-sm space-y-2">
                 <div class="flex items-center justify-between text-slate-700">
-                  <span class="font-semibold">Duration</span>
+                  <span class="font-bold text-slate-500">Duration</span>
                   <span class="font-bold text-blue-700">${formatDate(r.from)} to ${formatDate(r.to)}</span>
                 </div>
-                ${r.reason ? `<p class="text-[11px] text-slate-600 bg-white p-2 rounded border border-slate-200/60 italic">"${r.reason}"</p>` : ''}
+                ${r.reason ? `<p class="text-[11px] md:text-xs text-slate-600 bg-white p-2.5 rounded-lg border border-slate-200/60 italic leading-relaxed">"${r.reason}"</p>` : ''}
               </div>
               ${isPending ? `
-              <div class="flex items-center justify-end gap-2 pt-1">
-                <button onclick="window.decideLeave('${r.id}', 'Rejected')" class="px-4 py-2 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-50 border border-rose-200 transition">Reject</button>
-                <button onclick="window.decideLeave('${r.id}', 'Approved')" class="px-4 py-2 rounded-xl text-xs font-bold text-white bg-slate-900 hover:bg-slate-800 shadow-sm transition">Approve</button>
+              <div class="flex items-center justify-end gap-3 pt-2">
+                <button onclick="window.decideLeave('${r.id}', 'Rejected')" class="px-5 py-2.5 rounded-xl text-xs md:text-sm font-bold text-rose-600 hover:bg-rose-50 border border-rose-200 transition">Reject</button>
+                <button onclick="window.decideLeave('${r.id}', 'Approved')" class="px-5 py-2.5 rounded-xl text-xs md:text-sm font-bold text-white bg-[#0F2942] hover:bg-slate-800 shadow-md transition">Approve</button>
               </div>` : ''}
             </div>
             `;
         }).join('');
 
-        if(!html) html = `<div class="text-xs text-slate-500 text-center p-4">No leave requests found.</div>`;
+        if(!html) html = `<div class="text-sm text-slate-500 text-center p-8 col-span-full">No leave requests found in the system.</div>`;
         document.getElementById('approvalsListContainer').innerHTML = html;
     };
 
-    // Modals and Actions
+    // --- Modals and Actions ---
     window.openNewEmployeeModal = (id = null) => {
         const emp = id ? DB.employees.find(e => e.id === id) : null;
-        document.getElementById('empModalTitle').innerText = emp ? `Edit Employee - ${emp.name}` : "Add New Employee";
+        document.getElementById('empModalTitle').innerText = emp ? `Edit Employee Record` : "Add New Employee Master";
         
         document.getElementById('f_empId').value = emp ? emp.id : '';
         document.getElementById('f_name').value = emp ? emp.name : '';
@@ -741,7 +839,7 @@
         saveDB();
         window.closeModals();
         window.renderPeople();
-        showToast("Employee record saved successfully.");
+        showToast("Employee master saved securely.");
     };
 
     window.markLeft = (id) => {
@@ -751,7 +849,7 @@
             currentPeriod(emp).exit = attDate;
             saveDB();
             window.renderPeople();
-            showToast("Employee marked as left.");
+            showToast("Employee status set to Left.");
         }
     };
 
@@ -783,7 +881,7 @@
         saveDB();
         window.closeModals();
         window.renderApprovals();
-        showToast("Leave request submitted successfully.");
+        showToast("Leave request dispatched to Queue.");
     };
 
     window.decideLeave = (id, status) => {
@@ -792,7 +890,7 @@
         req.decidedOn = attDate;
         saveDB();
         window.renderApprovals();
-        showToast("Leave request " + status.toLowerCase());
+        showToast("Leave request marked as " + status + ".");
     };
 
   </script>
