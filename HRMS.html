@@ -1,75 +1,180 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Gurunanak Impex — People</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Gurunanak Impex — HRMS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#f6f7f9; --card:#fff; --text:#1a1d23; --muted:#6b7280; --border:#e5e7eb;
-  --brand:#0f4c3a; --brand2:#137a5e; --accent:#c8952b; --danger:#b3261e; --ok:#1a7f37;
-  --radius:10px;
+  --navy:#0F2942; --navy2:#16345c; --navy3:#112F4B; --orange:#D4AF37; --orange2:#f4c65f;
+  --bg:#f8faff; --card:#ffffff; --text:#0f1b2d; --muted:#64748b; --line:#e6ebf3; --line2:#eef2f8;
+  --ok:#059669; --ok-bg:#d1fae5; --bad:#e11d48; --bad-bg:#ffe4e6; --pend:#92400e; --pend-bg:#fef3c7;
+  --sidebar-w:240px; --radius:14px;
 }
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){--bg:#0b1420;--card:#101c2e;--text:#eef2f8;--muted:#8b9bb4;--line:#22314a;--line2:#1a2740;}
+}
+:root[data-theme="dark"]{--bg:#0b1420;--card:#101c2e;--text:#eef2f8;--muted:#8b9bb4;--line:#22314a;--line2:#1a2740;}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:14px}
-header{background:var(--brand);color:#fff;padding:14px 16px;display:flex;align-items:center;gap:10px;justify-content:space-between}
-header .left{display:flex;align-items:center;gap:10px}
-header .logo{width:30px;height:30px;border-radius:7px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;color:#1a1d23}
-header h1{font-size:16px;margin:0;font-weight:600}
-header .sub{font-size:11px;opacity:.8}
-header .who{font-size:12px;opacity:.9;cursor:pointer;text-decoration:underline}
-nav{display:flex;gap:4px;overflow-x:auto;background:var(--card);border-bottom:1px solid var(--border);padding:0 8px}
-nav button{border:none;background:transparent;padding:12px 12px;font-size:13px;color:var(--muted);cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent}
-nav button.active{color:var(--brand2);border-color:var(--brand2);font-weight:600}
-main{max-width:1000px;margin:0 auto;padding:14px}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px}
-.stat{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:12px}
-.stat .n{font-size:22px;font-weight:700}
-.stat .l{color:var(--muted);font-size:12px}
-.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:12px}
-.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-input,select,textarea{background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:7px;padding:8px 9px;font-size:13px;font-family:inherit}
-textarea{width:100%;min-height:50px}
-label{font-size:11px;color:var(--muted);display:block;margin-bottom:3px}
-.field{margin-bottom:8px}
-button.btn{background:var(--brand2);color:#fff;border:none;border-radius:7px;padding:8px 13px;font-size:13px;cursor:pointer;font-weight:600}
-button.btn.ghost{background:transparent;color:var(--brand2);border:1px solid var(--brand2)}
-button.btn.danger{background:var(--danger)}
-button.btn.small{padding:5px 9px;font-size:12px}
-button.btn:disabled{opacity:.5;cursor:default}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;font-family:'Plus Jakarta Sans',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);
+  font-size:14px;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+  -webkit-font-smoothing:antialiased}
+.app-shell{display:flex;min-height:100vh}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:9999px}
+
+/* Sidebar */
+.sidebar{width:var(--sidebar-w);flex-shrink:0;background:linear-gradient(180deg,var(--navy) 0%,var(--navy3) 55%,#0A1D30 100%);
+  color:#fff;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;
+  padding-top:env(safe-area-inset-top,0px);transition:width .18s ease;z-index:20;
+  box-shadow:2px 0 24px rgba(15,41,66,.18)}
+.sidebar.collapsed{width:70px}
+.brand{display:flex;align-items:center;gap:10px;padding:20px 16px;border-bottom:1px solid rgba(255,255,255,.1)}
+.brand .logo{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--orange2),var(--orange));
+  display:flex;align-items:center;justify-content:center;font-weight:800;color:#241a02;flex-shrink:0;font-size:14px;
+  box-shadow:0 4px 12px rgba(212,175,55,.35)}
+.brand .name{font-weight:800;font-size:14.5px;white-space:nowrap;overflow:hidden;letter-spacing:.01em}
+.brand .name small{display:block;font-weight:600;font-size:9.5px;opacity:.6;text-transform:uppercase;letter-spacing:.07em;color:#fcd34d}
+.sidebar.collapsed .brand .name{display:none}
+.sidenav{flex:1;overflow-y:auto;padding:14px 10px}
+.sidenav button{width:100%;display:flex;align-items:center;gap:10px;border:none;background:none;color:rgba(255,255,255,.68);
+  padding:10.5px 12px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;text-align:left;margin-bottom:3px;
+  white-space:nowrap;overflow:hidden;transition:background .12s,color .12s}
+.sidenav button .ic{width:18px;flex-shrink:0;text-align:center;font-size:13px}
+.sidenav button:hover{background:rgba(255,255,255,.08);color:#fff}
+.sidenav button.active{background:rgba(212,175,55,.16);color:#fff;box-shadow:inset 3px 0 0 var(--orange)}
+.sidebar.collapsed .sidenav button span.lbl{display:none}
+.sidebar-toggle{border:none;background:rgba(255,255,255,.08);color:rgba(255,255,255,.85);padding:10px;margin:8px;border-radius:10px;
+  cursor:pointer;font-size:12px;font-weight:600}
+.sidebar-toggle:hover{background:rgba(255,255,255,.14)}
+
+/* Topbar */
+.main-wrap{flex:1;min-width:0;display:flex;flex-direction:column}
+.topbar{background:rgba(255,255,255,.9);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);padding:14px 24px;
+  padding-top:calc(14px + env(safe-area-inset-top,0px));display:flex;align-items:center;gap:14px;
+  position:sticky;top:0;z-index:10}
+:root[data-theme="dark"] .topbar{background:rgba(16,28,46,.9)}
+.topbar .pagetitle{font-size:18px;font-weight:800;margin:0;letter-spacing:-.01em}
+.topbar .pagesub{font-size:12px;color:var(--muted);margin:0;font-weight:500}
+.topbar .hmenu{display:none;border:none;background:none;font-size:18px;cursor:pointer;color:var(--text)}
+#syncMsg{margin-left:auto;font-size:11px;font-weight:700;color:#b8860b;white-space:nowrap}
+
+main{padding:24px;max-width:1300px;width:100%;margin:0 auto}
+.view{display:none}.view.active{display:block}
+
+/* Cards */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-bottom:22px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px;
+  box-shadow:0 1px 2px rgba(15,41,66,.04),0 6px 18px rgba(15,41,66,.03)}
+.card small{color:var(--muted);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+.card b{display:block;font-size:25px;margin-top:7px;font-weight:800;letter-spacing:-.01em;color:var(--navy)}
+:root[data-theme="dark"] .card b{color:#fff}
+
+/* Panels */
+.panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px;margin-bottom:18px;
+  box-shadow:0 1px 2px rgba(15,41,66,.04),0 6px 18px rgba(15,41,66,.03)}
+.panel h2{margin:0 0 14px;font-size:15px;font-weight:800;letter-spacing:-.005em}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center}
+
+/* Inputs & buttons */
+input,select,textarea{padding:8.5px 12px;border:1px solid var(--line);border-radius:9px;background:var(--bg);
+  color:var(--text);font-size:13px;font-family:inherit}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--orange);outline-offset:-1px}
+button.btn{padding:9.5px 17px;border-radius:9px;border:none;background:var(--navy);color:#fff;font-weight:700;
+  cursor:pointer;font-size:13px;font-family:inherit;transition:opacity .12s,transform .08s}
+button.btn:hover{opacity:.9}
+button.btn:active{transform:scale(.98)}
+button.btn.gold{background:linear-gradient(135deg,var(--orange2),var(--orange));color:#241a02;
+  box-shadow:0 4px 14px rgba(212,175,55,.3)}
+button.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--text);font-weight:600}
+button.btn.sm{padding:5px 11px;font-size:12px;border-radius:7px}
+
+/* Tables */
 table{width:100%;border-collapse:collapse;font-size:13px}
-th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--border)}
-th{color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase}
-.pill{display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600}
-.pill.Active{background:#dcf7e3;color:var(--ok)}
-.pill.Left{background:#fde2e1;color:var(--danger)}
-.scrollx{overflow-x:auto}
-.link{color:var(--brand2);cursor:pointer;text-decoration:underline;font-size:12.5px}
-.muted{color:var(--muted)}
-.toast{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);background:var(--brand);color:#fff;padding:9px 16px;border-radius:8px;font-size:13px;z-index:50;opacity:0;transition:opacity .25s}
-.toast.show{opacity:1}
-#loginWrap{max-width:340px;margin:60px auto;padding:0 14px}
-.err{color:var(--danger);font-size:12px;margin-top:4px}
+.tablewrap{overflow-x:auto;border:1px solid var(--line2);border-radius:12px}
+th,td{padding:11px 13px;text-align:left;border-bottom:1px solid var(--line2);white-space:nowrap}
+thead th{position:sticky;top:0;background:var(--bg);z-index:1}
+th{color:var(--muted);font-weight:800;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em}
+tbody tr:hover{background:var(--line2)}
+tbody tr:last-child td{border-bottom:none}
+
+/* Badges */
+.badge{padding:3.5px 11px;border-radius:20px;font-size:11px;font-weight:700;display:inline-block}
+.badge.active{background:var(--ok-bg);color:var(--ok)}
+.badge.left{background:var(--bad-bg);color:var(--bad)}
+:root[data-theme="dark"] .badge.active{background:#0f3a26}
+:root[data-theme="dark"] .badge.left{background:#3a1414}
+
+/* Modals */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(10,17,28,.6);z-index:50;align-items:flex-start;
+  justify-content:center;overflow-y:auto;padding:24px;animation:fade .15s ease;backdrop-filter:blur(2px)}
+.modal-bg.show{display:flex}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.modal{background:var(--card);border-radius:16px;padding:24px;max-width:600px;width:100%;margin:24px 0;
+  box-shadow:0 20px 60px rgba(10,17,28,.3);animation:pop .16s ease}
+@keyframes pop{from{transform:translateY(-6px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal h3{margin-top:0;font-size:16px;font-weight:800}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid2 label{display:flex;flex-direction:column;font-size:11.5px;font-weight:700;color:var(--muted);gap:5px}
+.grid2 label input,.grid2 label select{width:100%}
+.actions{display:flex;gap:6px;flex-wrap:wrap}
+.hist{border-left:2px solid var(--orange);margin:10px 0 0 6px;padding-left:14px}
+.hist div{margin-bottom:10px;font-size:13px}
+.empty{color:var(--muted);text-align:center;padding:36px 20px;font-size:13px}
+.tag{font-size:10.5px;background:var(--bg);border:1px solid var(--line);padding:2px 9px;border-radius:20px;color:var(--muted);font-weight:700}
+
+@media (max-width:860px){
+  .sidebar{position:fixed;left:-240px;top:0;height:100vh;transition:left .2s ease;width:230px}
+  .sidebar.mobile-open{left:0}
+  .sidebar.collapsed{width:230px}
+  .sidebar.collapsed .brand .name{display:block}
+  .sidebar.collapsed .sidenav button span.lbl{display:inline}
+  .sidebar-toggle{display:none}
+  .topbar .hmenu{display:block}
+  main{padding:14px}
+  .grid2{grid-template-columns:1fr}
+}
 </style>
 </head>
 <body>
-<header>
-  <div class="left"><div class="logo">GI</div><div><h1>Gurunanak Impex — People</h1><div class="sub">HR & Attendance</div></div></div>
-  <div class="who" id="whoBox"></div>
-</header>
-<nav id="nav" style="display:none"></nav>
-<main id="main"></main>
-<div id="loginWrap"></div>
-<div class="toast" id="toast"></div>
+<div class="app-shell">
+<aside class="sidebar" id="sidebar">
+  <div class="brand"><div class="logo">Gi</div><div class="name">GI People<small>Gurunanak Impex</small></div></div>
+  <div class="sidenav" id="nav"></div>
+  <button class="sidebar-toggle" onclick="toggleSidebar()">☰ Collapse</button>
+</aside>
+<div class="main-wrap">
+  <div class="topbar">
+    <button class="hmenu" onclick="toggleSidebar(true)">☰</button>
+    <div><p class="pagetitle" id="pageTitle">Dashboard</p><p class="pagesub" id="pageSub">Overview of your organization</p></div>
+    <span id="syncMsg">Connecting…</span>
+  </div>
+  <main>
+    <div class="view active" id="view-dashboard"></div>
+    <div class="view" id="view-employees"></div>
+    <div class="view" id="view-attendance"></div>
+    <div class="view" id="view-leave"></div>
+    <div class="view" id="view-holidays"></div>
+    <div class="view" id="view-salary"></div>
+    <div class="view" id="view-former"></div>
+  </main>
+</div>
+</div>
+
+<div class="modal-bg" id="empModalBg"><div class="modal" id="empModal"></div></div>
+<div class="modal-bg" id="exitModalBg"><div class="modal" id="exitModal"></div></div>
+<div class="modal-bg" id="profileModalBg"><div class="modal" id="profileModal" style="max-width:720px"></div></div>
+<div class="modal-bg" id="leaveModalBg"><div class="modal" id="leaveModal"></div></div>
+
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import {
-  getAuth, signInWithEmailAndPassword, sendPasswordResetEmail, signOut, onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import {
-  getFirestore, collection, doc, setDoc, getDocs, query
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { initializeApp } from "https://cdn.jsdelivr.net/npm/firebase@10.13.2/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc } from "https://cdn.jsdelivr.net/npm/firebase@10.13.2/firebase-firestore.js";
+import { getAuth, signInAnonymously, onAuthStateChanged } from "https://cdn.jsdelivr.net/npm/firebase@10.13.2/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAtmg8G_dEqu58paEa-qnRMQy-GCYToBwg",
@@ -79,398 +184,497 @@ const firebaseConfig = {
   messagingSenderId: "91230577575",
   appId: "1:91230577575:web:be7f7e4ab64ee6f0190c82"
 };
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const dbfs = getFirestore(app);
+const fbApp = initializeApp(firebaseConfig);
+const fdb = getFirestore(fbApp);
+const auth = getAuth(fbApp);
+const STATE_REF = doc(fdb, 'hrms', 'state');
 
-let employees = [];
-let view = "dashboard";
-let editingId = null;
-let currentUser = null;
-
-function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1800); }
-function uid(){ return Math.random().toString(36).slice(2,9); }
-function todayStr(){ return new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Kolkata'}); }
-function fmtDate(d){ if(!d) return '—'; try{ return new Date(d).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});}catch(e){return d;} }
-function activePeriod(emp){ return (emp.employmentHistory||[]).find(p=>!p.endDate) || null; }
-function currentSalary(emp){ const sh=emp.salaryHistory||[]; return sh.length? sh[sh.length-1].amount : null; }
-
-const NAV = [
-  {id:'dashboard', label:'Dashboard'},
-  {id:'employees', label:'Employees'},
-  {id:'attendance', label:'Attendance'},
-  {id:'former', label:'Former'},
-];
-
-// ---------- AUTH ----------
-function renderLogin(){
-  document.getElementById('nav').style.display='none';
-  document.getElementById('main').innerHTML='';
-  document.getElementById('whoBox').textContent='';
-  document.getElementById('loginWrap').innerHTML = `
-    <div class="card">
-      <b>Sign in</b>
-      <div class="field" style="margin-top:10px"><label>Work Email</label><input id="li_email" type="email"></div>
-      <div class="field"><label>Password</label><input id="li_pass" type="password"></div>
-      <div id="li_err" class="err"></div>
-      <div class="row" style="margin-top:6px">
-        <button class="btn" id="li_go">Sign in</button>
-        <span class="link" id="li_forgot">Forgot password?</span>
-      </div>
-      <div class="muted" style="margin-top:10px;font-size:12px">HR accounts are created by your Firebase admin in the Authentication console.</div>
-    </div>`;
-  document.getElementById('li_go').onclick = async ()=>{
-    const email = document.getElementById('li_email').value.trim();
-    const pass = document.getElementById('li_pass').value;
-    try{ await signInWithEmailAndPassword(auth, email, pass); }
-    catch(e){ document.getElementById('li_err').textContent = e.message; }
-  };
-  document.getElementById('li_forgot').onclick = async ()=>{
-    const email = document.getElementById('li_email').value.trim();
-    if(!email){ document.getElementById('li_err').textContent='Enter your email above first.'; return; }
-    try{ await sendPasswordResetEmail(auth, email); toast('Reset email sent'); }
-    catch(e){ document.getElementById('li_err').textContent = e.message; }
+async function loadDB(){
+  const snap = await getDoc(STATE_REF);
+  if(snap.exists()) return snap.data();
+  const fresh = seed();
+  await setDoc(STATE_REF, fresh);
+  return fresh;
+}
+function saveDB(){ setDoc(STATE_REF, DB).catch(e=>{ console.error('Save failed', e);
+  setSync(explainError(e), true); addRetryOnceLoaded(); }); }
+function addRetryOnceLoaded(){ /* no-op placeholder: retry button only needed for initial load */ }
+function seed(){
+  return {
+    nextId: 2,
+    employees: [{
+      id:'GI-EMP-0001', name:'Uma', mobile:'+91 80909 53624', dob:'', gender:'',
+      address:'', emergency:'', department:'', designation:'', empType:'',
+      shift:'10:00 AM – 7:00 PM', weeklyOff:'', aadhaar:'', notes:'',
+      status:'Active',
+      periods:[{joining:'2026-09-23', exit:null, exitReason:'', lastDay:'', remarks:'',
+        salary:9000, salaryHistory:[{amount:9000, effective:'2026-09-23'}],
+        department:'', designation:''}]
+    }],
+    attendance: {}, // key: empId|YYYY-MM-DD -> status
+    leaveTypes: [
+      {id:'CL', name:'Casual Leave', annual:12, carryForward:false, halfDay:true},
+      {id:'SL', name:'Sick Leave', annual:8, carryForward:false, halfDay:true},
+      {id:'EL', name:'Earned Leave', annual:15, carryForward:true, halfDay:false}
+    ],
+    leaveRequests: [], // {id, empId, typeId, from, to, days, reason, status, appliedOn, decidedBy, decidedOn, comment}
+    holidays: [] // {id, name, date, type}
   };
 }
+let DB = seed();
 
-onAuthStateChanged(auth, async (user)=>{
-  currentUser = user;
-  if(!user){ document.getElementById('loginWrap').style.display='block'; renderLogin(); return; }
-  document.getElementById('loginWrap').style.display='none';
-  document.getElementById('loginWrap').innerHTML='';
-  document.getElementById('nav').style.display='flex';
-  document.getElementById('whoBox').innerHTML = `${user.email} · <span class="link" id="logoutLink" style="color:#fff">Sign out</span>`;
-  document.getElementById('logoutLink').onclick = ()=>signOut(auth);
-  await seedIfEmpty();
-  await loadAll();
-});
+function fmtDate(d){ if(!d) return '—'; const dt=new Date(d+'T00:00:00'); if(isNaN(dt)) return d;
+  return dt.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}); }
+function todayISO(){ return new Date().toISOString().slice(0,10); }
+function currentPeriod(emp){ return emp.periods[emp.periods.length-1]; }
+function currentSalary(emp){ const p=currentPeriod(emp); if(!p) return 0;
+  return p.salaryHistory[p.salaryHistory.length-1].amount; }
+function genId(){ const id='GI-EMP-'+String(DB.nextId).padStart(4,'0'); DB.nextId++; return id; }
 
-// ---------- DATA LAYER (Firestore) ----------
-const empCol = collection(dbfs, 'employees');
-
-async function saveEmployee(e){
-  const id = e.id || doc(empCol).id;
-  e.id = id;
-  await setDoc(doc(dbfs, 'employees', id), e);
-  await loadAll();
+// ---------- NAV ----------
+const views=['dashboard','employees','attendance','leave','holidays','salary','former'];
+const navLabels={dashboard:'Dashboard',employees:'Employees',attendance:'Attendance',leave:'Leave',holidays:'Holidays',salary:'Salary',former:'Former Employees'};
+const navIcons={dashboard:'▦',employees:'👤',attendance:'🕐',leave:'📋',holidays:'📅',salary:'₹',former:'📤'};
+const pageSubs={dashboard:'Overview of your organization',employees:'Manage employees and employee information',
+  attendance:'Track daily and monthly attendance',leave:'Applications, approvals and balances',
+  holidays:'Company holiday calendar',salary:'Monthly payroll estimate',former:'Employees who have left the organization'};
+function renderNav(active){
+  document.getElementById('nav').innerHTML = views.map(v=>
+    `<button class="${v===active?'active':''}" onclick="switchView('${v}')"><span class="ic">${navIcons[v]}</span><span class="lbl">${navLabels[v]}</span></button>`).join('');
+  document.getElementById('pageTitle').textContent = navLabels[active];
+  document.getElementById('pageSub').textContent = pageSubs[active];
 }
-
-async function loadAll(){
-  const snap = await getDocs(query(empCol));
-  employees = snap.docs.map(d=>d.data());
+function toggleSidebar(mobile){
+  const sb = document.getElementById('sidebar');
+  if(mobile){ sb.classList.toggle('mobile-open'); }
+  else{ sb.classList.toggle('collapsed'); }
+}
+function switchView(v){
+  views.forEach(x=>document.getElementById('view-'+x).classList.toggle('active', x===v));
+  renderNav(v);
+  document.getElementById('sidebar').classList.remove('mobile-open');
   render();
 }
 
-async function seedIfEmpty(){
-  const snap = await getDocs(query(empCol));
-  if(snap.docs.length>0) return;
-  const empId = 'GI-EMP-001';
-  const emp = {
-    id: empId, empCode: empId, name:'Uma', mobile:'+91 80909 53624', dob:'', gender:'',
-    address:'', emergencyContact:'', aadhaar:'', notes:'', status:'Active',
-    employmentHistory:[{
-      id: uid(), startDate:'2026-09-23', endDate:null, status:'Active',
-      department:'', designation:'', employmentType:'', shift:'10:00 AM – 7:00 PM',
-      weeklyOff:'', salary:9000
-    }],
-    salaryHistory:[{id:uid(), amount:9000, effectiveDate:'2026-09-23'}],
-    attendance:{}
-  };
-  await setDoc(doc(dbfs,'employees', empId), emp);
+function daysBetween(a,b){ const d1=new Date(a+'T00:00:00'), d2=new Date(b+'T00:00:00');
+  return Math.round((d2-d1)/86400000)+1; }
+function leaveTaken(empId, typeId){
+  return DB.leaveRequests.filter(r=>r.empId===empId && r.typeId===typeId && r.status==='Approved')
+    .reduce((s,r)=>s+r.days,0);
+}
+function leaveBalance(empId, typeId){
+  const t = DB.leaveTypes.find(x=>x.id===typeId);
+  return (t?t.annual:0) - leaveTaken(empId, typeId);
 }
 
-function nextEmpCode(){
-  const nums = employees.map(e=>{ const m=(e.empCode||'').match(/(\d+)$/); return m?parseInt(m[1]):0; });
-  const n = (nums.length?Math.max(...nums):0)+1;
-  return 'GI-EMP-'+String(n).padStart(3,'0');
+// ---------- DASHBOARD ----------
+function renderDashboard(){
+  const active = DB.employees.filter(e=>e.status==='Active');
+  const former = DB.employees.filter(e=>e.status==='Left');
+  const rejoined = DB.employees.filter(e=>e.periods.length>1);
+  const today = todayISO();
+  const presentToday = Object.entries(DB.attendance).filter(([k,v])=>k.endsWith('|'+today) && v==='Present').length;
+  const absentToday = Object.entries(DB.attendance).filter(([k,v])=>k.endsWith('|'+today) && v==='Absent').length;
+  const onLeaveToday = DB.leaveRequests.filter(r=>r.status==='Approved' && r.from<=today && r.to>=today).length;
+  const pendingLeave = DB.leaveRequests.filter(r=>r.status==='Pending').length;
+  const month = today.slice(0,7);
+  const monthAtt = Object.entries(DB.attendance).filter(([k])=>k.split('|')[1].startsWith(month)).length;
+  const payroll = active.reduce((s,e)=>s+currentSalary(e),0);
+  const cards = [
+    ['Total Employees', DB.employees.length,''],
+    ['Active Employees', active.length,''],
+    ['Former Employees', former.length,''],
+    ['Rejoined', rejoined.length,''],
+    ['Present Today', presentToday,''],
+    ['Absent Today', absentToday,''],
+    ['On Leave Today', onLeaveToday,''],
+    ['Pending Leave Requests', pendingLeave,''],
+    ['This Month Attendance Entries', monthAtt,''],
+    ['Estimated Monthly Payroll', '₹'+payroll.toLocaleString('en-IN'),'']
+  ];
+  document.getElementById('view-dashboard').innerHTML = `
+    <div class="cards">${cards.map(c=>`<div class="card"><small>${c[0]}</small><b>${c[1]}</b></div>`).join('')}</div>
+    <div class="panel"><h2>Active Employees</h2>${activeTableHTML(active)}</div>`;
+}
+function activeTableHTML(list){
+  if(!list.length) return '<div class="empty">No active employees yet.</div>';
+  return `<div class="tablewrap"><table><tr><th>ID</th><th>Name</th><th>Designation</th><th>Shift</th><th>Salary</th><th>Joined</th></tr>
+    ${list.map(e=>{const p=currentPeriod(e);return `<tr><td>${e.id}</td><td>${e.name}</td><td>${e.designation||'—'}</td>
+      <td>${e.shift||'—'}</td><td>₹${currentSalary(e).toLocaleString('en-IN')}</td><td>${fmtDate(p.joining)}</td></tr>`}).join('')}
+    </table></div>`;
 }
 
-// ---------- RENDER ----------
-function renderNav(){
-  const nav = document.getElementById('nav');
-  nav.innerHTML = NAV.map(n=>`<button data-v="${n.id}" class="${view===n.id?'active':''}">${n.label}</button>`).join('');
-  nav.querySelectorAll('button').forEach(b=>b.onclick=()=>{ view=b.dataset.v; editingId=null; render(); });
-}
-
-function render(){
-  renderNav();
-  const m = document.getElementById('main');
-  if(view==='dashboard') return renderDashboard(m);
-  if(view==='employees') return renderEmployees(m, false);
-  if(view==='former') return renderEmployees(m, true);
-  if(view==='attendance') return renderAttendance(m);
-  if(view==='profile') return renderProfile(m);
-}
-
-function renderDashboard(m){
-  const active = employees.filter(e=>e.status==='Active');
-  const former = employees.filter(e=>e.status==='Left');
-  const today = todayStr();
-  let present=0, absent=0, onLeave=0;
-  active.forEach(e=>{
-    const st = (e.attendance||{})[today];
-    if(st==='Present'||st==='WFH') present++;
-    else if(st==='Absent') absent++;
-    else if(st==='Paid Leave'||st==='Sick Leave') onLeave++;
+// ---------- EMPLOYEES ----------
+let empFilter={status:'All', q:''};
+function renderEmployees(){
+  const list = DB.employees.filter(e=>{
+    if(empFilter.status!=='All' && e.status!==empFilter.status) return false;
+    if(empFilter.q){ const q=empFilter.q.toLowerCase();
+      if(!(e.name.toLowerCase().includes(q)||e.id.toLowerCase().includes(q)||(e.mobile||'').includes(q))) return false; }
+    return true;
   });
-  m.innerHTML = `
-  <div class="grid">
-    <div class="stat"><div class="n">${employees.length}</div><div class="l">Total Employees</div></div>
-    <div class="stat"><div class="n">${active.length}</div><div class="l">Active</div></div>
-    <div class="stat"><div class="n">${present}</div><div class="l">Present Today</div></div>
-    <div class="stat"><div class="n">${absent}</div><div class="l">Absent Today</div></div>
-    <div class="stat"><div class="n">${onLeave}</div><div class="l">On Leave Today</div></div>
-    <div class="stat"><div class="n">${former.length}</div><div class="l">Former Employees</div></div>
-  </div>
-  <div class="card">
-    <b>Active Employees</b>
-    <div class="scrollx"><table><tr><th>ID</th><th>Name</th><th>Designation</th><th>Salary</th><th>Today</th><th></th></tr>
-    ${active.map(e=>{
-      const st=(e.attendance||{})[today]||'—';
-      return `<tr><td>${e.empCode}</td><td>${e.name}</td><td>${activePeriod(e)?.designation||'—'}</td><td>₹${currentSalary(e)??'—'}</td><td>${st}</td><td><span class="link" data-open="${e.id}">View</span></td></tr>`;
-    }).join('') || '<tr><td colspan="6" class="muted">No employees yet.</td></tr>'}
-    </table></div>
-  </div>`;
-  m.querySelectorAll('[data-open]').forEach(el=>el.onclick=()=>{ editingId=el.dataset.open; view='profile'; render(); });
-}
-
-function employeeForm(emp){
-  const p = activePeriod(emp) || {};
-  return `
-  <div class="card">
-    <b>${emp.id? 'Edit Employee' : 'Add Employee'}</b>
-    <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr));margin-top:10px">
-      <div class="field"><label>Full Name *</label><input id="f_name" value="${emp.name||''}"></div>
-      <div class="field"><label>Mobile</label><input id="f_mobile" value="${emp.mobile||''}"></div>
-      <div class="field"><label>Date of Birth</label><input id="f_dob" type="date" value="${emp.dob||''}"></div>
-      <div class="field"><label>Gender</label><input id="f_gender" value="${emp.gender||''}"></div>
-      <div class="field"><label>Emergency Contact</label><input id="f_ec" value="${emp.emergencyContact||''}"></div>
-      <div class="field"><label>Aadhaar (stored securely)</label><input id="f_aadhaar" value="${emp.aadhaar||''}"></div>
-      <div class="field"><label>Joining Date *</label><input id="f_join" type="date" value="${p.startDate||''}"></div>
-      <div class="field"><label>Department</label><input id="f_dept" value="${p.department||''}"></div>
-      <div class="field"><label>Designation</label><input id="f_desig" value="${p.designation||''}"></div>
-      <div class="field"><label>Employment Type</label><input id="f_type" value="${p.employmentType||''}"></div>
-      <div class="field"><label>Shift</label><input id="f_shift" value="${p.shift||'10:00 AM – 7:00 PM'}"></div>
-      <div class="field"><label>Weekly Off</label><input id="f_off" value="${p.weeklyOff||''}"></div>
-      <div class="field"><label>Salary (₹/month) *</label><input id="f_salary" type="number" value="${p.salary??''}"></div>
-    </div>
-    <div class="field"><label>Address</label><textarea id="f_addr">${emp.address||''}</textarea></div>
-    <div class="field"><label>Notes</label><textarea id="f_notes">${emp.notes||''}</textarea></div>
-    <div class="row">
-      <button class="btn" id="f_save">Save</button>
-      <button class="btn ghost" id="f_cancel">Cancel</button>
-    </div>
-  </div>`;
-}
-
-function bindEmployeeForm(emp){
-  document.getElementById('f_cancel').onclick = ()=>{ editingId=null; view='employees'; render(); };
-  document.getElementById('f_save').onclick = async ()=>{
-    const name = document.getElementById('f_name').value.trim();
-    const join = document.getElementById('f_join').value;
-    const salary = parseFloat(document.getElementById('f_salary').value);
-    if(!name || !join || !salary){ toast('Name, joining date and salary are required'); return; }
-    const isNew = !emp.id;
-    const period = activePeriod(emp) || { id: uid(), startDate: join, endDate:null, status:'Active' };
-    period.startDate = join;
-    period.department = document.getElementById('f_dept').value;
-    period.designation = document.getElementById('f_desig').value;
-    period.employmentType = document.getElementById('f_type').value;
-    period.shift = document.getElementById('f_shift').value;
-    period.weeklyOff = document.getElementById('f_off').value;
-    const prevSalary = period.salary;
-    period.salary = salary;
-
-    const out = {
-      id: emp.id || null,
-      empCode: emp.empCode || nextEmpCode(),
-      name, mobile: document.getElementById('f_mobile').value,
-      dob: document.getElementById('f_dob').value,
-      gender: document.getElementById('f_gender').value,
-      emergencyContact: document.getElementById('f_ec').value,
-      aadhaar: document.getElementById('f_aadhaar').value,
-      address: document.getElementById('f_addr').value,
-      notes: document.getElementById('f_notes').value,
-      status: emp.status || 'Active',
-      employmentHistory: emp.employmentHistory ? emp.employmentHistory.map(h=>h.id===period.id?period:h) : [period],
-      salaryHistory: emp.salaryHistory || [],
-      attendance: emp.attendance || {}
-    };
-    if(isNew || out.employmentHistory.length===0) out.employmentHistory=[period];
-    if(prevSalary !== salary){
-      out.salaryHistory = [...out.salaryHistory, {id:uid(), amount:salary, effectiveDate: join<=todayStr()? todayStr() : join}];
-    } else if(out.salaryHistory.length===0){
-      out.salaryHistory = [{id:uid(), amount:salary, effectiveDate: period.startDate}];
-    }
-    await saveEmployee(out);
-    toast('Saved');
-    editingId = out.id; view='profile'; render();
-  };
-}
-
-function renderEmployees(m, former){
-  if(editingId==='new' && !former){
-    m.innerHTML = employeeForm({}); bindEmployeeForm({}); return;
-  }
-  const list = employees.filter(e => former ? e.status==='Left' : e.status==='Active');
-  m.innerHTML = `
-  ${former?'':`<div class="row" style="margin-bottom:10px"><input id="search" placeholder="Search name / ID / mobile" style="flex:1;min-width:160px"><button class="btn" id="addBtn">+ Add Employee</button></div>`}
-  <div class="card">
-    <div class="scrollx"><table><tr><th>ID</th><th>Name</th><th>Mobile</th><th>Designation</th><th>Salary</th><th>Status</th><th></th></tr>
-    <tbody id="tbody"></tbody>
-    </table></div>
-  </div>`;
-  function draw(filter){
-    const f = (filter||'').toLowerCase();
-    const rows = list.filter(e=> !f || e.name.toLowerCase().includes(f) || (e.empCode||'').toLowerCase().includes(f) || (e.mobile||'').includes(f));
-    document.getElementById('tbody').innerHTML = rows.map(e=>`
-      <tr><td>${e.empCode}</td><td>${e.name}</td><td>${e.mobile||'—'}</td><td>${activePeriod(e)?.designation||(e.employmentHistory?.slice(-1)[0]?.designation)||'—'}</td>
-      <td>₹${currentSalary(e)??'—'}</td><td><span class="pill ${e.status}">${e.status}</span></td>
-      <td><span class="link" data-open="${e.id}">View</span></td></tr>`).join('') || '<tr><td colspan="7" class="muted">No records.</td></tr>';
-    document.querySelectorAll('[data-open]').forEach(el=>el.onclick=()=>{ editingId=el.dataset.open; view='profile'; render(); });
-  }
-  draw('');
-  if(!former){
-    document.getElementById('search').oninput = (e)=>draw(e.target.value);
-    document.getElementById('addBtn').onclick = ()=>{ editingId='new'; render(); };
-  }
-}
-
-function renderProfile(m){
-  const emp = employees.find(e=>e.id===editingId);
-  if(!emp){ view='employees'; editingId=null; return render(); }
-  const p = activePeriod(emp);
-  const hist = [...(emp.employmentHistory||[])].sort((a,b)=>a.startDate.localeCompare(b.startDate));
-  const sal = [...(emp.salaryHistory||[])].sort((a,b)=>a.effectiveDate.localeCompare(b.effectiveDate));
-  const att = emp.attendance||{};
-  const month = todayStr().slice(0,7);
-  let present=0,absent=0,leave=0,half=0;
-  Object.entries(att).forEach(([d,s])=>{ if(!d.startsWith(month)) return;
-    if(s==='Present'||s==='WFH') present++; else if(s==='Absent') absent++;
-    else if(s==='Half Day') half++; else if(s==='Paid Leave'||s==='Sick Leave') leave++; });
-
-  m.innerHTML = `
-  <div class="card">
-    <div class="row" style="justify-content:space-between">
-      <div><b style="font-size:16px">${emp.name}</b> <span class="pill ${emp.status}">${emp.status}</span><br>
-      <span class="muted">${emp.empCode} · ${emp.mobile||'—'}</span></div>
+  document.getElementById('view-employees').innerHTML = `
+    <div class="panel">
+      <h2>Employee Master</h2>
       <div class="row">
-        <button class="btn ghost small" id="editBtn">Edit</button>
-        ${emp.status==='Active' ? '<button class="btn danger small" id="leaveBtn">Mark as Left</button>' : '<button class="btn small" id="rejoinBtn">Rejoin</button>'}
+        <input placeholder="Search name / ID / mobile" id="empSearch" value="${empFilter.q}" oninput="empFilter.q=this.value; renderEmployees()">
+        <select id="empStatusFilter" onchange="empFilter.status=this.value; renderEmployees()">
+          ${['All','Active','Left'].map(s=>`<option ${empFilter.status===s?'selected':''}>${s}</option>`).join('')}
+        </select>
+        <button class="btn gold" onclick="openEmpModal()">+ Add Employee</button>
       </div>
+      <div class="tablewrap"><table><tr><th>ID</th><th>Name</th><th>Mobile</th><th>Dept/Desig</th><th>Salary</th><th>Status</th><th>Actions</th></tr>
+      ${list.map(e=>`<tr>
+        <td>${e.id}${e.periods.length>1?' <span class="tag">rejoined</span>':''}</td>
+        <td>${e.name}</td><td>${e.mobile||'—'}</td>
+        <td>${(e.designation||'—')}</td>
+        <td>₹${currentSalary(e).toLocaleString('en-IN')}</td>
+        <td><span class="badge ${e.status==='Active'?'active':'left'}">${e.status}</span></td>
+        <td class="actions">
+          <button class="btn ghost sm" onclick="openProfile('${e.id}')">View</button>
+          <button class="btn ghost sm" onclick="openEmpModal('${e.id}')">Edit</button>
+          ${e.status==='Active'?`<button class="btn ghost sm" onclick="openExitModal('${e.id}')">Mark Left</button>`
+            :`<button class="btn gold sm" onclick="rejoinEmployee('${e.id}')">Rejoin</button>`}
+        </td></tr>`).join('') || `<tr><td colspan="7" class="empty">No employees match.</td></tr>`}
+      </table></div>
+    </div>`;
+}
+
+function openEmpModal(id){
+  const emp = id ? DB.employees.find(e=>e.id===id) : null;
+  const p = emp ? currentPeriod(emp) : null;
+  document.getElementById('empModal').innerHTML = `
+    <h3>${emp?'Edit Employee — '+emp.name:'Add New Employee'}</h3>
+    <div class="grid2">
+      <label>Full Name<input id="f_name" value="${emp?emp.name:''}"></label>
+      <label>Mobile Number<input id="f_mobile" value="${emp?emp.mobile:''}"></label>
+      <label>Date of Birth<input type="date" id="f_dob" value="${emp?emp.dob||'':''}"></label>
+      <label>Gender<select id="f_gender">
+        ${['','Male','Female','Other'].map(g=>`<option ${emp&&emp.gender===g?'selected':''}>${g}</option>`).join('')}</select></label>
+      <label style="grid-column:1/3">Address<input id="f_address" value="${emp?emp.address||'':''}"></label>
+      <label>Emergency Contact<input id="f_emergency" value="${emp?emp.emergency||'':''}"></label>
+      <label>Joining Date${emp?' (this record)':''}<input type="date" id="f_joining" value="${p?p.joining:todayISO()}"></label>
+      <label>Department<input id="f_department" value="${emp?(p.department||emp.department||''):''}"></label>
+      <label>Designation<input id="f_designation" value="${emp?(p.designation||emp.designation||''):''}"></label>
+      <label>Employment Type<input id="f_empType" value="${emp?emp.empType||'':''}"></label>
+      <label>Salary (₹/month)<input type="number" id="f_salary" value="${emp?currentSalary(emp):9000}"></label>
+      <label>Shift<input id="f_shift" value="${emp?emp.shift||'10:00 AM – 7:00 PM':'10:00 AM – 7:00 PM'}"></label>
+      <label>Weekly Off<input id="f_weeklyOff" value="${emp?emp.weeklyOff||'':''}"></label>
+      <label>Aadhaar / Document Ref (secure)<input id="f_aadhaar" value="${emp?emp.aadhaar||'':''}"></label>
+      <label style="grid-column:1/3">Notes<textarea id="f_notes" rows="2">${emp?emp.notes||'':''}</textarea></label>
     </div>
-  </div>
-  <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr))">
-    <div class="stat"><div class="n">${present}</div><div class="l">Present (this mo.)</div></div>
-    <div class="stat"><div class="n">${absent}</div><div class="l">Absent</div></div>
-    <div class="stat"><div class="n">${half}</div><div class="l">Half Day</div></div>
-    <div class="stat"><div class="n">${leave}</div><div class="l">Leave</div></div>
-  </div>
-  <div class="card">
-    <b>Employment Details</b>
-    <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr));margin-top:8px;font-size:13px">
-      <div><span class="muted">Department</span><br>${p?.department||'—'}</div>
-      <div><span class="muted">Designation</span><br>${p?.designation||'—'}</div>
-      <div><span class="muted">Shift</span><br>${p?.shift||'—'}</div>
-      <div><span class="muted">Weekly Off</span><br>${p?.weeklyOff||'—'}</div>
-      <div><span class="muted">Employment Type</span><br>${p?.employmentType||'—'}</div>
-      <div><span class="muted">Current Salary</span><br>₹${currentSalary(emp)??'—'}/mo</div>
-    </div>
-    <div class="field" style="margin-top:10px"><label>Address</label><div>${emp.address||'—'}</div></div>
-    <div class="field"><label>Notes</label><div>${emp.notes||'—'}</div></div>
-  </div>
-  <div class="card">
-    <b>Employment History</b>
-    <div class="scrollx"><table><tr><th>Period</th><th>Status</th><th>Salary</th><th>Designation</th></tr>
-    ${hist.map(h=>`<tr><td>${fmtDate(h.startDate)} – ${h.endDate?fmtDate(h.endDate):'Present'}</td><td><span class="pill ${h.status}">${h.status}</span></td><td>₹${h.salary}</td><td>${h.designation||'—'}</td></tr>`).join('')}
-    </table></div>
-  </div>
-  <div class="card">
-    <b>Salary History</b>
-    <div class="scrollx"><table><tr><th>Amount</th><th>Effective From</th></tr>
-    ${sal.map(s=>`<tr><td>₹${s.amount}</td><td>${fmtDate(s.effectiveDate)}</td></tr>`).join('') || '<tr><td colspan="2" class="muted">None</td></tr>'}
-    </table></div>
-    ${emp.status==='Active'?`<div class="row" style="margin-top:8px"><input id="newSalary" type="number" placeholder="New salary ₹"><button class="btn small" id="salBtn">Record Revision</button></div>`:''}
-  </div>
-  <div class="link" id="backBtn">&larr; Back</div>
-  `;
-  document.getElementById('backBtn').onclick=()=>{ editingId=null; view='employees'; render(); };
-  document.getElementById('editBtn').onclick=()=>{ m.innerHTML = employeeForm(emp); bindEmployeeForm(emp); };
-  if(emp.status==='Active'){
-    document.getElementById('leaveBtn').onclick=()=>openLeaveDialog(emp);
-    document.getElementById('salBtn').onclick=async ()=>{
-      const v = parseFloat(document.getElementById('newSalary').value);
-      if(!v){ toast('Enter an amount'); return; }
-      const period = activePeriod(emp); period.salary=v;
-      emp.employmentHistory = emp.employmentHistory.map(h=>h.id===period.id?period:h);
-      emp.salaryHistory = [...(emp.salaryHistory||[]), {id:uid(), amount:v, effectiveDate:todayStr()}];
-      await saveEmployee(emp); toast('Salary updated'); render();
-    };
+    <div class="row" style="margin-top:14px;justify-content:flex-end">
+      <button class="btn ghost" onclick="closeModal('empModalBg')">Cancel</button>
+      <button class="btn gold" onclick="saveEmployee(${emp?`'${emp.id}'`:'null'})">Save</button>
+    </div>`;
+  document.getElementById('empModalBg').classList.add('show');
+}
+function saveEmployee(id){
+  const v = k=>document.getElementById('f_'+k).value;
+  const salary = parseFloat(v('salary'))||0;
+  if(id){
+    const emp = DB.employees.find(e=>e.id===id);
+    Object.assign(emp,{name:v('name'),mobile:v('mobile'),dob:v('dob'),gender:v('gender'),address:v('address'),
+      emergency:v('emergency'),empType:v('empType'),shift:v('shift'),weeklyOff:v('weeklyOff'),
+      aadhaar:v('aadhaar'),notes:v('notes')});
+    const p = currentPeriod(emp);
+    p.department=v('department'); p.designation=v('designation'); p.joining=v('joining');
+    if(currentSalary(emp)!==salary){ p.salaryHistory.push({amount:salary, effective:todayISO()}); }
   } else {
-    document.getElementById('rejoinBtn').onclick=()=>openRejoinDialog(emp);
-  }
-}
-
-function openLeaveDialog(emp){
-  const exitDate = prompt('Exit date (YYYY-MM-DD):', todayStr());
-  if(!exitDate) return;
-  const reason = prompt('Exit reason:', '') || '';
-  (async ()=>{
-    const p = activePeriod(emp);
-    p.endDate = exitDate; p.status='Left'; p.exitReason = reason;
-    emp.employmentHistory = emp.employmentHistory.map(h=>h.id===p.id?p:h);
-    emp.status='Left';
-    await saveEmployee(emp); toast('Marked as Left'); render();
-  })();
-}
-
-function openRejoinDialog(emp){
-  const joinDate = prompt('Rejoining date (YYYY-MM-DD):', todayStr());
-  if(!joinDate) return;
-  const salary = parseFloat(prompt('Salary (₹/month):', currentSalary(emp)||''));
-  if(!salary) { toast('Salary required'); return; }
-  const dept = prompt('Department:', activePeriod(emp)?.department || (emp.employmentHistory?.slice(-1)[0]?.department) || '') || '';
-  const desig = prompt('Designation:', emp.employmentHistory?.slice(-1)[0]?.designation || '') || '';
-  (async ()=>{
-    const newPeriod = { id: uid(), startDate: joinDate, endDate:null, status:'Active', department:dept, designation:desig,
-      shift: emp.employmentHistory?.slice(-1)[0]?.shift || '10:00 AM – 7:00 PM', weeklyOff: emp.employmentHistory?.slice(-1)[0]?.weeklyOff||'', salary };
-    emp.employmentHistory = [...emp.employmentHistory, newPeriod];
-    emp.salaryHistory = [...(emp.salaryHistory||[]), {id:uid(), amount:salary, effectiveDate:joinDate}];
-    emp.status='Active';
-    await saveEmployee(emp); toast('Rejoined'); render();
-  })();
-}
-
-function renderAttendance(m){
-  const today = todayStr();
-  const active = employees.filter(e=>e.status==='Active');
-  const statuses = ['Present','Absent','Half Day','Paid Leave','Sick Leave','Weekly Off','Holiday','WFH','Comp-Off'];
-  m.innerHTML = `
-  <div class="card"><div class="row"><label style="margin:0">Date</label><input id="attDate" type="date" value="${today}"></div></div>
-  <div class="card">
-    <div class="scrollx"><table><tr><th>Employee</th><th>Status</th></tr><tbody id="attBody"></tbody></table></div>
-  </div>`;
-  function draw(date){
-    document.getElementById('attBody').innerHTML = active.map(e=>{
-      const cur = (e.attendance||{})[date]||'';
-      return `<tr><td>${e.name} <span class="muted">(${e.empCode})</span></td><td>
-        <select data-emp="${e.id}">
-        <option value="">—</option>
-        ${statuses.map(s=>`<option value="${s}" ${cur===s?'selected':''}>${s}</option>`).join('')}
-        </select></td></tr>`;
-    }).join('') || '<tr><td colspan="2" class="muted">No active employees.</td></tr>';
-    document.querySelectorAll('[data-emp]').forEach(sel=>{
-      sel.onchange = async ()=>{
-        const emp = employees.find(x=>x.id===sel.dataset.emp);
-        emp.attendance = emp.attendance||{};
-        if(sel.value) emp.attendance[date]=sel.value; else delete emp.attendance[date];
-        await saveEmployee(emp); toast('Attendance saved');
-      };
+    DB.employees.push({
+      id:genId(), name:v('name'), mobile:v('mobile'), dob:v('dob'), gender:v('gender'), address:v('address'),
+      emergency:v('emergency'), department:v('department'), designation:v('designation'), empType:v('empType'),
+      shift:v('shift'), weeklyOff:v('weeklyOff'), aadhaar:v('aadhaar'), notes:v('notes'), status:'Active',
+      periods:[{joining:v('joining')||todayISO(), exit:null, exitReason:'', lastDay:'', remarks:'',
+        department:v('department'), designation:v('designation'),
+        salaryHistory:[{amount:salary, effective:v('joining')||todayISO()}]}]
     });
   }
-  draw(today);
-  document.getElementById('attDate').onchange=(e)=>draw(e.target.value);
+  saveDB(); closeModal('empModalBg'); render();
 }
+function openExitModal(id){
+  const emp = DB.employees.find(e=>e.id===id);
+  document.getElementById('exitModal').innerHTML = `
+    <h3>Mark ${emp.name} as Left</h3>
+    <div class="grid2">
+      <label>Exit Date<input type="date" id="x_exit" value="${todayISO()}"></label>
+      <label>Last Working Day<input type="date" id="x_last" value="${todayISO()}"></label>
+      <label style="grid-column:1/3">Exit Reason<input id="x_reason"></label>
+      <label style="grid-column:1/3">Remarks<textarea id="x_remarks" rows="2"></textarea></label>
+    </div>
+    <div class="row" style="margin-top:14px;justify-content:flex-end">
+      <button class="btn ghost" onclick="closeModal('exitModalBg')">Cancel</button>
+      <button class="btn" style="background:var(--bad)" onclick="confirmExit('${id}')">Confirm</button>
+    </div>`;
+  document.getElementById('exitModalBg').classList.add('show');
+}
+function confirmExit(id){
+  const emp = DB.employees.find(e=>e.id===id);
+  const p = currentPeriod(emp);
+  p.exit = document.getElementById('x_exit').value;
+  p.exitReason = document.getElementById('x_reason').value;
+  p.lastDay = document.getElementById('x_last').value;
+  p.remarks = document.getElementById('x_remarks').value;
+  emp.status='Left';
+  saveDB(); closeModal('exitModalBg'); render();
+}
+function rejoinEmployee(id){
+  const emp = DB.employees.find(e=>e.id===id);
+  const lastSalary = currentSalary(emp);
+  emp.periods.push({joining:todayISO(), exit:null, exitReason:'', lastDay:'', remarks:'',
+    department:emp.department, designation:emp.designation,
+    salaryHistory:[{amount:lastSalary, effective:todayISO()}]});
+  emp.status='Active';
+  saveDB(); render(); openProfile(id);
+}
+function openProfile(id){
+  const emp = DB.employees.find(e=>e.id===id);
+  const att = Object.entries(DB.attendance).filter(([k])=>k.startsWith(id+'|'));
+  const counts = {};
+  att.forEach(([k,v])=>counts[v]=(counts[v]||0)+1);
+  document.getElementById('profileModal').innerHTML = `
+    <h3>${emp.name} <span class="badge ${emp.status==='Active'?'active':'left'}">${emp.status}</span></h3>
+    <p style="color:var(--muted);margin-top:-8px">${emp.id} · ${emp.mobile||'—'}</p>
+    <div class="grid2" style="margin-bottom:14px">
+      <div><small style="color:var(--muted)">Department</small><div>${emp.designation? (currentPeriod(emp).department||'—'):'—'}</div></div>
+      <div><small style="color:var(--muted)">Designation</small><div>${currentPeriod(emp).designation||'—'}</div></div>
+      <div><small style="color:var(--muted)">Shift</small><div>${emp.shift||'—'}</div></div>
+      <div><small style="color:var(--muted)">Current Salary</small><div>₹${currentSalary(emp).toLocaleString('en-IN')}</div></div>
+    </div>
+    <h4>Attendance Summary</h4>
+    <div class="row">${Object.keys(counts).length? Object.entries(counts).map(([k,v])=>`<span class="tag">${k}: ${v}</span>`).join('') : '<span class="tag">No records yet</span>'}</div>
+    <h4>Employment History</h4>
+    <div class="hist">${emp.periods.map(p=>`<div>
+      <b>${fmtDate(p.joining)} – ${p.exit?fmtDate(p.exit):'Present'}</b><br>
+      Salary: ${p.salaryHistory.map(s=>`₹${s.amount.toLocaleString('en-IN')} (from ${fmtDate(s.effective)})`).join(' → ')}
+      ${p.exit?`<br>Exit reason: ${p.exitReason||'—'} · Remarks: ${p.remarks||'—'}`:''}
+    </div>`).join('')}</div>
+    <div class="row" style="margin-top:14px;justify-content:flex-end">
+      <button class="btn ghost" onclick="closeModal('profileModalBg')">Close</button>
+    </div>`;
+  document.getElementById('profileModalBg').classList.add('show');
+}
+function closeModal(id){ document.getElementById(id).classList.remove('show'); }
+
+// ---------- ATTENDANCE ----------
+let attDate = todayISO();
+const ATT_STATUSES=['Present','Absent','Half Day','Paid Leave','Sick Leave','Weekly Off','Holiday','Work From Home','Comp-Off'];
+function renderAttendance(){
+  const active = DB.employees.filter(e=>e.status==='Active');
+  document.getElementById('view-attendance').innerHTML = `
+    <div class="panel">
+      <h2>Attendance — Daily Entry</h2>
+      <div class="row"><input type="date" id="attDateInput" value="${attDate}" onchange="attDate=this.value; renderAttendance()"></div>
+      <div class="tablewrap"><table><tr><th>Employee</th><th>Status</th></tr>
+      ${active.map(e=>{const k=e.id+'|'+attDate; const cur=DB.attendance[k]||'';
+        return `<tr><td>${e.name} <span class="tag">${e.id}</span></td><td>
+          <select onchange="setAttendance('${e.id}','${attDate}',this.value)">
+            <option value="">—</option>
+            ${ATT_STATUSES.map(s=>`<option ${cur===s?'selected':''}>${s}</option>`).join('')}
+          </select></td></tr>`}).join('') || `<tr><td colspan="2" class="empty">No active employees.</td></tr>`}
+      </table></div>
+    </div>
+    <div class="panel">
+      <h2>Monthly View — ${attDate.slice(0,7)}</h2>
+      ${monthlyAttendanceHTML(active, attDate.slice(0,7))}
+    </div>`;
+}
+function setAttendance(empId,date,status){
+  const k=empId+'|'+date;
+  if(status) DB.attendance[k]=status; else delete DB.attendance[k];
+  saveDB();
+}
+function monthlyAttendanceHTML(active, month){
+  if(!active.length) return '<div class="empty">No active employees.</div>';
+  const daysInMonth = new Date(+month.slice(0,4), +month.slice(5,7), 0).getDate();
+  const days = Array.from({length:daysInMonth}, (_,i)=>String(i+1).padStart(2,'0'));
+  return `<div class="tablewrap"><table><tr><th>Employee</th>${days.map(d=>`<th>${d}</th>`).join('')}</tr>
+    ${active.map(e=>`<tr><td>${e.name}</td>${days.map(d=>{
+      const k=e.id+'|'+month+'-'+d; const v=DB.attendance[k];
+      const abbr = v? v.split(' ').map(w=>w[0]).join('') : '';
+      return `<td title="${v||''}" style="text-align:center">${abbr}</td>`;
+    }).join('')}</tr>`).join('')}
+    </table></div>`;
+}
+
+// ---------- SALARY ----------
+function renderSalary(){
+  const active = DB.employees.filter(e=>e.status==='Active');
+  const month = todayISO().slice(0,7);
+  document.getElementById('view-salary').innerHTML = `
+    <div class="panel">
+      <h2>Salary — ${month}</h2>
+      <div class="tablewrap"><table><tr><th>Employee</th><th>Monthly Salary</th><th>Present</th><th>Absent</th><th>Leave</th><th>Paid Days</th><th>Net Payable (est.)</th></tr>
+      ${active.map(e=>{
+        const entries = Object.entries(DB.attendance).filter(([k])=>k.startsWith(e.id+'|') && k.split('|')[1].startsWith(month));
+        const present = entries.filter(([,v])=>v==='Present'||v==='Work From Home'||v==='Comp-Off').length;
+        const half = entries.filter(([,v])=>v==='Half Day').length;
+        const leave = entries.filter(([,v])=>v==='Paid Leave'||v==='Sick Leave'||v==='Holiday'||v==='Weekly Off').length;
+        const absent = entries.filter(([,v])=>v==='Absent').length;
+        const paidDays = present + half*0.5 + leave;
+        const salary = currentSalary(e);
+        const daysInMonth = new Date(+month.slice(0,4), +month.slice(5,7), 0).getDate();
+        const net = daysInMonth? Math.round((salary/daysInMonth)*paidDays) : 0;
+        return `<tr><td>${e.name}</td><td>₹${salary.toLocaleString('en-IN')}</td><td>${present}</td><td>${absent}</td><td>${leave}</td><td>${paidDays}</td><td>₹${net.toLocaleString('en-IN')}</td></tr>`;
+      }).join('') || `<tr><td colspan="7" class="empty">No active employees.</td></tr>`}
+      </table></div>
+      <p style="color:var(--muted);font-size:12px;margin-top:10px">Net payable is estimated as (monthly salary ÷ days in month) × paid days. Configure deductions, PF, ESI or TDS as needed — edit employee salary in Employee Master to update the effective rate.</p>
+    </div>`;
+}
+
+// ---------- FORMER ----------
+function renderFormer(){
+  const former = DB.employees.filter(e=>e.status==='Left');
+  document.getElementById('view-former').innerHTML = `
+    <div class="panel"><h2>Former Employees</h2>
+    <div class="tablewrap"><table><tr><th>ID</th><th>Name</th><th>Last Period</th><th>Exit Date</th><th>Reason</th><th>Actions</th></tr>
+    ${former.map(e=>{const p=currentPeriod(e); return `<tr><td>${e.id}</td><td>${e.name}</td>
+      <td>${fmtDate(p.joining)} – ${fmtDate(p.exit)}</td><td>${fmtDate(p.exit)}</td><td>${p.exitReason||'—'}</td>
+      <td class="actions"><button class="btn ghost sm" onclick="openProfile('${e.id}')">View</button>
+      <button class="btn gold sm" onclick="rejoinEmployee('${e.id}')">Rejoin</button></td></tr>`}).join('') ||
+      `<tr><td colspan="6" class="empty">No former employees.</td></tr>`}
+    </table></div></div>`;
+}
+
+// ---------- LEAVE ----------
+function renderLeave(){
+  const active = DB.employees.filter(e=>e.status==='Active');
+  const reqs = [...DB.leaveRequests].sort((a,b)=>b.appliedOn.localeCompare(a.appliedOn));
+  document.getElementById('view-leave').innerHTML = `
+    <div class="panel">
+      <h2>Leave Management</h2>
+      <div class="row"><button class="btn gold" onclick="openLeaveModal()">+ Apply Leave</button></div>
+      <div class="tablewrap"><table><tr><th>Employee</th><th>Type</th><th>From</th><th>To</th><th>Days</th><th>Reason</th><th>Status</th><th>Actions</th></tr>
+      ${reqs.map(r=>{
+        const emp = DB.employees.find(e=>e.id===r.empId);
+        return `<tr><td>${emp?emp.name:r.empId}</td><td>${DB.leaveTypes.find(t=>t.id===r.typeId)?.name||r.typeId}</td>
+        <td>${fmtDate(r.from)}</td><td>${fmtDate(r.to)}</td><td>${r.days}</td><td>${r.reason||'—'}</td>
+        <td><span class="badge ${r.status==='Approved'?'active':(r.status==='Rejected'?'left':'')}" style="${r.status==='Pending'?'background:#fef3c7;color:#92400e':''}">${r.status}</span></td>
+        <td class="actions">${r.status==='Pending'?`<button class="btn ghost sm" onclick="decideLeave('${r.id}','Approved')">Approve</button>
+          <button class="btn ghost sm" onclick="decideLeave('${r.id}','Rejected')">Reject</button>`:'—'}</td></tr>`;
+      }).join('') || `<tr><td colspan="8" class="empty">No leave requests yet.</td></tr>`}
+      </table></div>
+    </div>
+    <div class="panel"><h2>Leave Balances</h2>
+      <div class="tablewrap"><table><tr><th>Employee</th>${DB.leaveTypes.map(t=>`<th>${t.name} (avail/${t.annual})</th>`).join('')}</tr>
+      ${active.map(e=>`<tr><td>${e.name}</td>${DB.leaveTypes.map(t=>`<td>${leaveBalance(e.id,t.id)}</td>`).join('')}</tr>`).join('')
+        || `<tr><td colspan="${DB.leaveTypes.length+1}" class="empty">No active employees.</td></tr>`}
+      </table></div>
+    </div>`;
+}
+function openLeaveModal(){
+  const active = DB.employees.filter(e=>e.status==='Active');
+  document.getElementById('leaveModal').innerHTML = `
+    <h3>Apply Leave</h3>
+    <div class="grid2">
+      <label>Employee<select id="l_emp">${active.map(e=>`<option value="${e.id}">${e.name}</option>`).join('')}</select></label>
+      <label>Leave Type<select id="l_type">${DB.leaveTypes.map(t=>`<option value="${t.id}">${t.name}</option>`).join('')}</select></label>
+      <label>From<input type="date" id="l_from" value="${todayISO()}"></label>
+      <label>To<input type="date" id="l_to" value="${todayISO()}"></label>
+      <label style="grid-column:1/3">Reason<textarea id="l_reason" rows="2"></textarea></label>
+    </div>
+    <div class="row" style="margin-top:14px;justify-content:flex-end">
+      <button class="btn ghost" onclick="closeModal('leaveModalBg')">Cancel</button>
+      <button class="btn gold" onclick="submitLeave()">Submit</button>
+    </div>`;
+  document.getElementById('leaveModalBg').classList.add('show');
+}
+function submitLeave(){
+  const empId=document.getElementById('l_emp').value, typeId=document.getElementById('l_type').value;
+  const from=document.getElementById('l_from').value, to=document.getElementById('l_to').value;
+  const reason=document.getElementById('l_reason').value;
+  if(!from||!to||to<from){ alert('Please enter a valid date range.'); return; }
+  DB.leaveRequests.push({id:'LR-'+Date.now(), empId, typeId, from, to, days:daysBetween(from,to),
+    reason, status:'Pending', appliedOn:todayISO(), decidedBy:'', decidedOn:'', comment:''});
+  saveDB(); closeModal('leaveModalBg'); render();
+}
+function decideLeave(id,status){
+  const r = DB.leaveRequests.find(x=>x.id===id);
+  r.status=status; r.decidedOn=todayISO();
+  saveDB(); render();
+}
+
+// ---------- HOLIDAYS ----------
+function renderHolidays(){
+  const list = [...DB.holidays].sort((a,b)=>a.date.localeCompare(b.date));
+  document.getElementById('view-holidays').innerHTML = `
+    <div class="panel">
+      <h2>Holiday Calendar</h2>
+      <div class="row">
+        <input type="date" id="h_date"><input placeholder="Holiday name" id="h_name">
+        <select id="h_type"><option>Public</option><option>Company</option><option>Optional</option><option>Regional</option></select>
+        <button class="btn gold" onclick="addHoliday()">+ Add Holiday</button>
+      </div>
+      <div class="tablewrap"><table><tr><th>Date</th><th>Name</th><th>Type</th><th></th></tr>
+      ${list.map(h=>`<tr><td>${fmtDate(h.date)}</td><td>${h.name}</td><td>${h.type}</td>
+        <td><button class="btn ghost sm" onclick="removeHoliday('${h.id}')">Remove</button></td></tr>`).join('')
+        || `<tr><td colspan="4" class="empty">No holidays added yet.</td></tr>`}
+      </table></div>
+    </div>`;
+}
+function addHoliday(){
+  const date=document.getElementById('h_date').value, name=document.getElementById('h_name').value.trim();
+  const type=document.getElementById('h_type').value;
+  if(!date||!name){ alert('Enter both date and name.'); return; }
+  DB.holidays.push({id:'H-'+Date.now(), date, name, type});
+  saveDB(); render();
+}
+function removeHoliday(id){
+  DB.holidays = DB.holidays.filter(h=>h.id!==id);
+  saveDB(); render();
+}
+
+
+function render(){
+  renderDashboard(); renderEmployees(); renderAttendance(); renderLeave(); renderHolidays(); renderSalary(); renderFormer();
+}
+function setSync(msg, isError){
+  const el = document.getElementById('syncMsg');
+  el.textContent = msg;
+  el.style.color = isError ? '#dc2626' : '';
+}
+function explainError(e){
+  const code = e && e.code ? e.code : '';
+  console.error('HRMS init error:', code, e);
+  if(code==='auth/operation-not-allowed') return 'Anonymous sign-in is disabled — enable it in Firebase Console → Authentication → Sign-in method.';
+  if(code==='auth/unauthorized-domain') return 'This domain isn\'t authorized — add it in Firebase Console → Authentication → Settings → Authorized domains.';
+  if(code==='permission-denied') return 'Firestore blocked the request — check your Security Rules (see the rules provided earlier).';
+  if(code==='unavailable') return 'Cannot reach Firestore — check your internet connection.';
+  if(code==='not-found' || (e && /database.*does not exist/i.test(e.message||''))) return 'No Firestore database found — create one in Firebase Console → Firestore Database → Create database.';
+  return 'Connection failed: ' + (e && e.message ? e.message : String(e)) + ' — open the browser console (F12) for details.';
+}
+async function initApp(){
+  setSync('Connecting…');
+  try{
+    await signInAnonymously(auth);
+  }catch(e){
+    setSync(explainError(e) + '  ', true);
+    addRetryLink();
+    return;
+  }
+}
+function addRetryLink(){
+  const el = document.getElementById('syncMsg');
+  if(document.getElementById('retryBtn')) return;
+  const b = document.createElement('button');
+  b.id='retryBtn'; b.textContent='Retry'; b.className='btn ghost sm';
+  b.style.marginLeft='6px';
+  b.onclick = initApp;
+  el.appendChild(b);
+}
+onAuthStateChanged(auth, async (user)=>{
+  if(!user) return;
+  try{
+    DB = await loadDB();
+    setSync('');
+    renderNav('dashboard');
+    render();
+  }catch(e){
+    setSync(explainError(e) + '  ', true);
+    addRetryLink();
+  }
+});
+initApp();
 </script>
 </body>
 </html>
