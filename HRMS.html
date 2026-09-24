@@ -1,833 +1,423 @@
 <!DOCTYPE html>
-<html class="h-full bg-slate-50" lang="en">
+<html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
-  <title>GI People - Gurunanak Impex HRMS</title>
-  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-  <link href="https://fonts.googleapis.com" rel="preconnect"/>
-  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
-          },
-          colors: {
-            brand: {
-              50: '#eff6ff',
-              100: '#dbeafe',
-              500: '#1d4ed8',
-              600: '#1e40af',
-              700: '#1e3a8a',
-              900: '#0F2942',
-              navy: '#0F2942',
-              gold: '#D4AF37'
-            }
-          }
-        }
-      }
-    }
-  </script>
-  <style>
-    /* Custom tab display management */
-    .view-container { display: none; }
-    .view-container.active { display: block; }
-    
-    /* Smooth transitions and scrollbars */
-    ::-webkit-scrollbar { width: 4px; height: 4px; }
-    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GI People — Gurunanak Impex HRMS</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{--navy:#0f2942;--navy2:#163d60;--blue:#2563eb;--orange:#f59e0b;--bg:#f5f7fb;--line:#e5e7eb;--text:#172033;--muted:#64748b}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);font-family:Inter,system-ui,sans-serif;color:var(--text)}
+  .app{min-height:100vh}
+  .sidebar{width:248px;background:#fff;border-right:1px solid var(--line);position:fixed;inset:0 auto 0 0;z-index:50;display:flex;flex-direction:column}
+  .brand{height:72px;padding:0 20px;display:flex;align-items:center;border-bottom:1px solid var(--line)}
+  .brandmark{width:38px;height:38px;border-radius:10px;background:var(--navy);color:#fbbf24;display:grid;place-items:center;font-weight:800}
+  .nav{padding:14px 12px;overflow:auto;flex:1}
+  .nav-section{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:#94a3b8;font-weight:700;padding:14px 10px 7px}
+  .navbtn{width:100%;border:0;background:transparent;color:#475569;display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:9px;font-size:13px;font-weight:600;text-align:left;cursor:pointer}
+  .navbtn:hover{background:#f1f5f9;color:var(--navy)}
+  .navbtn.active{background:#eaf2ff;color:#1d4ed8}
+  .navbtn svg{width:17px;height:17px;flex:none}
+  .main{margin-left:248px;min-height:100vh}
+  .topbar{height:72px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 28px;position:sticky;top:0;z-index:40}
+  .search{width:min(390px,40vw);height:40px;border:1px solid var(--line);border-radius:9px;background:#f8fafc;padding:0 13px 0 38px;font-size:13px;outline:none}
+  .search:focus{border-color:#93c5fd;box-shadow:0 0 0 3px #dbeafe}
+  .content{padding:28px;max-width:1600px;margin:auto}
+  .page{display:none}.page.active{display:block}
+  .pagehead{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:22px}
+  .title{font-size:25px;font-weight:800;letter-spacing:-.02em}.subtitle{font-size:13px;color:var(--muted);margin-top:4px}
+  .btn{border:0;border-radius:8px;padding:10px 14px;font-size:12px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:7px}
+  .btn-primary{background:var(--navy);color:#fff}.btn-primary:hover{background:#153a5c}
+  .btn-secondary{background:#fff;color:#334155;border:1px solid var(--line)}.btn-secondary:hover{background:#f8fafc}
+  .btn-warning{background:#f59e0b;color:#111827}.btn-danger{background:#fee2e2;color:#b91c1c}
+  .grid{display:grid;gap:16px}.stats{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .card{background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 1px 2px rgba(15,23,42,.03)}
+  .stat{padding:18px}.stat-label{font-size:11px;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:.04em}.stat-value{font-size:27px;font-weight:800;margin-top:7px}.stat-foot{font-size:11px;color:#94a3b8;margin-top:5px}
+  .cardhead{padding:17px 18px;border-bottom:1px solid #eef2f7;display:flex;justify-content:space-between;align-items:center}.cardtitle{font-size:14px;font-weight:800}.cardbody{padding:18px}
+  .two{grid-template-columns:1.45fr 1fr}.three{grid-template-columns:repeat(3,1fr)}
+  .tablewrap{overflow:auto}.table{width:100%;border-collapse:collapse;font-size:12px}.table th{background:#f8fafc;color:#64748b;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.04em;padding:11px 13px;border-bottom:1px solid var(--line);white-space:nowrap}.table td{padding:13px;border-bottom:1px solid #eef2f7;vertical-align:middle}.table tr:hover td{background:#fbfdff}
+  .avatar{width:36px;height:36px;border-radius:10px;background:#eaf2ff;color:#1d4ed8;display:grid;place-items:center;font-weight:800;flex:none}.person{display:flex;align-items:center;gap:10px}.personname{font-weight:700}.personmeta{font-size:10px;color:#94a3b8;margin-top:2px}
+  .badge{display:inline-flex;align-items:center;border-radius:999px;padding:4px 8px;font-size:10px;font-weight:700}.green{background:#dcfce7;color:#166534}.red{background:#fee2e2;color:#991b1b}.amber{background:#fef3c7;color:#92400e}.blue{background:#dbeafe;color:#1e40af}.gray{background:#f1f5f9;color:#475569}
+  .toolbar{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:14px}.input,.select,.textarea{width:100%;border:1px solid var(--line);border-radius:8px;background:#fff;padding:10px 11px;font-size:12px;outline:none}.input:focus,.select:focus,.textarea:focus{border-color:#93c5fd;box-shadow:0 0 0 3px #dbeafe}.toolbar .input{width:280px}
+  .tabs{display:flex;gap:3px;border-bottom:1px solid var(--line);margin-bottom:18px}.tab{border:0;background:transparent;padding:11px 13px;font-size:12px;font-weight:700;color:#64748b;cursor:pointer;border-bottom:2px solid transparent}.tab.active{color:#1d4ed8;border-bottom-color:#2563eb}
+  .notice{padding:12px 14px;border-radius:9px;background:#eff6ff;border:1px solid #dbeafe;color:#1e40af;font-size:12px}
+  .quick{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.quick .btn{justify-content:flex-start;padding:14px}
+  .progress{height:7px;border-radius:99px;background:#e2e8f0;overflow:hidden}.progress>span{display:block;height:100%;background:#2563eb}
+  .empty{padding:38px 20px;text-align:center;color:#94a3b8;font-size:12px}
+  .modalback{position:fixed;inset:0;background:rgba(15,23,42,.52);z-index:100;display:none;align-items:center;justify-content:center;padding:20px}.modalback.show{display:flex}
+  .modal{width:min(720px,100%);max-height:92vh;overflow:auto;background:#fff;border-radius:14px;box-shadow:0 24px 70px rgba(15,23,42,.25)}
+  .modalhead{padding:18px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}.modalbody{padding:20px}.modalfoot{padding:15px 20px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:9px}
+  .formgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}.field label{display:block;font-size:11px;font-weight:700;color:#475569;margin-bottom:6px}.field.full{grid-column:1/-1}
+  .mobilebar{display:none}
+  .toast{position:fixed;right:25px;bottom:25px;background:var(--navy);color:#fff;padding:12px 15px;border-radius:9px;box-shadow:0 10px 30px rgba(15,23,42,.2);z-index:200;font-size:12px;font-weight:600;display:none}
+  .toast.show{display:block}
+  .login{min-height:100vh;display:grid;place-items:center;background:linear-gradient(135deg,#0f2942,#163d60)}
+  .loginbox{width:min(430px,calc(100% - 32px));background:#fff;border-radius:16px;padding:30px;box-shadow:0 25px 70px rgba(0,0,0,.25)}
+  .loginbrand{display:flex;align-items:center;gap:12px;margin-bottom:25px}.loginmark{width:44px;height:44px;background:var(--navy);border-radius:11px;color:#fbbf24;display:grid;place-items:center;font-weight:800}
+  .hide{display:none!important}
+  @media(max-width:1000px){.sidebar{width:220px}.main{margin-left:220px}.stats{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr}.quick{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:720px){.sidebar{display:none}.main{margin-left:0}.topbar{padding:0 15px;height:62px}.topbar .search{display:none}.content{padding:16px}.stats{grid-template-columns:repeat(2,1fr);gap:10px}.three{grid-template-columns:1fr}.formgrid{grid-template-columns:1fr}.field.full{grid-column:auto}.quick{grid-template-columns:1fr 1fr}.mobilebar{display:flex;position:fixed;bottom:0;left:0;right:0;height:62px;background:#fff;border-top:1px solid var(--line);z-index:80;justify-content:space-around}.mobilebar button{border:0;background:none;font-size:10px;color:#64748b;font-weight:700}.mobilebar button.active{color:#1d4ed8}.content{padding-bottom:82px}}
+</style>
 </head>
-<body class="h-full font-sans antialiased text-slate-800 bg-[#f8faff] flex justify-center selection:bg-blue-100 selection:text-blue-900">
-
-<!-- Mobile Viewport Container -->
-<div class="w-full max-w-[430px] min-h-screen bg-[#f8faff] flex flex-col relative shadow-2xl border-x border-slate-200/60 pb-20" id="appContainer">
-
-  <!-- ========================================== -->
-  <!-- VIEW 0: LOGIN SCREEN                       -->
-  <!-- ========================================== -->
-  <section id="view-login" class="view-container active flex-1 p-6 flex flex-col justify-between min-h-screen bg-gradient-to-b from-[#0F2942] via-[#112F4B] to-[#0A1D30] text-white">
-    <div>
-      <div class="flex items-center justify-between text-xs text-blue-200/70 pt-2 mb-8">
-        <span class="flex items-center gap-1.5">
-          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Cloud Firestore IST Node
-        </span>
-        <span id="syncStatus" class="font-medium tracking-wide">Waiting for Auth...</span>
-      </div>
-
-      <div class="text-center my-6">
-        <div class="inline-flex items-center justify-center p-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 shadow-xl mb-4">
-          <span class="h-10 w-10 flex items-center justify-center font-black text-xl text-amber-400">Gi</span>
-        </div>
-        <h1 class="text-2xl font-extrabold tracking-tight text-white flex items-center justify-center gap-1.5">
-          GI PEOPLE
-        </h1>
-        <p class="text-xs uppercase tracking-widest text-amber-300/90 font-semibold mt-0.5">Gurunanak Impex HRMS</p>
-      </div>
-
-      <form id="loginForm" class="space-y-4">
-        <div>
-          <label class="block text-xs font-medium text-blue-100 mb-1.5">Work Email</label>
-          <div class="relative">
-            <input type="email" id="loginEmail" required placeholder="name@gurunanakimpex.com" 
-              class="w-full px-3.5 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-blue-300/40 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:bg-white/15 transition">
-          </div>
-        </div>
-
-        <div>
-          <div class="flex items-center justify-between mb-1.5">
-            <label class="block text-xs font-medium text-blue-100">Password</label>
-          </div>
-          <div class="relative">
-            <input type="password" id="loginPassword" required placeholder="••••••••••••" 
-              class="w-full px-3.5 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-blue-300/40 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:bg-white/15 transition">
-          </div>
-        </div>
-
-        <button type="submit" id="loginSubmitBtn" class="w-full mt-2 py-3.5 px-4 rounded-xl bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 hover:from-amber-300 hover:to-yellow-400 text-slate-950 font-bold text-sm shadow-lg shadow-amber-500/25 flex items-center justify-center gap-2 transition active:scale-[0.99]">
-          <span id="loginBtnText">Sign In to GI People</span>
-        </button>
-      </form>
+<body>
+<div id="loginScreen" class="login">
+  <div class="loginbox">
+    <div class="loginbrand">
+      <div class="loginmark">Gi</div>
+      <div><div style="font-size:20px;font-weight:800;color:#0f2942">GI PEOPLE</div><div style="font-size:11px;color:#64748b;font-weight:600">Gurunanak Impex • HRMS</div></div>
     </div>
-  </section>
+    <div style="font-size:22px;font-weight:800;margin-bottom:5px">Welcome back</div>
+    <div style="font-size:12px;color:#64748b;margin-bottom:22px">Sign in to manage your people and HR operations.</div>
+    <form id="loginForm">
+      <div class="field" style="margin-bottom:14px"><label>Work Email</label><input class="input" id="loginEmail" type="email" required placeholder="name@gurunanakimpex.com"></div>
+      <div class="field" style="margin-bottom:18px"><label>Password</label><input class="input" id="loginPassword" type="password" required placeholder="Enter password"></div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center;padding:12px" id="loginBtn">Sign In</button>
+      <div id="loginMsg" style="font-size:11px;color:#b91c1c;margin-top:10px;min-height:16px"></div>
+    </form>
+  </div>
+</div>
 
-  <!-- ========================================== -->
-  <!-- GLOBAL TOP APP BAR                         -->
-  <!-- ========================================== -->
-  <header class="hidden sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 px-4 py-3" id="mainAppHeader">
-    <div class="flex items-center justify-between">
-      <div class="flex items-center gap-2 cursor-pointer" onclick="switchTab('dashboard')">
-        <span class="h-7 w-7 rounded bg-[#0F2942] flex items-center justify-center font-bold text-xs text-white">Gi</span>
-        <div>
-          <div id="headerTitle" class="text-sm font-bold text-[#0F2942] leading-none">GI PEOPLE</div>
-          <div class="text-[10px] font-medium text-slate-500 uppercase tracking-wider">Gurunanak Impex</div>
-        </div>
-      </div>
-      <div class="flex items-center gap-2">
-        <div class="relative">
-          <button class="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200/60 hover:bg-blue-100 transition" id="activeRoleBadge" onclick="toggleRoleDropdown()">
-            <span class="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
-            <span id="activeRoleText">HR Admin</span>
-            <svg class="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
-          </button>
-          <div class="hidden absolute right-0 mt-1.5 w-36 bg-white rounded-xl shadow-xl border border-slate-200 py-1 z-50 text-xs" id="roleDropdownMenu">
-            <button class="w-full text-left px-3 py-1.5 hover:bg-slate-50 font-semibold text-slate-800 flex items-center gap-2" onclick="setSystemRole('hr_admin')">
-              <span class="w-2 h-2 rounded-full bg-blue-600"></span> HR Admin
-            </button>
-            <button class="w-full text-left px-3 py-1.5 hover:bg-slate-50 font-medium text-slate-700 flex items-center gap-2" onclick="setSystemRole('employee')">
-              <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Employee (Uma)
-            </button>
-            <button class="w-full text-left px-3 py-1.5 hover:bg-slate-50 font-medium text-red-600 flex items-center gap-2 border-t border-slate-100 mt-1" onclick="window.logout()">
-              Sign Out
-            </button>
-          </div>
-        </div>
-      </div>
+<div id="app" class="app hide">
+  <aside class="sidebar">
+    <div class="brand"><div class="brandmark">Gi</div><div style="margin-left:10px"><div style="font-size:15px;font-weight:800;color:#0f2942">GI PEOPLE</div><div style="font-size:9px;color:#94a3b8;font-weight:700;letter-spacing:.08em;text-transform:uppercase">Gurunanak Impex</div></div></div>
+    <nav class="nav">
+      <div class="nav-section">Workspace</div>
+      <button class="navbtn active" data-page="dashboard" onclick="go('dashboard')">▦ <span>Dashboard</span></button>
+      <button class="navbtn" data-page="people" onclick="go('people')">♙ <span>People</span></button>
+      <button class="navbtn" data-page="attendance" onclick="go('attendance')">◷ <span>Attendance</span></button>
+      <button class="navbtn" data-page="leave" onclick="go('leave')">▣ <span>Leave</span></button>
+      <button class="navbtn" data-page="approvals" onclick="go('approvals')">✓ <span>Approvals</span></button>
+      <div class="nav-section">Employee Lifecycle</div>
+      <button class="navbtn" data-page="former" onclick="go('former')">↺ <span>Former & Rejoined</span></button>
+      <button class="navbtn" data-page="documents" onclick="go('documents')">□ <span>Documents</span></button>
+      <div class="nav-section">Administration</div>
+      <button class="navbtn" data-page="reports" onclick="go('reports')">▤ <span>Reports</span></button>
+      <button class="navbtn" data-page="settings" onclick="go('settings')">⚙ <span>Settings</span></button>
+    </nav>
+    <div style="padding:14px;border-top:1px solid var(--line);font-size:11px;color:#64748b">
+      <div style="font-weight:700;color:#334155">Signed in</div>
+      <div id="sideUser">HR Admin</div>
+      <button onclick="logout()" style="border:0;background:none;padding:8px 0 0;color:#b91c1c;font-size:11px;font-weight:700;cursor:pointer">Sign out</button>
     </div>
-  </header>
+  </aside>
 
-  <!-- ========================================== -->
-  <!-- VIEW 1: TAB - HR DASHBOARD                 -->
-  <!-- ========================================== -->
-  <main class="view-container p-4 space-y-4" id="view-dashboard">
-    <div class="rounded-2xl bg-gradient-to-br from-[#0F2942] to-[#1a3d60] p-4 text-white shadow-md relative overflow-hidden">
-      <div class="flex items-center justify-between text-xs text-blue-200 mb-1">
-        <div class="flex items-center gap-1.5 font-medium">
-          <svg class="w-3.5 h-3.5 text-blue-300" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
-          <span id="dashDate">Loading...</span>
-        </div>
-        <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 text-[10px] font-semibold flex items-center gap-1">
-          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> DB Synced
-        </span>
+  <main class="main">
+    <header class="topbar">
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="btn btn-secondary" style="padding:8px 10px" onclick="mobileNav()">☰</button>
+        <div><div id="pageTitle" style="font-weight:800;font-size:15px">Dashboard</div><div id="breadcrumb" style="font-size:10px;color:#94a3b8">Home / Dashboard</div></div>
       </div>
-      <h2 class="text-xl font-bold tracking-tight mt-1 text-white" id="dashboardGreeting">Good morning, HR Admin</h2>
-      <p class="text-xs text-blue-200/80 mb-3">Gurunanak Impex Operations Hub</p>
-
-      <div class="bg-white/10 backdrop-blur-md rounded-xl p-3 border border-white/15 flex items-center justify-between">
-        <div class="flex items-center gap-2.5">
-          <div class="w-9 h-9 rounded-lg bg-blue-500/30 flex items-center justify-center text-blue-300">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
-          </div>
-          <div>
-            <div class="text-[11px] text-blue-200 uppercase tracking-wider font-semibold">Your Shift (10:00 AM – 7:00 PM)</div>
-            <div class="text-xs font-bold text-white" id="dashPunchStatusText">Not Clocked In</div>
-          </div>
-        </div>
-        <button onclick="window.switchTab('attendance')" class="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-sm transition">Action</button>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="position:relative"><span style="position:absolute;left:12px;top:11px;color:#94a3b8">⌕</span><input id="globalSearch" class="search" placeholder="Search employees, requests..."></div>
+        <button class="btn btn-secondary" style="padding:9px 11px" onclick="showToast('Notifications are ready for configuration.')">🔔</button>
+        <div class="avatar" id="userAvatar">H</div>
       </div>
-    </div>
+    </header>
 
-    <div class="grid grid-cols-3 gap-2">
-      <button class="p-2.5 rounded-xl bg-white border border-slate-200/80 shadow-sm hover:border-blue-400 text-center transition group" onclick="switchTab('people'); openNewEmployeeModal();">
-        <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center mx-auto mb-1.5 group-hover:scale-105 transition">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+    <section class="content">
+      <div id="page-dashboard" class="page active">
+        <div class="pagehead"><div><div class="title">Dashboard</div><div class="subtitle">Your HR operations overview for Gurunanak Impex.</div></div><button class="btn btn-primary" onclick="openEmployee()">＋ Add Employee</button></div>
+        <div class="grid stats">
+          <div class="card stat"><div class="stat-label">Total Employees</div><div class="stat-value" id="sTotal">0</div><div class="stat-foot">All employee records</div></div>
+          <div class="card stat"><div class="stat-label">Active</div><div class="stat-value" id="sActive">0</div><div class="stat-foot">Currently employed</div></div>
+          <div class="card stat"><div class="stat-label">On Leave</div><div class="stat-value" id="sLeave">0</div><div class="stat-foot">Approved leave today</div></div>
+          <div class="card stat"><div class="stat-label">Pending Approvals</div><div class="stat-value" id="sPending">0</div><div class="stat-foot">Requires HR action</div></div>
         </div>
-        <span class="text-[11px] font-semibold text-slate-700 block leading-tight">+ Add Employee</span>
-      </button>
-      <button class="p-2.5 rounded-xl bg-white border border-slate-200/80 shadow-sm hover:border-blue-400 text-center transition group" onclick="switchTab('attendance')">
-        <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto mb-1.5 group-hover:scale-105 transition">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        <div class="grid two" style="margin-top:16px">
+          <div class="card"><div class="cardhead"><div class="cardtitle">Today's attendance</div><button class="btn btn-secondary" onclick="go('attendance')" style="padding:7px 10px">View register</button></div><div class="cardbody">
+            <div class="grid three">
+              <div><div style="font-size:10px;color:#64748b;font-weight:700">PRESENT</div><div id="dPresent" style="font-size:24px;font-weight:800;margin-top:4px">0</div></div>
+              <div><div style="font-size:10px;color:#64748b;font-weight:700">ABSENT</div><div id="dAbsent" style="font-size:24px;font-weight:800;margin-top:4px">0</div></div>
+              <div><div style="font-size:10px;color:#64748b;font-weight:700">LEAVE</div><div id="dLeave" style="font-size:24px;font-weight:800;margin-top:4px">0</div></div>
+            </div>
+            <div style="margin-top:20px"><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:6px"><span>Attendance coverage</span><b id="coverage">0%</b></div><div class="progress"><span id="coverageBar" style="width:0%"></span></div></div>
+          </div></div>
+          <div class="card"><div class="cardhead"><div class="cardtitle">Pending work</div><button class="btn btn-secondary" onclick="go('approvals')" style="padding:7px 10px">Open inbox</button></div><div class="cardbody" id="dashPending"></div></div>
         </div>
-        <span class="text-[11px] font-semibold text-slate-700 block leading-tight">Mark Punch</span>
-      </button>
-      <button class="p-2.5 rounded-xl bg-white border border-slate-200/80 shadow-sm hover:border-blue-400 text-center transition group" onclick="switchTab('approvals')">
-        <div class="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center mx-auto mb-1.5 group-hover:scale-105 transition relative">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
-        </div>
-        <span class="text-[11px] font-semibold text-slate-700 block leading-tight">Approvals</span>
-      </button>
-    </div>
-
-    <!-- Active Employees Roster -->
-    <section class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm space-y-3">
-      <div class="flex items-center justify-between">
-        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-600">Active Roster</h3>
-        <button class="text-[10px] font-bold text-blue-600" onclick="switchTab('people')">View All →</button>
+        <div class="card" style="margin-top:16px"><div class="cardhead"><div class="cardtitle">Quick actions</div></div><div class="cardbody"><div class="quick">
+          <button class="btn btn-secondary" onclick="openEmployee()">＋ Add employee</button><button class="btn btn-secondary" onclick="go('attendance')">◷ Attendance</button><button class="btn btn-secondary" onclick="openLeave()">▣ Apply leave</button><button class="btn btn-secondary" onclick="go('former')">↺ Former employees</button>
+        </div></div></div>
       </div>
-      <div id="dashActiveEmployees" class="space-y-2"></div>
+
+      <div id="page-people" class="page">
+        <div class="pagehead"><div><div class="title">People</div><div class="subtitle">Employee directory and employment master.</div></div><button class="btn btn-primary" onclick="openEmployee()">＋ Add Employee</button></div>
+        <div class="card"><div class="cardbody">
+          <div class="toolbar"><input class="input" id="peopleSearch" placeholder="Search by name, employee ID, department..." oninput="renderPeople()"><select class="select" id="peopleStatus" style="width:150px" onchange="renderPeople()"><option>All</option><option>Active</option><option>Left</option></select></div>
+          <div class="tablewrap"><table class="table"><thead><tr><th>Employee</th><th>Department</th><th>Designation</th><th>Joining</th><th>Salary</th><th>Status</th><th>Actions</th></tr></thead><tbody id="peopleBody"></tbody></table></div>
+        </div></div>
+      </div>
+
+      <div id="page-attendance" class="page">
+        <div class="pagehead"><div><div class="title">Attendance</div><div class="subtitle">Daily attendance register and employee time clock.</div></div><button class="btn btn-primary" onclick="punch()">◷ Punch In / Out</button></div>
+        <div class="notice" style="margin-bottom:15px">Company shift: <b>10:00 AM – 7:00 PM</b>. Attendance is maintained against the employee and business date.</div>
+        <div class="card"><div class="cardhead"><div class="cardtitle">Attendance Register</div><input class="input" id="attDate" type="date" style="width:155px" onchange="renderAttendance()"></div><div class="tablewrap"><table class="table"><thead><tr><th>Employee</th><th>Shift</th><th>Punch In</th><th>Punch Out</th><th>Status</th><th>Action</th></tr></thead><tbody id="attBody"></tbody></table></div></div>
+      </div>
+
+      <div id="page-leave" class="page">
+        <div class="pagehead"><div><div class="title">Leave Management</div><div class="subtitle">Requests, balances and leave history.</div></div><button class="btn btn-primary" onclick="openLeave()">＋ Apply Leave</button></div>
+        <div class="grid stats" style="margin-bottom:16px"><div class="card stat"><div class="stat-label">Requests</div><div class="stat-value" id="lTotal">0</div></div><div class="card stat"><div class="stat-label">Pending</div><div class="stat-value" id="lPending">0</div></div><div class="card stat"><div class="stat-label">Approved</div><div class="stat-value" id="lApproved">0</div></div><div class="card stat"><div class="stat-label">Rejected</div><div class="stat-value" id="lRejected">0</div></div></div>
+        <div class="card"><div class="cardhead"><div class="cardtitle">Leave requests</div></div><div class="tablewrap"><table class="table"><thead><tr><th>Employee</th><th>Type</th><th>Dates</th><th>Days</th><th>Reason</th><th>Status</th><th>Action</th></tr></thead><tbody id="leaveBody"></tbody></table></div></div>
+      </div>
+
+      <div id="page-approvals" class="page">
+        <div class="pagehead"><div><div class="title">Approval Center</div><div class="subtitle">One place for HR actions waiting for a decision.</div></div></div>
+        <div class="card"><div class="cardhead"><div class="cardtitle">Leave approvals</div></div><div class="tablewrap"><table class="table"><thead><tr><th>Employee</th><th>Request</th><th>Dates</th><th>Applied</th><th>Status</th><th>Decision</th></tr></thead><tbody id="approvalBody"></tbody></table></div></div>
+      </div>
+
+      <div id="page-former" class="page">
+        <div class="pagehead"><div><div class="title">Former & Rejoined</div><div class="subtitle">Employee lifecycle history — leaving never deletes employment history.</div></div></div>
+        <div class="card"><div class="cardhead"><div class="cardtitle">Former employees</div></div><div class="tablewrap"><table class="table"><thead><tr><th>Employee</th><th>Last department</th><th>Last day</th><th>History</th><th>Status</th><th>Action</th></tr></thead><tbody id="formerBody"></tbody></table></div></div>
+      </div>
+
+      <div id="page-documents" class="page">
+        <div class="pagehead"><div><div class="title">Documents</div><div class="subtitle">Document workspace prepared for employee records.</div></div></div>
+        <div class="card"><div class="cardbody"><div class="empty">Document storage can be connected to Firebase Storage here. Employee document metadata should remain permission-controlled.</div></div></div>
+      </div>
+
+      <div id="page-reports" class="page">
+        <div class="pagehead"><div><div class="title">Reports</div><div class="subtitle">HR reporting foundation.</div></div></div>
+        <div class="grid three">
+          <div class="card"><div class="cardbody"><b>Employee Master</b><p style="font-size:11px;color:#64748b">Current employee directory and employment status.</p><button class="btn btn-secondary" onclick="exportEmployees()">Export CSV</button></div></div>
+          <div class="card"><div class="cardbody"><b>Attendance</b><p style="font-size:11px;color:#64748b">Daily punch and attendance register.</p><button class="btn btn-secondary" onclick="go('attendance')">Open</button></div></div>
+          <div class="card"><div class="cardbody"><b>Leave</b><p style="font-size:11px;color:#64748b">Leave request history and status.</p><button class="btn btn-secondary" onclick="go('leave')">Open</button></div></div>
+        </div>
+      </div>
+
+      <div id="page-settings" class="page">
+        <div class="pagehead"><div><div class="title">Settings</div><div class="subtitle">Organization-level HR configuration.</div></div></div>
+        <div class="grid two">
+          <div class="card"><div class="cardhead"><div class="cardtitle">Organization</div></div><div class="cardbody"><div class="field" style="margin-bottom:14px"><label>Company Name</label><input class="input" value="Gurunanak Impex" disabled></div><div class="field"><label>Standard Shift</label><input class="input" value="10:00 AM – 7:00 PM" disabled></div></div></div>
+          <div class="card"><div class="cardhead"><div class="cardtitle">Leave Policy</div></div><div class="cardbody"><div style="font-size:12px;line-height:1.8;color:#475569">Casual Leave: 12 days<br>Sick Leave: 8 days<br>Earned Leave: 15 days</div><div class="notice" style="margin-top:12px">Policy values are retained from the current application and can be made configurable in the next HR policy module.</div></div></div>
+        </div>
+      </div>
     </section>
   </main>
 
-  <!-- ========================================== -->
-  <!-- VIEW 2: TAB - PEOPLE / DIRECTORY           -->
-  <!-- ========================================== -->
-  <main class="view-container p-4 space-y-4" id="view-people">
-    <div class="space-y-2">
-      <div class="relative">
-        <input class="w-full pl-9 pr-4 py-2.5 rounded-xl bg-white border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-blue-600 shadow-sm" id="employeeSearchInput" placeholder="Search by name, EMP ID..." type="text"/>
-        <svg class="w-4 h-4 text-slate-400 absolute left-3 top-3" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
-      </div>
-      <div class="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
-        <button class="filter-chip px-3 py-1 rounded-full font-bold bg-[#0F2942] text-white whitespace-nowrap shadow-sm" data-val="All" onclick="window.setEmpFilter('All')">All</button>
-        <button class="filter-chip px-3 py-1 rounded-full font-medium bg-white text-slate-600 border border-slate-200 whitespace-nowrap" data-val="Active" onclick="window.setEmpFilter('Active')">Active</button>
-        <button class="filter-chip px-3 py-1 rounded-full font-medium bg-white text-slate-600 border border-slate-200 whitespace-nowrap" data-val="Left" onclick="window.setEmpFilter('Left')">Former</button>
-      </div>
-    </div>
-
-    <div id="employeeDirectoryContainer" class="space-y-3"></div>
-
-    <div class="pt-2">
-      <button class="w-full py-3 rounded-xl bg-[#0F2942] hover:bg-[#153a5c] text-white font-bold text-xs shadow-md flex items-center justify-center gap-2 transition" onclick="openNewEmployeeModal()">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
-        <span>Enrol New Employee Master</span>
-      </button>
-    </div>
-  </main>
-
-  <!-- ========================================== -->
-  <!-- VIEW 3: TAB - ATTENDANCE & PUNCH IN/OUT    -->
-  <!-- ========================================== -->
-  <main class="view-container p-4 space-y-4" id="view-attendance">
-    <div class="flex items-center justify-between bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-sm">
-      <div>
-        <div class="text-[10px] text-slate-400 uppercase font-bold">Today's Date</div>
-        <div class="text-sm font-bold text-slate-900" id="attDisplayDate">Loading...</div>
-      </div>
-      <span class="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold flex items-center gap-1">
-        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Live Mode
-      </span>
-    </div>
-
-    <!-- PUNCH IN / OUT WIDGET -->
-    <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm space-y-3">
-      <div class="flex items-center justify-between">
-        <div>
-          <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Shift Action</div>
-          <div class="text-xl font-black text-[#0F2942] tracking-tight">Time Clock</div>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-2 gap-2 text-xs">
-        <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
-          <span class="text-[10px] text-slate-400 uppercase font-semibold block">Punch In</span>
-          <span class="font-bold text-slate-900" id="punchInTimeDisplay">--:--</span>
-        </div>
-        <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
-          <span class="text-[10px] text-slate-400 uppercase font-semibold block">Punch Out</span>
-          <span class="font-bold text-slate-900" id="punchOutTimeDisplay">--:--</span>
-        </div>
-      </div>
-
-      <button class="w-full py-3 rounded-xl bg-emerald-600 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition" id="punchActionBtn" onclick="window.togglePunchAction()">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
-        <span id="punchBtnText">Punch In</span>
-      </button>
-    </div>
-
-    <!-- Quick Action: Apply Leave -->
-    <div class="grid grid-cols-1 gap-2">
-      <button class="p-3 rounded-xl bg-white border border-slate-200 shadow-sm hover:border-blue-400 transition flex items-center gap-2.5 text-left" onclick="window.openApplyLeaveModal()">
-        <div class="w-9 h-9 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center font-bold">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
-        </div>
-        <div>
-          <div class="text-xs font-bold text-slate-900">Apply Leave Request</div>
-          <div class="text-[10px] text-slate-500">Paid / Casual / Sick</div>
-        </div>
-      </button>
-    </div>
-  </main>
-
-  <!-- ========================================== -->
-  <!-- VIEW 4: TAB - APPROVALS & WORKFLOWS        -->
-  <!-- ========================================== -->
-  <main class="view-container p-4 space-y-4" id="view-approvals">
-    <div class="flex items-center justify-between">
-      <div>
-        <span class="text-[10px] font-bold text-blue-600 tracking-wider uppercase flex items-center gap-1">
-          <span class="w-1.5 h-1.5 rounded-full bg-blue-600"></span> Live Queue
-        </span>
-        <h2 class="text-lg font-bold text-slate-900">Pending Approvals</h2>
-      </div>
-    </div>
-    <div id="approvalsListContainer" class="space-y-3"></div>
-  </main>
-
-  <!-- ========================================== -->
-  <!-- GLOBAL BOTTOM NAVIGATION TAB BAR           -->
-  <!-- ========================================== -->
-  <nav class="hidden fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bg-white/95 backdrop-blur-md border-t border-slate-200/90 z-40 px-2 py-2" id="bottomNavBar">
-    <div class="grid grid-cols-4 gap-1">
-      <button class="nav-item flex flex-col items-center justify-center py-1 rounded-xl text-blue-700 font-bold transition" id="navTab-dashboard" onclick="window.switchTab('dashboard')" type="button">
-        <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
-        <span class="text-[10px] leading-tight">Dashboard</span>
-      </button>
-      <button class="nav-item flex flex-col items-center justify-center py-1 rounded-xl text-slate-500 font-medium hover:text-slate-800 transition" id="navTab-people" onclick="window.switchTab('people')" type="button">
-        <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
-        <span class="text-[10px] leading-tight">People</span>
-      </button>
-      <button class="nav-item flex flex-col items-center justify-center py-1 rounded-xl text-slate-500 font-medium hover:text-slate-800 transition" id="navTab-attendance" onclick="window.switchTab('attendance')" type="button">
-        <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
-        <span class="text-[10px] leading-tight">Attendance</span>
-      </button>
-      <button class="nav-item flex flex-col items-center justify-center py-1 rounded-xl text-slate-500 font-medium hover:text-slate-800 transition relative" id="navTab-approvals" onclick="window.switchTab('approvals')" type="button">
-        <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
-        <span class="text-[10px] leading-tight">Approvals</span>
-      </button>
-    </div>
+  <nav class="mobilebar">
+    <button data-mobile="dashboard" onclick="go('dashboard')">▦<br>Home</button>
+    <button data-mobile="people" onclick="go('people')">♙<br>People</button>
+    <button data-mobile="attendance" onclick="go('attendance')">◷<br>Attendance</button>
+    <button data-mobile="leave" onclick="go('leave')">▣<br>Leave</button>
+    <button data-mobile="approvals" onclick="go('approvals')">✓<br>Approvals</button>
   </nav>
-
-  <!-- ========================================== -->
-  <!-- MODALS                                     -->
-  <!-- ========================================== -->
-  <div class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-end justify-center p-0" id="newEmployeeModal">
-    <div class="w-full max-w-[430px] bg-white rounded-t-3xl p-5 space-y-4 max-h-[85vh] overflow-y-auto">
-      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-        <h3 class="text-sm font-bold text-slate-900" id="empModalTitle">Add Employee</h3>
-        <button class="text-slate-400 hover:text-slate-700 text-sm font-bold p-1" onclick="window.closeModals()">✕</button>
-      </div>
-      <form class="space-y-3 text-xs" onsubmit="window.handleSaveEmployee(event)">
-        <input type="hidden" id="f_empId" value="">
-        <div>
-          <label class="block font-medium text-slate-700 mb-1">Full Name *</label>
-          <input class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-600 outline-none" id="f_name" required type="text"/>
-        </div>
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label class="block font-medium text-slate-700 mb-1">Mobile</label>
-            <input class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-600 outline-none" id="f_mobile" type="tel"/>
-          </div>
-          <div>
-            <label class="block font-medium text-slate-700 mb-1">Shift</label>
-            <input class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none" id="f_shift" type="text" value="10:00 AM – 7:00 PM"/>
-          </div>
-        </div>
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label class="block font-medium text-slate-700 mb-1">Monthly Gross (₹)</label>
-            <input class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none" id="f_salary" type="number" value="9000"/>
-          </div>
-          <div>
-            <label class="block font-medium text-slate-700 mb-1">Joining Date</label>
-            <input class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none" id="f_joining" type="date" required/>
-          </div>
-        </div>
-        <button class="w-full py-3 rounded-xl bg-blue-600 text-white font-bold text-xs shadow-md hover:bg-blue-700 transition" type="submit">
-          Save Record
-        </button>
-      </form>
-    </div>
-  </div>
-
-  <div class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-end justify-center p-0" id="applyLeaveModal">
-    <div class="w-full max-w-[430px] bg-white rounded-t-3xl p-5 space-y-4 max-h-[85vh] overflow-y-auto">
-      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-        <h3 class="text-sm font-bold text-slate-900">Apply Leave</h3>
-        <button class="text-slate-400 hover:text-slate-700 text-sm font-bold p-1" onclick="window.closeModals()">✕</button>
-      </div>
-      <form class="space-y-3 text-xs" onsubmit="window.submitLeave(event)">
-        <div>
-          <label class="block font-medium text-slate-700 mb-1">Employee</label>
-          <select class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none" id="l_emp" required></select>
-        </div>
-        <div>
-          <label class="block font-medium text-slate-700 mb-1">Leave Type</label>
-          <select class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none" id="l_type" required></select>
-        </div>
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label class="block font-medium text-slate-700 mb-1">From Date</label>
-            <input class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none" id="l_from" type="date" required/>
-          </div>
-          <div>
-            <label class="block font-medium text-slate-700 mb-1">To Date</label>
-            <input class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none" id="l_to" type="date" required/>
-          </div>
-        </div>
-        <div>
-          <label class="block font-medium text-slate-700 mb-1">Reason</label>
-          <textarea class="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none" id="l_reason" rows="2"></textarea>
-        </div>
-        <button class="w-full py-3 rounded-xl bg-amber-500 text-slate-900 font-bold text-xs shadow-md hover:bg-amber-400 transition" type="submit">
-          Submit Application
-        </button>
-      </form>
-    </div>
-  </div>
-
-  <div class="fixed top-4 left-1/2 -translate-x-1/2 z-[60] hidden bg-[#0F2942] text-white px-4 py-2.5 rounded-xl shadow-xl border border-blue-400/30 text-xs font-semibold flex items-center gap-2" id="toastNotification">
-    <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-    <span id="toastMsg">Action updated.</span>
-  </div>
-
 </div>
 
-<!-- Firebase & App Logic -->
+<div id="employeeModal" class="modalback">
+  <div class="modal">
+    <div class="modalhead"><div><div id="empModalTitle" style="font-size:16px;font-weight:800">Add Employee</div><div style="font-size:10px;color:#94a3b8">Employee master record</div></div><button class="btn btn-secondary" onclick="closeModals()">✕</button></div>
+    <form id="employeeForm">
+      <div class="modalbody"><input type="hidden" id="f_id">
+        <div class="formgrid">
+          <div class="field"><label>Full Name *</label><input class="input" id="f_name" required></div>
+          <div class="field"><label>Mobile</label><input class="input" id="f_mobile" type="tel"></div>
+          <div class="field"><label>Department</label><input class="input" id="f_department" value="Logistics"></div>
+          <div class="field"><label>Designation</label><input class="input" id="f_designation" value="Staff"></div>
+          <div class="field"><label>Shift</label><input class="input" id="f_shift" value="10:00 AM – 7:00 PM"></div>
+          <div class="field"><label>Monthly Salary (₹)</label><input class="input" id="f_salary" type="number" min="0" value="9000"></div>
+          <div class="field"><label>Joining Date</label><input class="input" id="f_joining" type="date" required></div>
+          <div class="field"><label>Employment Type</label><select class="select" id="f_type"><option>Full Time</option><option>Part Time</option><option>Contract</option><option>Intern</option></select></div>
+          <div class="field"><label>Email</label><input class="input" id="f_email" type="email"></div>
+          <div class="field"><label>Emergency Contact</label><input class="input" id="f_emergency"></div>
+          <div class="field full"><label>Address</label><textarea class="textarea" id="f_address" rows="2"></textarea></div>
+          <div class="field full"><label>Document / Aadhaar Reference</label><input class="input" id="f_docref" placeholder="Store only a reference here; secure documents should use Storage"></div>
+        </div>
+      </div>
+      <div class="modalfoot"><button type="button" class="btn btn-secondary" onclick="closeModals()">Cancel</button><button class="btn btn-primary">Save Employee</button></div>
+    </form>
+  </div>
+</div>
+
+<div id="leaveModal" class="modalback">
+  <div class="modal" style="width:min(560px,100%)">
+    <div class="modalhead"><div><div style="font-size:16px;font-weight:800">Apply Leave</div><div style="font-size:10px;color:#94a3b8">Create a leave request</div></div><button class="btn btn-secondary" onclick="closeModals()">✕</button></div>
+    <form id="leaveForm"><div class="modalbody">
+      <div class="formgrid">
+        <div class="field"><label>Employee</label><select class="select" id="l_emp" required></select></div>
+        <div class="field"><label>Leave Type</label><select class="select" id="l_type" required></select></div>
+        <div class="field"><label>From</label><input class="input" id="l_from" type="date" required></div>
+        <div class="field"><label>To</label><input class="input" id="l_to" type="date" required></div>
+        <div class="field full"><label>Reason</label><textarea class="textarea" id="l_reason" rows="3"></textarea></div>
+      </div>
+    </div><div class="modalfoot"><button type="button" class="btn btn-secondary" onclick="closeModals()">Cancel</button><button class="btn btn-primary">Submit Request</button></div></form>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
-  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-analytics.js";
-  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
-  import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-analytics.js";
+import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyAtmg8G_dEqu58paEa-qnRMQy-GCYToBwg",
-    authDomain: "gi--hrms.firebaseapp.com",
-    projectId: "gi--hrms",
-    storageBucket: "gi--hrms.firebasestorage.app",
-    messagingSenderId: "91230577575",
-    appId: "1:91230577575:web:be7f7e4ab64ee6f0190c82",
-    measurementId: "G-NLR8CP23BN"
-  };
+const firebaseConfig = {
+  apiKey:"AIzaSyAtmg8G_dEqu58paEa-qnRMQy-GCYToBwg",
+  authDomain:"gi--hrms.firebaseapp.com",
+  projectId:"gi--hrms",
+  storageBucket:"gi--hrms.firebasestorage.app",
+  messagingSenderId:"91230577575",
+  appId:"1:91230577575:web:be7f7e4ab64ee6f0190c82",
+  measurementId:"G-NLR8CP23BN"
+};
 
-  const fbApp = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(fbApp);
-  const fdb = getFirestore(fbApp);
-  const auth = getAuth(fbApp);
-  const STATE_REF = doc(fdb, 'hrms', 'state');
+const app=initializeApp(firebaseConfig);
+try{getAnalytics(app)}catch(e){}
+const db= getFirestore(app), auth=getAuth(app);
+const STATE_REF=doc(db,"hrms","state");
+let DB=null, today=new Date().toLocaleDateString("en-CA",{timeZone:"Asia/Kolkata"});
+let currentPage="dashboard";
 
-  // Global State
-  let DB = null;
-  let currentTab = 'login';
-  let empFilterStatus = 'All';
-  let empSearchQuery = '';
-  let attDate = new Date().toISOString().slice(0,10);
-  
-  // Using a hardcoded ID for the demo Punch functionality
-  const currentUserEmpId = 'GI-EMP-0001'; 
+const seed=()=>({
+  nextId:2,
+  employees:[{id:"GI-EMP-0001",name:"Uma",mobile:"+91 80909 53624",email:"",dob:"",gender:"",address:"",emergency:"",department:"Logistics",designation:"Staff",empType:"Full Time",shift:"10:00 AM – 7:00 PM",status:"Active",periods:[{joining:"2026-09-23",exit:null,exitReason:"",lastDay:"",remarks:"",salary:9000,salaryHistory:[{amount:9000,effective:"2026-09-23"}],department:"Logistics",designation:"Staff"}]}],
+  attendance:{},punches:{},leaveTypes:[{id:"CL",name:"Casual Leave",annual:12},{id:"SL",name:"Sick Leave",annual:8},{id:"EL",name:"Earned Leave",annual:15}],leaveRequests:[],holidays:[]
+});
 
-  function seed() {
-    return {
-      nextId: 2,
-      employees: [{
-        id: 'GI-EMP-0001', name: 'Uma', mobile: '+91 80909 53624', dob: '', gender: '',
-        address: '', emergency: '', department: 'Logistics', designation: 'Staff', empType: '',
-        shift: '10:00 AM – 7:00 PM', status: 'Active',
-        periods: [{joining: '2026-09-23', exit: null, exitReason: '', lastDay: '', remarks: '',
-          salary: 9000, salaryHistory: [{amount: 9000, effective: '2026-09-23'}],
-          department: 'Logistics', designation: 'Staff'}]
-      }],
-      attendance: {},
-      punches: {}, // Structure: { "GI-EMP-0001|2026-09-23": { in: "09:58 AM", out: null } }
-      leaveTypes: [
-        {id: 'CL', name: 'Casual Leave', annual: 12},
-        {id: 'SL', name: 'Sick Leave', annual: 8},
-        {id: 'EL', name: 'Earned Leave', annual: 15}
-      ],
-      leaveRequests: [],
-      holidays: []
-    };
+async function loadDB(){const s=await getDoc(STATE_REF);if(s.exists())return s.data();const fresh=seed();await setDoc(STATE_REF,fresh);return fresh}
+function saveDB(){return setDoc(STATE_REF,DB)}
+function toast(m){const t=document.getElementById("toast");t.textContent=m;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2800)}
+function fmt(d){return d?new Date(d+"T00:00:00").toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric"}):"—"}
+function currentPeriod(e){return e.periods?.[e.periods.length-1]||{}}
+function salary(e){const p=currentPeriod(e);return p.salaryHistory?.[p.salaryHistory.length-1]?.amount||p.salary||0}
+function days(a,b){if(!a||!b)return 0;return Math.max(1,Math.floor((new Date(b)-new Date(a))/86400000)+1)}
+function emp(id){return DB.employees.find(e=>e.id===id)}
+function statusBadge(s){const c=s==="Active"?"green":s==="Pending"?"amber":s==="Approved"?"green":s==="Rejected"?"red":"gray";return `<span class="badge ${c}">${s}</span>`}
+
+window.go=(page)=>{
+  currentPage=page;
+  document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
+  document.getElementById("page-"+page)?.classList.add("active");
+  document.querySelectorAll(".navbtn").forEach(x=>x.classList.toggle("active",x.dataset.page===page));
+  document.querySelectorAll(".mobilebar button").forEach(x=>x.classList.toggle("active",x.dataset.mobile===page));
+  const names={dashboard:"Dashboard",people:"People",attendance:"Attendance",leave:"Leave",approvals:"Approval Center",former:"Former & Rejoined",documents:"Documents",reports:"Reports",settings:"Settings"};
+  document.getElementById("pageTitle").textContent=names[page]||page;
+  document.getElementById("breadcrumb").textContent="Home / "+(names[page]||page);
+  ({dashboard:renderDashboard,people:renderPeople,attendance:renderAttendance,leave:renderLeave,approvals:renderApprovals,former:renderFormer}[page]||(()=>{}))();
+}
+window.mobileNav=()=>{document.querySelector(".sidebar").style.display=document.querySelector(".sidebar").style.display==="flex"?"none":"flex";document.querySelector(".sidebar").style.position="fixed";document.querySelector(".sidebar").style.height="100vh"}
+window.closeModals=()=>document.querySelectorAll(".modalback").forEach(x=>x.classList.remove("show"));
+
+window.openEmployee=(id=null)=>{
+  const e=id?emp(id):null,p=e?currentPeriod(e):{};
+  document.getElementById("empModalTitle").textContent=e?"Edit Employee":"Add Employee";
+  document.getElementById("f_id").value=e?.id||"";
+  document.getElementById("f_name").value=e?.name||"";
+  document.getElementById("f_mobile").value=e?.mobile||"";
+  document.getElementById("f_department").value=p.department||e?.department||"Logistics";
+  document.getElementById("f_designation").value=p.designation||e?.designation||"Staff";
+  document.getElementById("f_shift").value=e?.shift||"10:00 AM – 7:00 PM";
+  document.getElementById("f_salary").value=e?salary(e):9000;
+  document.getElementById("f_joining").value=p.joining||today;
+  document.getElementById("f_type").value=e?.empType||"Full Time";
+  document.getElementById("f_email").value=e?.email||"";
+  document.getElementById("f_emergency").value=e?.emergency||"";
+  document.getElementById("f_address").value=e?.address||"";
+  document.getElementById("f_docref").value=e?.docref||"";
+  document.getElementById("employeeModal").classList.add("show");
+}
+document.getElementById("employeeForm").addEventListener("submit",async ev=>{
+  ev.preventDefault();
+  const id=document.getElementById("f_id").value,name=document.getElementById("f_name").value.trim();
+  if(!name)return;
+  const data={name,mobile:document.getElementById("f_mobile").value.trim(),department:document.getElementById("f_department").value.trim(),designation:document.getElementById("f_designation").value.trim(),shift:document.getElementById("f_shift").value.trim(),salary:Number(document.getElementById("f_salary").value)||0,joining:document.getElementById("f_joining").value,empType:document.getElementById("f_type").value,email:document.getElementById("f_email").value.trim(),emergency:document.getElementById("f_emergency").value.trim(),address:document.getElementById("f_address").value.trim(),docref:document.getElementById("f_docref").value.trim()};
+  if(id){
+    const e=emp(id),p=currentPeriod(e);Object.assign(e,data);e.status=e.status||"Active";
+    Object.assign(p,{department:data.department,designation:data.designation});
+    if(salary(e)!==data.salary)p.salaryHistory=[...(p.salaryHistory||[]),{amount:data.salary,effective:today}],p.salary=data.salary;
+  }else{
+    const newId="GI-EMP-"+String(DB.nextId++).padStart(4,"0");
+    DB.employees.push({id:newId,name:data.name,mobile:data.mobile,email:data.email,address:data.address,emergency:data.emergency,docref:data.docref,department:data.department,designation:data.designation,empType:data.empType,shift:data.shift,status:"Active",periods:[{joining:data.joining,exit:null,exitReason:"",lastDay:"",remarks:"",salary:data.salary,salaryHistory:[{amount:data.salary,effective:data.joining}],department:data.department,designation:data.designation}]});
   }
+  await saveDB();closeModals();renderPeople();renderDashboard();toast("Employee record saved successfully.");
+});
 
-  async function loadDB() {
-    const snap = await getDoc(STATE_REF);
-    if(snap.exists()) return snap.data();
-    const fresh = seed();
-    await setDoc(STATE_REF, fresh);
-    return fresh;
-  }
-  
-  function saveDB() {
-    setDoc(STATE_REF, DB).catch(e => console.error('Save failed', e));
-  }
+window.markLeft=async id=>{
+  const e=emp(id),p=currentPeriod(e);if(!e||e.status==="Left")return;
+  const exit=prompt("Last working day (YYYY-MM-DD):",today);if(!exit)return;
+  const reason=prompt("Exit reason:","Resignation")||"";
+  p.exit=exit;p.lastDay=exit;p.exitReason=reason;e.status="Left";await saveDB();renderPeople();renderFormer();renderDashboard();toast(e.name+" moved to Former Employees.");
+}
+window.rejoin=async id=>{
+  const e=emp(id);if(!e)return;
+  const joining=prompt("Rejoining date (YYYY-MM-DD):",today);if(!joining)return;
+  const dept=prompt("Department:",currentPeriod(e).department||e.department||"Logistics")||"";
+  const des=prompt("Designation:",currentPeriod(e).designation||e.designation||"Staff")||"";
+  const sal=Number(prompt("Monthly salary:",String(salary(e)))||salary(e));
+  e.periods.push({joining,exit:null,exitReason:"",lastDay:"",remarks:"Rejoined",salary:sal,salaryHistory:[{amount:sal,effective:joining}],department:dept,designation:des});
+  e.status="Active";e.department=dept;e.designation=des;await saveDB();renderFormer();renderPeople();renderDashboard();toast(e.name+" rejoined successfully.");
+}
 
-  function genId() { const id = 'GI-EMP-' + String(DB.nextId).padStart(4, '0'); DB.nextId++; return id; }
-  function currentPeriod(emp) { return emp.periods[emp.periods.length - 1]; }
-  function currentSalary(emp) { const p = currentPeriod(emp); return p ? p.salaryHistory[p.salaryHistory.length - 1].amount : 0; }
-  function formatDate(d) { return d ? new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'; }
+function renderDashboard(){
+  if(!DB)return;
+  const active=DB.employees.filter(e=>e.status==="Active"), former=DB.employees.filter(e=>e.status==="Left");
+  const approvedToday=DB.leaveRequests.filter(r=>r.status==="Approved"&&r.from<=today&&r.to>=today);
+  const pending=DB.leaveRequests.filter(r=>r.status==="Pending");
+  document.getElementById("sTotal").textContent=DB.employees.length;document.getElementById("sActive").textContent=active.length;document.getElementById("sLeave").textContent=approvedToday.length;document.getElementById("sPending").textContent=pending.length;
+  let present=0,absent=0,leave=approvedToday.length;
+  active.forEach(e=>{const a=DB.attendance?.[e.id+"|"+today];const p=DB.punches?.[e.id+"|"+today];if(a==="Present"||p?.in)present++;else if(a==="Absent")absent++});
+  document.getElementById("dPresent").textContent=present;document.getElementById("dAbsent").textContent=absent;document.getElementById("dLeave").textContent=leave;
+  const pct=active.length?Math.round(((present+leave)/active.length)*100):0;document.getElementById("coverage").textContent=pct+"%";document.getElementById("coverageBar").style.width=Math.min(100,pct)+"%";
+  document.getElementById("dashPending").innerHTML=pending.length?pending.slice(0,4).map(r=>{const e=emp(r.empId);return `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #eef2f7"><div><b style="font-size:12px">${e?.name||r.empId}</b><div style="font-size:10px;color:#94a3b8">${r.typeId} • ${fmt(r.from)}–${fmt(r.to)}</div></div>${statusBadge(r.status)}</div>`}).join(""):`<div class="empty">No pending approvals. You're all caught up.</div>`;
+}
 
-  function showToast(msg) {
-    const toast = document.getElementById('toastNotification');
-    document.getElementById('toastMsg').innerText = msg;
-    toast.classList.remove('hidden');
-    setTimeout(() => toast.classList.add('hidden'), 3500);
-  }
+window.renderPeople=()=>{
+  const q=(document.getElementById("peopleSearch")?.value||"").toLowerCase(), st=document.getElementById("peopleStatus")?.value||"All";
+  const list=DB.employees.filter(e=>(st==="All"||e.status===st)&&(!q||[e.name,e.id,e.department,e.designation].join(" ").toLowerCase().includes(q)));
+  document.getElementById("peopleBody").innerHTML=list.length?list.map(e=>{const p=currentPeriod(e);return `<tr><td><div class="person"><div class="avatar">${(e.name||"?")[0]}</div><div><div class="personname">${e.name}</div><div class="personmeta">${e.id} • ${e.mobile||"No mobile"}</div></div></div></td><td>${p.department||e.department||"—"}</td><td>${p.designation||e.designation||"—"}</td><td>${fmt(p.joining)}</td><td>₹${salary(e).toLocaleString("en-IN")}</td><td>${statusBadge(e.status)}</td><td><div style="display:flex;gap:5px"><button class="btn btn-secondary" style="padding:7px 9px" onclick="openEmployee('${e.id}')">Edit</button>${e.status==="Active"?`<button class="btn btn-danger" style="padding:7px 9px" onclick="markLeft('${e.id}')">Mark Left</button>`:`<button class="btn btn-secondary" style="padding:7px 9px" onclick="rejoin('${e.id}')">Rejoin</button>`}</div></td></tr>`}).join(""):`<tr><td colspan="7"><div class="empty">No employees found.</div></td></tr>`;
+}
 
-  // --- Auth Flow ---
-  document.getElementById('loginForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const email = document.getElementById('loginEmail').value;
-    const password = document.getElementById('loginPassword').value;
-    document.getElementById('syncStatus').innerText = "Authenticating...";
-    document.getElementById('loginBtnText').innerText = "Authenticating...";
-    
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-    } catch (err) {
-      document.getElementById('syncStatus').innerText = "Auth Failed";
-      document.getElementById('loginBtnText').innerText = "Sign In to GI People";
-      showToast("Login Failed: Please check your credentials.");
-      console.error(err);
-    }
-  });
+window.renderAttendance=()=>{
+  const d=document.getElementById("attDate");if(!d.value)d.value=today;
+  const date=d.value, active=DB.employees.filter(e=>e.status==="Active");
+  document.getElementById("attBody").innerHTML=active.map(e=>{const p=DB.punches?.[e.id+"|"+date],a=DB.attendance?.[e.id+"|"+date]||((p?.in)?"Present":"Not Marked");return `<tr><td><div class="person"><div class="avatar">${e.name[0]}</div><div><div class="personname">${e.name}</div><div class="personmeta">${e.id}</div></div></div></td><td>${e.shift||"—"}</td><td>${p?.in||"—"}</td><td>${p?.out||"—"}</td><td>${statusBadge(a)}</td><td><button class="btn btn-secondary" style="padding:7px 9px" onclick="manualAttendance('${e.id}','${date}')">Mark</button></td></tr>`}).join("")||`<tr><td colspan="6"><div class="empty">No active employees.</div></td></tr>`;
+}
+window.manualAttendance=async(id,date)=>{const s=prompt("Attendance status: Present / Absent / Leave / Half Day","Present");if(!s)return;DB.attendance=DB.attendance||{};DB.attendance[id+"|"+date]=s;await saveDB();renderAttendance();renderDashboard();toast("Attendance updated.");}
+window.punch=async()=>{
+  const e=DB.employees.find(x=>x.status==="Active");if(!e){toast("No active employee found.");return}
+  const key=e.id+"|"+today;DB.punches=DB.punches||{};const p=DB.punches[key];
+  const now=new Date().toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit",timeZone:"Asia/Kolkata"});
+  if(!p)DB.punches[key]={in:now,out:null};else if(!p.out)p.out=now;else return toast("Today's shift is already completed.");
+  await saveDB();renderAttendance();renderDashboard();toast(p?"Punched out at "+now:"Punched in at "+now);
+}
 
-  window.logout = async () => {
-    try { await signOut(auth); } catch (err) { console.error("Logout error", err); }
-  };
+window.openLeave=()=>{
+  const active=DB.employees.filter(e=>e.status==="Active");document.getElementById("l_emp").innerHTML=active.map(e=>`<option value="${e.id}">${e.name} — ${e.id}</option>`).join("");
+  document.getElementById("l_type").innerHTML=DB.leaveTypes.map(t=>`<option value="${t.id}">${t.name}</option>`).join("");
+  document.getElementById("l_from").value=today;document.getElementById("l_to").value=today;document.getElementById("l_reason").value="";document.getElementById("leaveModal").classList.add("show");
+}
+document.getElementById("leaveForm").addEventListener("submit",async e=>{
+  e.preventDefault();DB.leaveRequests=DB.leaveRequests||[];const from=document.getElementById("l_from").value,to=document.getElementById("l_to").value;
+  if(to<from)return toast("To date cannot be before From date.");
+  DB.leaveRequests.push({id:"LR-"+Date.now(),empId:document.getElementById("l_emp").value,typeId:document.getElementById("l_type").value,from,to,days:days(from,to),reason:document.getElementById("l_reason").value,status:"Pending",appliedOn:today});
+  await saveDB();closeModals();renderLeave();renderApprovals();renderDashboard();toast("Leave request submitted.");
+});
+window.renderLeave=()=>{
+  const r=DB.leaveRequests||[];document.getElementById("lTotal").textContent=r.length;document.getElementById("lPending").textContent=r.filter(x=>x.status==="Pending").length;document.getElementById("lApproved").textContent=r.filter(x=>x.status==="Approved").length;document.getElementById("lRejected").textContent=r.filter(x=>x.status==="Rejected").length;
+  document.getElementById("leaveBody").innerHTML=r.length?[...r].reverse().map(x=>{const e=emp(x.empId),t=DB.leaveTypes.find(y=>y.id===x.typeId);return `<tr><td><b>${e?.name||x.empId}</b></td><td>${t?.name||x.typeId}</td><td>${fmt(x.from)} – ${fmt(x.to)}</td><td>${x.days}</td><td>${x.reason||"—"}</td><td>${statusBadge(x.status)}</td><td>${x.status==="Pending"?`<button class="btn btn-primary" style="padding:7px 9px" onclick="decide('${x.id}','Approved')">Approve</button> <button class="btn btn-danger" style="padding:7px 9px" onclick="decide('${x.id}','Rejected')">Reject</button>`:"—"}</td></tr>`}).join(""):`<tr><td colspan="7"><div class="empty">No leave requests yet.</div></td></tr>`;
+}
+window.renderApprovals=()=>{const r=(DB.leaveRequests||[]).filter(x=>x.status==="Pending");document.getElementById("approvalBody").innerHTML=r.length?r.map(x=>{const e=emp(x.empId);return `<tr><td><b>${e?.name||x.empId}</b><div class="personmeta">${x.empId}</div></td><td>${x.typeId}</td><td>${fmt(x.from)} – ${fmt(x.to)}</td><td>${fmt(x.appliedOn)}</td><td>${statusBadge(x.status)}</td><td><button class="btn btn-primary" style="padding:7px 9px" onclick="decide('${x.id}','Approved')">Approve</button> <button class="btn btn-danger" style="padding:7px 9px" onclick="decide('${x.id}','Rejected')">Reject</button></td></tr>`}).join(""):`<tr><td colspan="6"><div class="empty">No pending approvals.</div></td></tr>`}
+window.decide=async(id,status)=>{const r=DB.leaveRequests.find(x=>x.id===id);if(!r)return;r.status=status;r.decidedOn=today;await saveDB();renderLeave();renderApprovals();renderDashboard();toast("Request "+status.toLowerCase()+".")}
+window.renderFormer=()=>{
+ const list=DB.employees.filter(e=>e.status==="Left");
+ document.getElementById("formerBody").innerHTML=list.length?list.map(e=>{const p=currentPeriod(e);return `<tr><td><div class="person"><div class="avatar">${e.name[0]}</div><div><div class="personname">${e.name}</div><div class="personmeta">${e.id}</div></div></div></td><td>${p.department||e.department||"—"}</td><td>${fmt(p.lastDay||p.exit)}</td><td>${e.periods?.length||1} period(s)</td><td>${statusBadge(e.status)}</td><td><button class="btn btn-secondary" style="padding:7px 9px" onclick="rejoin('${e.id}')">Rejoin</button></td></tr>`}).join(""):`<tr><td colspan="6"><div class="empty">No former employees.</div></td></tr>`;
+}
+window.exportEmployees=()=>{
+ const rows=[["Employee ID","Name","Department","Designation","Joining Date","Salary","Status"],...DB.employees.map(e=>{const p=currentPeriod(e);return[e.id,e.name,p.department||e.department||"",p.designation||e.designation||"",p.joining||"",salary(e),e.status]})];
+ const csv=rows.map(r=>r.map(v=>`"${String(v).replaceAll('"','""')}"`).join(",")).join("\n");const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download="GI_People_Employee_Master.csv";a.click();URL.revokeObjectURL(a.href);
+}
+window.logout=async()=>{await signOut(auth)}
+document.getElementById("globalSearch").addEventListener("keydown",e=>{if(e.key==="Enter"){document.getElementById("peopleSearch").value=e.target.value;go("people");renderPeople()}})
+document.getElementById("loginForm").addEventListener("submit",async e=>{e.preventDefault();const b=document.getElementById("loginBtn"),m=document.getElementById("loginMsg");b.disabled=true;b.textContent="Signing in…";m.textContent="";try{await signInWithEmailAndPassword(auth,document.getElementById("loginEmail").value,document.getElementById("loginPassword").value)}catch(err){m.textContent="Login failed. Check your Firebase Authentication account and password.";b.disabled=false;b.textContent="Sign In"}})
 
-  onAuthStateChanged(auth, async (user) => {
-    const syncStatus = document.getElementById('syncStatus');
-    if (!user) {
-      window.switchTab('login');
-      document.getElementById('mainAppHeader').classList.add('hidden');
-      document.getElementById('bottomNavBar').classList.add('hidden');
-      syncStatus.innerText = "Waiting for Auth...";
-      document.getElementById('loginBtnText').innerText = "Sign In to GI People";
-      return;
-    }
-    
-    syncStatus.innerText = "Fetching Master DB...";
-    try {
-      DB = await loadDB();
-      if(!DB.punches) DB.punches = {}; // Ensure punch object exists
-
-      document.getElementById('mainAppHeader').classList.remove('hidden');
-      document.getElementById('bottomNavBar').classList.remove('hidden');
-      
-      document.getElementById('employeeSearchInput').addEventListener('input', (e) => {
-          empSearchQuery = e.target.value;
-          window.renderPeople();
-      });
-
-      window.switchTab('dashboard');
-      showToast("Connected securely to Firebase Data");
-    } catch (err) {
-      console.error("Database Fetch Error:", err);
-      syncStatus.innerText = "DB Permission Denied";
-      document.getElementById('loginBtnText').innerText = "Sign In to GI People";
-      alert("Login successful, but Database access was denied. Check Firestore rules.");
-      await signOut(auth); 
-    }
-  });
-
-  // --- View Switching & Visual Role Switcher ---
-  window.toggleRoleDropdown = () => {
-    const menu = document.getElementById('roleDropdownMenu');
-    if (menu) menu.classList.toggle('hidden');
-  };
-
-  window.setSystemRole = (role) => {
-    const text = document.getElementById('activeRoleText');
-    const badge = document.getElementById('activeRoleBadge');
-    
-    if (role === 'hr_admin') {
-      text.innerText = 'HR Admin';
-      badge.className = 'inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200/60 transition';
-    } else {
-      text.innerText = 'Employee (Uma)';
-      badge.className = 'inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/60 transition';
-    }
-    document.getElementById('roleDropdownMenu').classList.add('hidden');
-    showToast('Role switched to: ' + text.innerText);
-  };
-
-  window.switchTab = (tabName) => {
-    currentTab = tabName;
-    document.querySelectorAll('.view-container').forEach(v => v.classList.remove('active'));
-    document.getElementById('view-' + tabName).classList.add('active');
-
-    if (tabName === 'dashboard') window.renderDashboard();
-    else if (tabName === 'people') window.renderPeople();
-    else if (tabName === 'attendance') window.renderAttendance();
-    else if (tabName === 'approvals') window.renderApprovals();
-
-    ['dashboard', 'people', 'attendance', 'approvals'].forEach(t => {
-      const btn = document.getElementById('navTab-' + t);
-      if(btn) {
-        btn.className = (t === tabName) 
-          ? "nav-item flex flex-col items-center justify-center py-1 rounded-xl text-blue-700 font-bold transition"
-          : "nav-item flex flex-col items-center justify-center py-1 rounded-xl text-slate-500 font-medium transition";
-      }
-    });
-    window.scrollTo(0, 0);
-  };
-
-  // --- PUNCH IN / OUT LOGIC ---
-  window.togglePunchAction = () => {
-    if(!DB) return;
-    const key = currentUserEmpId + '|' + attDate;
-
-    if(!DB.punches[key]) {
-      // Punch In
-      const time = new Date().toLocaleTimeString('en-US', {hour: '2-digit', minute:'2-digit'});
-      DB.punches[key] = { in: time, out: null };
-      showToast(`Punched In successfully at ${time}`);
-    } else if (!DB.punches[key].out) {
-      // Punch Out
-      const time = new Date().toLocaleTimeString('en-US', {hour: '2-digit', minute:'2-digit'});
-      DB.punches[key].out = time;
-      showToast(`Punched Out successfully at ${time}`);
-    } else {
-      showToast(`Shift already completed for today.`);
-    }
-    
-    saveDB();
-    window.renderPunchState();
-  };
-
-  window.renderPunchState = () => {
-    if(!DB) return;
-    const key = currentUserEmpId + '|' + attDate;
-    const punch = DB.punches[key];
-    
-    const inDisplay = document.getElementById('punchInTimeDisplay');
-    const outDisplay = document.getElementById('punchOutTimeDisplay');
-    const actionBtn = document.getElementById('punchActionBtn');
-    const btnText = document.getElementById('punchBtnText');
-    const dashStatus = document.getElementById('dashPunchStatusText');
-
-    if(!punch) {
-      inDisplay.innerText = "--:--";
-      outDisplay.innerText = "--:--";
-      btnText.innerText = "Punch In";
-      actionBtn.className = "w-full py-3 rounded-xl bg-[#0F2942] text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition hover:bg-slate-800";
-      if(dashStatus) dashStatus.innerText = "Not Clocked In";
-    } else if (!punch.out) {
-      inDisplay.innerText = punch.in;
-      outDisplay.innerText = "--:--";
-      btnText.innerText = "Punch Out";
-      actionBtn.className = "w-full py-3 rounded-xl bg-amber-600 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition hover:bg-amber-700";
-      if(dashStatus) dashStatus.innerText = `Clocked In at ${punch.in}`;
-    } else {
-      inDisplay.innerText = punch.in;
-      outDisplay.innerText = punch.out;
-      btnText.innerText = "Shift Completed";
-      actionBtn.className = "w-full py-3 rounded-xl bg-slate-300 text-slate-500 font-bold text-xs flex items-center justify-center gap-2 shadow-sm cursor-not-allowed";
-      if(dashStatus) dashStatus.innerText = `Completed (${punch.in} - ${punch.out})`;
-    }
-  };
-
-  // --- Rendering UI ---
-  window.renderDashboard = () => {
-    if(!DB) return;
-    const active = DB.employees.filter(e => e.status === 'Active');
-    document.getElementById('dashDate').innerText = formatDate(attDate);
-    
-    let activeHTML = active.map(e => `
-      <div class="p-3 rounded-xl border border-slate-100 bg-slate-50 flex items-center justify-between">
-        <div class="flex items-center gap-3">
-          <div class="w-9 h-9 rounded-full bg-[#0F2942] text-white font-bold text-xs flex items-center justify-center">
-            ${e.name.charAt(0)}
-          </div>
-          <div>
-            <div class="text-xs font-bold text-slate-900">${e.name}</div>
-            <div class="text-[10px] text-slate-500">${e.id}</div>
-          </div>
-        </div>
-      </div>
-    `).join('');
-    document.getElementById('dashActiveEmployees').innerHTML = activeHTML || `<div class="text-xs text-slate-500 p-2 text-center">No active employees.</div>`;
-    
-    window.renderPunchState();
-  };
-
-  window.setEmpFilter = (status) => {
-    empFilterStatus = status;
-    document.querySelectorAll('.filter-chip').forEach(c => {
-      c.className = c.dataset.val === status 
-        ? "filter-chip px-3 py-1 rounded-full font-bold bg-[#0F2942] text-white whitespace-nowrap shadow-sm"
-        : "filter-chip px-3 py-1 rounded-full font-medium bg-white text-slate-600 border border-slate-200 whitespace-nowrap";
-    });
-    window.renderPeople();
-  };
-
-  window.renderPeople = () => {
-    if(!DB) return;
-    const list = DB.employees.filter(e => {
-      if(empFilterStatus !== 'All' && e.status !== empFilterStatus) return false;
-      if(empSearchQuery) {
-          const q = empSearchQuery.toLowerCase();
-          return e.name.toLowerCase().includes(q) || e.id.toLowerCase().includes(q);
-      }
-      return true;
-    });
-
-    let html = list.map(e => {
-      const isActive = e.status === 'Active';
-      return `
-      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 space-y-3">
-        <div class="flex items-start justify-between">
-          <div class="flex items-center gap-3">
-            <div class="w-12 h-12 rounded-xl bg-[#0F2942] text-white flex items-center justify-center font-black text-lg">
-              ${e.name.charAt(0)}
-            </div>
-            <div>
-              <div class="flex items-center gap-2">
-                <h4 class="text-sm font-bold text-slate-900">${e.name}</h4>
-                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${isActive ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}">${e.status}</span>
-              </div>
-              <div class="text-xs text-blue-700 font-semibold">${e.id}</div>
-            </div>
-          </div>
-          <button onclick="window.openNewEmployeeModal('${e.id}')" class="text-blue-600 text-[10px] font-bold bg-blue-50 px-2 py-1 rounded-lg">Edit</button>
-        </div>
-        <div class="grid grid-cols-2 gap-2 p-2.5 rounded-xl bg-slate-50 border border-slate-200/70 text-xs">
-          <div><span class="text-[10px] text-slate-400 uppercase font-semibold block">Dept</span><span class="font-medium">${currentPeriod(e).department || '—'}</span></div>
-          <div><span class="text-[10px] text-slate-400 uppercase font-semibold block">Designation</span><span class="font-medium">${currentPeriod(e).designation || '—'}</span></div>
-          <div><span class="text-[10px] text-slate-400 uppercase font-semibold block">Salary</span><span class="font-bold">₹${currentSalary(e)}</span></div>
-        </div>
-      </div>
-    `}).join('');
-    document.getElementById('employeeDirectoryContainer').innerHTML = html || `<div class="text-xs text-center p-4">No employees match.</div>`;
-  };
-
-  window.renderAttendance = () => {
-    if(!DB) return;
-    document.getElementById('attDisplayDate').innerText = formatDate(attDate);
-    window.renderPunchState(); // Ensure punch button reflects current date logic
-  };
-
-  window.renderApprovals = () => {
-    if(!DB) return;
-    const reqs = [...DB.leaveRequests].sort((a,b) => b.appliedOn.localeCompare(a.appliedOn));
-    
-    let html = reqs.map(r => {
-      const emp = DB.employees.find(e => e.id === r.empId);
-      const type = DB.leaveTypes.find(t => t.id === r.typeId);
-      const isPending = r.status === 'Pending';
-      
-      let badge = isPending ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800">Pending</span>`
-                : (r.status === 'Approved' ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">Approved</span>`
-                : `<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-rose-100 text-rose-800">Rejected</span>`);
-
-      return `
-      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 space-y-3">
-        <div class="flex items-start justify-between">
-          <div class="flex items-center gap-2.5">
-            <div class="w-9 h-9 rounded-full bg-[#0F2942] text-white font-bold text-xs flex items-center justify-center">${emp ? emp.name.charAt(0) : '?'}</div>
-            <div>
-              <div class="text-xs font-bold text-slate-900">${emp ? emp.name : r.empId}</div>
-              <div class="text-[10px] text-slate-500">${type ? type.name : r.typeId}</div>
-            </div>
-          </div>
-          ${badge}
-        </div>
-        <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/70 text-xs space-y-1.5">
-          <div class="flex items-center justify-between"><span class="font-semibold">Duration</span><span class="font-bold text-blue-700">${formatDate(r.from)} to ${formatDate(r.to)}</span></div>
-          ${r.reason ? `<p class="text-[11px] text-slate-600 bg-white p-2 rounded border italic">"${r.reason}"</p>` : ''}
-        </div>
-        ${isPending ? `
-        <div class="flex items-center justify-end gap-2 pt-1">
-          <button onclick="window.decideLeave('${r.id}', 'Rejected')" class="px-4 py-2 rounded-xl text-xs font-bold text-rose-600 border border-rose-200">Reject</button>
-          <button onclick="window.decideLeave('${r.id}', 'Approved')" class="px-4 py-2 rounded-xl text-xs font-bold text-white bg-slate-900">Approve</button>
-        </div>` : ''}
-      </div>
-      `;
-    }).join('');
-    document.getElementById('approvalsListContainer').innerHTML = html || `<div class="text-xs text-center p-4">No leave requests found.</div>`;
-  };
-
-  // --- Modals and Form Actions ---
-  window.openNewEmployeeModal = (id = null) => {
-    const emp = id ? DB.employees.find(e => e.id === id) : null;
-    document.getElementById('empModalTitle').innerText = emp ? `Edit Employee` : "Add Employee";
-    document.getElementById('f_empId').value = emp ? emp.id : '';
-    document.getElementById('f_name').value = emp ? emp.name : '';
-    document.getElementById('f_mobile').value = emp ? (emp.mobile || '') : '';
-    document.getElementById('f_shift').value = emp ? (emp.shift || '10:00 AM – 7:00 PM') : '10:00 AM – 7:00 PM';
-    document.getElementById('f_salary').value = emp ? currentSalary(emp) : 9000;
-    document.getElementById('f_joining').value = emp ? currentPeriod(emp).joining : attDate;
-    document.getElementById('newEmployeeModal').classList.remove('hidden');
-  };
-
-  window.closeModals = () => {
-    document.getElementById('newEmployeeModal').classList.add('hidden');
-    document.getElementById('applyLeaveModal').classList.add('hidden');
-  };
-
-  window.handleSaveEmployee = (e) => {
-    e.preventDefault();
-    const id = document.getElementById('f_empId').value;
-    const name = document.getElementById('f_name').value;
-    const mobile = document.getElementById('f_mobile').value;
-    const shift = document.getElementById('f_shift').value;
-    const salary = parseFloat(document.getElementById('f_salary').value) || 0;
-    const joining = document.getElementById('f_joining').value;
-
-    if (id) {
-      const emp = DB.employees.find(x => x.id === id);
-      emp.name = name; emp.mobile = mobile; emp.shift = shift;
-      if(currentSalary(emp) !== salary) { currentPeriod(emp).salaryHistory.push({ amount: salary, effective: attDate }); }
-    } else {
-      DB.employees.push({
-        id: genId(), name, mobile, shift, status: 'Active',
-        periods: [{ joining: joining, exit: null, exitReason: '', lastDay: '', remarks: '', salaryHistory: [{amount: salary, effective: joining}] }]
-      });
-    }
-    saveDB();
-    window.closeModals();
-    window.renderPeople();
-    showToast("Employee record saved.");
-  };
-
-  window.openApplyLeaveModal = () => {
-    const active = DB.employees.filter(e => e.status === 'Active');
-    document.getElementById('l_emp').innerHTML = active.map(e => `<option value="${e.id}">${e.name}</option>`).join('');
-    document.getElementById('l_type').innerHTML = DB.leaveTypes.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
-    document.getElementById('l_from').value = attDate;
-    document.getElementById('l_to').value = attDate;
-    document.getElementById('l_reason').value = '';
-    document.getElementById('applyLeaveModal').classList.remove('hidden');
-  };
-
-  window.submitLeave = (e) => {
-    e.preventDefault();
-    DB.leaveRequests.push({
-      id: 'LR-' + Date.now(),
-      empId: document.getElementById('l_emp').value,
-      typeId: document.getElementById('l_type').value,
-      from: document.getElementById('l_from').value,
-      to: document.getElementById('l_to').value,
-      days: daysBetween(document.getElementById('l_from').value, document.getElementById('l_to').value),
-      reason: document.getElementById('l_reason').value,
-      status: 'Pending', appliedOn: attDate
-    });
-    saveDB();
-    window.closeModals();
-    window.renderApprovals();
-    showToast("Leave request submitted.");
-  };
-
-  window.decideLeave = (id, status) => {
-    const req = DB.leaveRequests.find(r => r.id === id);
-    req.status = status; req.decidedOn = attDate;
-    saveDB();
-    window.renderApprovals();
-    showToast("Leave request " + status.toLowerCase());
-  };
-
+onAuthStateChanged(auth,async user=>{
+ if(!user){document.getElementById("loginScreen").classList.remove("hide");document.getElementById("app").classList.add("hide");return}
+ try{DB=await loadDB();document.getElementById("loginScreen").classList.add("hide");document.getElementById("app").classList.remove("hide");document.getElementById("sideUser").textContent=user.email||"Authenticated user";document.getElementById("userAvatar").textContent=(user.email||"H")[0].toUpperCase();go("dashboard");toast("Connected to GI People.");}
+ catch(err){console.error(err);alert("Authentication succeeded, but Firestore data could not be loaded. Check Firestore rules.");await signOut(auth)}
+})
 </script>
 </body>
 </html>
