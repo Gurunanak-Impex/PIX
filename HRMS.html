@@ -59,6 +59,37 @@
   .loginbox{width:min(430px,calc(100% - 32px));background:#fff;border-radius:16px;padding:30px;box-shadow:0 25px 70px rgba(0,0,0,.25)}
   .loginbrand{display:flex;align-items:center;gap:12px;margin-bottom:25px}.loginmark{width:44px;height:44px;background:var(--navy);border-radius:11px;color:#fbbf24;display:grid;place-items:center;font-weight:800}
   .hide{display:none!important}
+
+  /* ---------- GI People Employee Self-Service Portal ---------- */
+  .ess-shell{background:#f7f9fc;border:1px solid #e6eaf0;border-radius:16px;overflow:hidden}
+  .ess-hero{background:linear-gradient(135deg,#0f2942,#163d60);color:#fff;padding:22px}
+  .ess-grid{display:grid;grid-template-columns:260px minmax(0,1fr);min-height:620px}
+  .ess-nav{background:#fff;border-right:1px solid #e6eaf0;padding:12px}
+  .ess-nav button{width:100%;border:0;background:transparent;text-align:left;padding:11px 12px;border-radius:9px;color:#475569;font-size:12px;font-weight:700;cursor:pointer}
+  .ess-nav button:hover,.ess-nav button.active{background:#eaf2ff;color:#1d4ed8}
+  .ess-main{padding:18px;background:#f8fafc}
+  .ess-cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+  .ess-card{background:#fff;border:1px solid #e6eaf0;border-radius:12px;padding:15px;box-shadow:0 1px 2px rgba(15,23,42,.03)}
+  .ess-label{font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:#64748b;font-weight:800}
+  .ess-value{font-size:23px;font-weight:800;margin-top:5px;color:#0f2942}
+  .ess-muted{font-size:11px;color:#94a3b8;margin-top:3px}
+  .ess-section{display:none}.ess-section.active{display:block}
+  .ess-profile{display:grid;grid-template-columns:170px minmax(0,1fr);gap:18px}
+  .ess-avatar{width:104px;height:104px;border-radius:18px;background:#eaf2ff;color:#1d4ed8;display:grid;place-items:center;font-size:34px;font-weight:800}
+  .ess-info-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .ess-info{background:#f8fafc;border:1px solid #eef2f7;border-radius:10px;padding:10px}
+  .ess-info b{display:block;font-size:11px;margin-top:3px;color:#172033}
+  .ess-list{display:grid;gap:9px}
+  .ess-list-item{background:#fff;border:1px solid #e6eaf0;border-radius:10px;padding:12px;display:flex;justify-content:space-between;gap:12px;align-items:center}
+  .ess-calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+  .ess-day{min-height:70px;background:#fff;border:1px solid #e6eaf0;border-radius:8px;padding:7px;font-size:10px}
+  .ess-day b{font-size:11px}
+  .ess-actions{display:flex;gap:8px;flex-wrap:wrap}
+  .ess-mobile-tabs{display:none}
+  @media(max-width:1000px){.ess-grid{grid-template-columns:1fr}.ess-nav{display:none}.ess-mobile-tabs{display:flex;gap:6px;overflow:auto;padding:10px;background:#fff;border-bottom:1px solid #e6eaf0}.ess-mobile-tabs button{white-space:nowrap;border:1px solid #e6eaf0;background:#fff;border-radius:999px;padding:8px 11px;font-size:10px;font-weight:700}.ess-cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  @media(max-width:640px){.ess-hero{padding:16px}.ess-main{padding:12px}.ess-cards{grid-template-columns:1fr 1fr}.ess-profile{grid-template-columns:1fr}.ess-info-grid{grid-template-columns:1fr}.ess-calendar{min-width:560px}.ess-calendar-wrap{overflow:auto}}
+  @media(max-width:380px){.ess-cards{grid-template-columns:1fr}}
+
   /* ---------- Responsive / All-device layout ---------- */
   @media(min-width:1600px){
     .content{padding:32px 40px}
@@ -260,6 +291,153 @@
         </div></div></div>
       </div>
 
+
+      <div id="page-employee-portal" class="page">
+        <div class="pagehead">
+          <div>
+            <div class="title">Employee Portal</div>
+            <div class="subtitle">GI People Self-Service — your personal HR workspace.</div>
+          </div>
+          <div class="ess-actions">
+            <button class="btn btn-secondary" onclick="go('dashboard')">← HR Workspace</button>
+          </div>
+        </div>
+
+        <div class="ess-shell">
+          <div class="ess-hero">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap">
+              <div>
+                <div style="font-size:11px;font-weight:700;opacity:.72;text-transform:uppercase;letter-spacing:.08em">My Space</div>
+                <div id="essWelcome" style="font-size:25px;font-weight:800;margin-top:4px">Welcome back</div>
+                <div id="essSub" style="font-size:12px;opacity:.78;margin-top:4px">Your employee self-service workspace.</div>
+              </div>
+              <div style="text-align:right">
+                <div id="essEmpId" style="font-size:11px;font-weight:800;background:rgba(255,255,255,.12);padding:7px 10px;border-radius:999px">GI-EMP-—</div>
+                <div id="essToday" style="font-size:10px;opacity:.7;margin-top:7px"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="ess-mobile-tabs">
+            <button onclick="essGo('home')">Home</button>
+            <button onclick="essGo('profile')">Profile</button>
+            <button onclick="essGo('team')">Team</button>
+            <button onclick="essGo('calendar')">Calendar</button>
+            <button onclick="essGo('leave')">Leave</button>
+            <button onclick="essGo('attendance')">Attendance</button>
+            <button onclick="essGo('timesheet')">Timesheet</button>
+            <button onclick="essGo('performance')">Performance</button>
+            <button onclick="essGo('files')">Files</button>
+            <button onclick="essGo('reports')">My Reports</button>
+          </div>
+
+          <div class="ess-grid">
+            <aside class="ess-nav">
+              <button class="active" data-ess="home" onclick="essGo('home')">⌂ &nbsp; Home</button>
+              <button data-ess="profile" onclick="essGo('profile')">◉ &nbsp; My Profile</button>
+              <button data-ess="team" onclick="essGo('team')">♙ &nbsp; My Team</button>
+              <button data-ess="calendar" onclick="essGo('calendar')">▦ &nbsp; Calendar</button>
+              <button data-ess="leave" onclick="essGo('leave')">▣ &nbsp; Leave</button>
+              <button data-ess="attendance" onclick="essGo('attendance')">◷ &nbsp; Attendance</button>
+              <button data-ess="timesheet" onclick="essGo('timesheet')">◫ &nbsp; Timesheet</button>
+              <button data-ess="performance" onclick="essGo('performance')">★ &nbsp; Performance</button>
+              <button data-ess="files" onclick="essGo('files')">□ &nbsp; Files & Policies</button>
+              <button data-ess="reports" onclick="essGo('reports')">▥ &nbsp; My Reports</button>
+            </aside>
+
+            <section class="ess-main">
+              <div id="ess-home" class="ess-section active">
+                <div class="ess-cards">
+                  <div class="ess-card"><div class="ess-label">Today</div><div id="essClockStatus" class="ess-value">Not In</div><div id="essClockHours" class="ess-muted">0h 0m worked</div></div>
+                  <div class="ess-card"><div class="ess-label">Leave Balance</div><div id="essLeaveBalance" class="ess-value">0</div><div class="ess-muted">available days</div></div>
+                  <div class="ess-card"><div class="ess-label">Pending Requests</div><div id="essPending" class="ess-value">0</div><div class="ess-muted">awaiting action</div></div>
+                  <div class="ess-card"><div class="ess-label">Reporting Manager</div><div id="essManager" class="ess-value" style="font-size:16px">—</div><div class="ess-muted">your manager</div></div>
+                </div>
+
+                <div class="grid two" style="margin-top:14px">
+                  <div class="ess-card">
+                    <div class="cardhead" style="padding:0 0 12px;border:0"><div class="cardtitle">Quick actions</div></div>
+                    <div class="ess-actions">
+                      <button class="btn btn-primary" onclick="essPunch()">◷ Check In / Out</button>
+                      <button class="btn btn-secondary" onclick="essApplyLeave()">＋ Apply Leave</button>
+                      <button class="btn btn-secondary" onclick="essGo('timesheet')">＋ Log Time</button>
+                      <button class="btn btn-secondary" onclick="essGo('profile')">Edit Profile</button>
+                    </div>
+                  </div>
+                  <div class="ess-card">
+                    <div class="cardhead" style="padding:0 0 12px;border:0"><div class="cardtitle">Upcoming</div></div>
+                    <div id="essUpcoming" class="ess-list"></div>
+                  </div>
+                </div>
+
+                <div class="grid two" style="margin-top:14px">
+                  <div class="ess-card"><div class="cardtitle" style="margin-bottom:12px">Announcements</div><div id="essAnnouncements" class="ess-list"></div></div>
+                  <div class="ess-card"><div class="cardtitle" style="margin-bottom:12px">My pending work</div><div id="essPendingWork" class="ess-list"></div></div>
+                </div>
+              </div>
+
+              <div id="ess-profile" class="ess-section">
+                <div class="ess-card">
+                  <div class="cardhead" style="padding:0 0 15px"><div><div class="cardtitle">My Profile</div><div class="ess-muted">Personal, employment and reporting information.</div></div><button class="btn btn-secondary" onclick="openEmployee(essCurrentEmployee()?.id)">Edit profile</button></div>
+                  <div class="ess-profile">
+                    <div><div id="essAvatar" class="ess-avatar">E</div><div id="essProfileName" style="font-weight:800;font-size:17px;margin-top:10px">—</div><div id="essProfileRole" class="ess-muted">—</div></div>
+                    <div class="ess-info-grid" id="essProfileGrid"></div>
+                  </div>
+                </div>
+              </div>
+
+              <div id="ess-team" class="ess-section">
+                <div class="ess-card"><div class="cardtitle" style="margin-bottom:12px">My Team</div><div id="essTeamList" class="ess-list"></div></div>
+              </div>
+
+              <div id="ess-calendar" class="ess-section">
+                <div class="ess-card">
+                  <div class="cardhead" style="padding:0 0 12px"><div class="cardtitle">Calendar</div><div id="essMonthLabel" class="ess-muted"></div></div>
+                  <div class="ess-calendar-wrap"><div id="essCalendar" class="ess-calendar"></div></div>
+                </div>
+              </div>
+
+              <div id="ess-leave" class="ess-section">
+                <div class="ess-cards">
+                  <div class="ess-card"><div class="ess-label">Leave Requests</div><div id="essLeaveCount" class="ess-value">0</div></div>
+                  <div class="ess-card"><div class="ess-label">Pending</div><div id="essLeavePending" class="ess-value">0</div></div>
+                  <div class="ess-card"><div class="ess-label">Approved</div><div id="essLeaveApproved" class="ess-value">0</div></div>
+                  <div class="ess-card"><div class="ess-label">Rejected</div><div id="essLeaveRejected" class="ess-value">0</div></div>
+                </div>
+                <div class="ess-card" style="margin-top:14px"><div class="cardtitle" style="margin-bottom:12px">My Leave History</div><div id="essLeaveList" class="ess-list"></div></div>
+              </div>
+
+              <div id="ess-attendance" class="ess-section">
+                <div class="ess-card"><div class="cardhead" style="padding:0 0 12px"><div class="cardtitle">My Attendance</div><div class="ess-actions"><button class="btn btn-primary" onclick="essPunch()">◷ Check In / Out</button></div></div><div class="tablewrap"><table class="table"><thead><tr><th>Date</th><th>Shift</th><th>Check In</th><th>Check Out</th><th>Status</th></tr></thead><tbody id="essAttendanceBody"></tbody></table></div></div>
+              </div>
+
+              <div id="ess-timesheet" class="ess-section">
+                <div class="ess-card">
+                  <div class="cardhead" style="padding:0 0 12px"><div><div class="cardtitle">My Timesheet</div><div class="ess-muted">Log work against jobs/projects and submit time.</div></div><button class="btn btn-primary" onclick="essLogTime()">＋ Log Time</button></div>
+                  <div class="tablewrap"><table class="table"><thead><tr><th>Date</th><th>Job / Task</th><th>Project</th><th>Hours</th><th>Status</th></tr></thead><tbody id="essTimesheetBody"></tbody></table></div>
+                </div>
+              </div>
+
+              <div id="ess-performance" class="ess-section">
+                <div class="ess-card"><div class="cardtitle" style="margin-bottom:12px">Performance</div><div class="grid two"><div><div class="ess-label">Goals / KRAs</div><div id="essGoals" class="ess-list" style="margin-top:9px"></div></div><div><div class="ess-label">Reviews & Feedback</div><div id="essReviews" class="ess-list" style="margin-top:9px"></div></div></div></div>
+              </div>
+
+              <div id="ess-files" class="ess-section">
+                <div class="ess-card"><div class="cardtitle" style="margin-bottom:12px">Files & Policies</div><div id="essFiles" class="ess-list"></div></div>
+              </div>
+
+              <div id="ess-reports" class="ess-section">
+                <div class="ess-card"><div class="cardtitle" style="margin-bottom:12px">My Reports</div><div class="ess-list">
+                  <div class="ess-list-item"><div><b>Attendance Report</b><div class="ess-muted">My daily check-in/out and hours.</div></div><button class="btn btn-secondary" onclick="essExportAttendance()">Export CSV</button></div>
+                  <div class="ess-list-item"><div><b>Leave Report</b><div class="ess-muted">My leave requests and status.</div></div><button class="btn btn-secondary" onclick="essExportLeave()">Export CSV</button></div>
+                  <div class="ess-list-item"><div><b>Timesheet Report</b><div class="ess-muted">My logged hours.</div></div><button class="btn btn-secondary" onclick="essExportTimesheet()">Export CSV</button></div>
+                </div></div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </div>
+
       <div id="page-people" class="page">
         <div class="pagehead"><div><div class="title">People</div><div class="subtitle">Employee directory and employment master.</div></div><button class="btn btn-primary" onclick="openEmployee()">＋ Add Employee</button></div>
         <div class="card"><div class="cardbody">
@@ -409,6 +587,7 @@
     <form id="employeeForm">
       <div class="modalbody"><input type="hidden" id="f_id">
         <div class="formgrid">
+          <div class="field"><label>Employee ID</label><input class="input" id="f_preview_id" disabled placeholder="Generated automatically from DOJ"></div>
           <div class="field"><label>Full Name *</label><input class="input" id="f_name" required></div>
           <div class="field"><label>Mobile</label><input class="input" id="f_mobile" type="tel"></div>
           <div class="field"><label>Department</label><input class="input" id="f_department" value="Logistics"></div>
@@ -470,14 +649,15 @@ let DB=null, today=new Date().toLocaleDateString("en-CA",{timeZone:"Asia/Kolkata
 let currentPage="dashboard";
 
 const seed=()=>({
-  nextId:2,
-  employees:[{id:"GI-EMP-0001",name:"Uma",mobile:"+91 80909 53624",email:"",dob:"",gender:"",address:"",emergency:"",department:"Logistics",designation:"Staff",empType:"Full Time",shift:"10:00 AM – 7:00 PM",managerId:"",location:"Head Office",status:"Active",lifecycle:"Active",probationEnd:"",periods:[{joining:"2026-09-23",exit:null,exitReason:"",lastDay:"",remarks:"",salary:9000,salaryHistory:[{amount:9000,effective:"2026-09-23"}],department:"Logistics",designation:"Staff"}]}],
+  idSequences:{},
+  employees:[{id:"GI-EMP-20260923-001",name:"Uma",mobile:"+91 80909 53624",email:"",dob:"",gender:"",address:"",emergency:"",department:"Logistics",designation:"Staff",empType:"Full Time",shift:"10:00 AM – 7:00 PM",managerId:"",location:"Head Office",status:"Active",lifecycle:"Active",probationEnd:"",periods:[{joining:"2026-09-23",exit:null,exitReason:"",lastDay:"",remarks:"",salary:9000,salaryHistory:[{amount:9000,effective:"2026-09-23"}],department:"Logistics",designation:"Staff"}]}],
   attendance:{},punches:{},leaveTypes:[{id:"CL",name:"Casual Leave",annual:12},{id:"SL",name:"Sick Leave",annual:8},{id:"EL",name:"Earned Leave",annual:15}],leaveRequests:[],holidays:[]
 });
 
 async function loadDB(){const s=await getDoc(STATE_REF);if(s.exists())return s.data();const fresh=seed();await setDoc(STATE_REF,fresh);return fresh}
 function saveDB(){return setDoc(STATE_REF,DB)}
 function ensureModules(){
+  DB.announcements=DB.announcements||[];DB.documents=DB.documents||[];
   DB.timesheets=DB.timesheets||[];
   DB.goals=DB.goals||[];
   DB.performanceCycles=DB.performanceCycles||[{id:"PC-2026",name:"FY 2026-27 Annual Review",status:"Open"}];
@@ -487,6 +667,30 @@ function ensureModules(){
   DB.notifications=DB.notifications||[];
   DB.approvals=DB.approvals||[];
 }
+
+function makeEmployeeId(joiningDate){
+  const d=joiningDate||today;
+  const compact=String(d).replace(/-/g,"");
+  DB.idSequences=DB.idSequences||{};
+  DB.idSequences[compact]=(DB.idSequences[compact]||0)+1;
+  return `GI-EMP-${compact}-${String(DB.idSequences[compact]).padStart(3,"0")}`;
+}
+function migrateLegacyEmployeeIds(){
+  DB.idSequences=DB.idSequences||{};
+  let changed=false;
+  for(const e of (DB.employees||[])){
+    if(/^GI-EMP-\d{4}$/.test(e.id)){
+      const joining=currentPeriod(e).joining||today;
+      const compact=String(joining).replace(/-/g,"");
+      const n=(DB.idSequences[compact]||0)+1;
+      DB.idSequences[compact]=n;
+      e.id=`GI-EMP-${compact}-${String(n).padStart(3,"0")}`;
+      changed=true;
+    }
+  }
+  return changed;
+}
+
 function audit(action,entity,details){
   DB.auditLogs=DB.auditLogs||[];
   DB.auditLogs.push({id:"AUD-"+Date.now(),date:new Date().toISOString(),action,entity,details});
@@ -513,10 +717,10 @@ window.go=(page)=>{
     side.style.display="none";
     side.dataset.mobileOpen="0";
   }
-  const names={dashboard:"Dashboard",people:"People","employee-chart":"Employee Chart",attendance:"Attendance",leave:"Leave",timesheets:"Timesheets",approvals:"Approval Center",performance:"Performance",compensation:"Compensation",payroll:"Payroll",onboarding:"Onboarding",former:"Offboarding & Rejoined",documents:"Documents",reports:"Reports & Analytics",audit:"Audit Log",settings:"Settings"};
+  const names={dashboard:"Dashboard","employee-portal":"Employee Portal",people:"People","employee-chart":"Employee Chart",attendance:"Attendance",leave:"Leave",timesheets:"Timesheets",approvals:"Approval Center",performance:"Performance",compensation:"Compensation",payroll:"Payroll",onboarding:"Onboarding",former:"Offboarding & Rejoined",documents:"Documents",reports:"Reports & Analytics",audit:"Audit Log",settings:"Settings"};
   document.getElementById("pageTitle").textContent=names[page]||page;
   document.getElementById("breadcrumb").textContent="Home / "+(names[page]||page);
-  ({dashboard:renderDashboard,people:renderPeople,"employee-chart":renderEmployeeChart,attendance:renderAttendance,leave:renderLeave,timesheets:renderTimesheets,approvals:renderApprovals,performance:renderPerformance,compensation:renderCompensation,payroll:renderPayroll,onboarding:renderOnboarding,former:renderFormer,documents:renderDocuments,reports:renderReports,audit:renderAudit}[page]||(()=>{}))();
+  ({dashboard:renderDashboard,"employee-portal":renderEmployeePortal,people:renderPeople,"employee-chart":renderEmployeeChart,attendance:renderAttendance,leave:renderLeave,timesheets:renderTimesheets,approvals:renderApprovals,performance:renderPerformance,compensation:renderCompensation,payroll:renderPayroll,onboarding:renderOnboarding,former:renderFormer,documents:renderDocuments,reports:renderReports,audit:renderAudit}[page]||(()=>{}))();
 }
 window.mobileNav=()=>{
   const s=document.querySelector(".sidebar");
@@ -539,6 +743,7 @@ window.openEmployee=(id=null)=>{
   const e=id?emp(id):null,p=e?currentPeriod(e):{};
   document.getElementById("empModalTitle").textContent=e?"Edit Employee":"Add Employee";
   document.getElementById("f_id").value=e?.id||"";
+  document.getElementById("f_preview_id").value=e?.id||"Auto-generated from DOJ";
   document.getElementById("f_name").value=e?.name||"";
   document.getElementById("f_mobile").value=e?.mobile||"";
   document.getElementById("f_department").value=p.department||e?.department||"Logistics";
@@ -556,6 +761,12 @@ window.openEmployee=(id=null)=>{
   document.getElementById("f_docref").value=e?.docref||"";
   document.getElementById("employeeModal").classList.add("show");
 }
+document.getElementById("f_joining").addEventListener("change",()=>{
+  if(!document.getElementById("f_id").value){
+    const d=document.getElementById("f_joining").value;
+    document.getElementById("f_preview_id").value=d?`GI-EMP-${d.replace(/-/g,"")}-001`:"Auto-generated from DOJ";
+  }
+});
 document.getElementById("employeeForm").addEventListener("submit",async ev=>{
   ev.preventDefault();
   const id=document.getElementById("f_id").value,name=document.getElementById("f_name").value.trim();
@@ -566,7 +777,7 @@ document.getElementById("employeeForm").addEventListener("submit",async ev=>{
     Object.assign(p,{department:data.department,designation:data.designation});
     if(salary(e)!==data.salary)p.salaryHistory=[...(p.salaryHistory||[]),{amount:data.salary,effective:today}],p.salary=data.salary;
   }else{
-    const newId="GI-EMP-"+String(DB.nextId++).padStart(4,"0");
+    const newId=makeEmployeeId(data.joining);
     DB.employees.push({id:newId,name:data.name,mobile:data.mobile,email:data.email,address:data.address,emergency:data.emergency,docref:data.docref,department:data.department,designation:data.designation,managerId:data.managerId||"",location:"Head Office",empType:data.empType,shift:data.shift,status:"Active",lifecycle:"Onboarding",probationEnd:"",periods:[{joining:data.joining,exit:null,exitReason:"",lastDay:"",remarks:"",salary:data.salary,salaryHistory:[{amount:data.salary,effective:data.joining}],department:data.department,designation:data.designation}]});
   }
   audit(id?"Employee updated":"Employee created","Employee",`${name} (${id||"new"})`);await saveDB();closeModals();renderPeople();renderDashboard();renderAudit();toast("Employee record saved successfully.");
@@ -754,7 +965,7 @@ document.getElementById("loginForm").addEventListener("submit",async e=>{e.preve
 
 onAuthStateChanged(auth,async user=>{
  if(!user){document.getElementById("loginScreen").classList.remove("hide");document.getElementById("app").classList.add("hide");return}
- try{DB=await loadDB();ensureModules();document.getElementById("loginScreen").classList.add("hide");document.getElementById("app").classList.remove("hide");document.getElementById("sideUser").textContent=user.email||"Authenticated user";document.getElementById("userAvatar").textContent=(user.email||"H")[0].toUpperCase();go("dashboard");toast("Connected to GI People.");}
+ try{DB=await loadDB();ensureModules();if(migrateLegacyEmployeeIds()){await saveDB();}document.getElementById("loginScreen").classList.add("hide");document.getElementById("app").classList.remove("hide");document.getElementById("sideUser").textContent=user.email||"Authenticated user";document.getElementById("userAvatar").textContent=(user.email||"H")[0].toUpperCase();const linked=DB.employees.find(e=>(e.email||"").toLowerCase()===(user.email||"").toLowerCase());go(linked?"employee-portal":"dashboard");toast("Connected to GI People.");}
  catch(err){console.error(err);alert("Authentication succeeded, but Firestore data could not be loaded. Check Firestore rules.");await signOut(auth)}
 })
 </script>
