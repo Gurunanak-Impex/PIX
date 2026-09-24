@@ -645,8 +645,8 @@ const firebaseConfig = {
 const app=initializeApp(firebaseConfig);
 try{getAnalytics(app)}catch(e){}
 const db= getFirestore(app), auth=getAuth(app);
-// Firestore now uses the normalized collections used by the security rules.
-// IMPORTANT: do not read/write hrms/state here. That legacy document is intentionally no longer used.
+// GI People Firestore data store. This is the same document-based architecture used by the original app.
+const STATE_REF=doc(db,"hrms","state");
 const ORG_ID="gi-impex";
 let DB=null, CURRENT_USER_DOC=null, today=new Date().toLocaleDateString("en-CA",{timeZone:"Asia/Kolkata"});
 let currentPage="dashboard";
@@ -693,97 +693,37 @@ async function readCollection(name){
 }
 
 async function loadDB(){
-  // Firebase Authentication is the login identity. GI People does not require
-  // a separate users/{uid} profile just to enter the application.
+  // GI People uses one Firestore state document for this build.
+  // Authentication identifies the signed-in person; no separate users/{uid} document is required.
   CURRENT_USER_DOC={
-    id:auth.currentUser.uid,
-    email:auth.currentUser.email||"",
-    name:auth.currentUser.displayName||"Mandeep Singh",
+    id:auth.currentUser?.uid||"",
+    email:auth.currentUser?.email||"",
+    name:auth.currentUser?.displayName||"",
     role:"owner_ceo",
     employeeId:null
   };
-
-  let org={};
-  try{
-    const orgSnap=await getDoc(doc(db,"organizations",ORG_ID));
-    if(orgSnap.exists()) org=orgSnap.data();
-  }catch(err){ if(err?.code!=="permission-denied") console.warn("Organization read failed",err); }
-
-  const rows={};
-  for(const name of NORMALIZED_COLLECTIONS) rows[name]=await readCollection(name);
-
-  // Rebuild the legacy in-memory shape so the existing UI/actions continue to work,
-  // while every Firestore operation is now against normalized collections.
+  const snap=await getDoc(STATE_REF);
+  if(!snap.exists()){
+    const fresh=seed();
+    fresh.organization={companyName:"Gurunanak Impex",ownerCeoName:"Mandeep Singh",ownerCeoTitle:"Owner & CEO"};
+    return fresh;
+  }
+  const data=snap.data()||{};
   const fresh=seed();
-  fresh.organization={...fresh.organization,...org,ownerCeoName:"Mandeep Singh",ownerCeoTitle:"Owner & CEO",companyName:org.companyName||"Gurunanak Impex"};
-  for(const name of NORMALIZED_COLLECTIONS) if(rows[name].length) fresh[name]=rows[name];
-  fresh.employees=rows.employees.length?rows.employees:fresh.employees;
-  fresh.leaveTypes=rows.leaveTypes.length?rows.leaveTypes:fresh.leaveTypes;
-  fresh.leaveRequests=rows.leaveRequests;
-  fresh.timesheets=rows.timesheets;
-  fresh.goals=rows.goals;
-  fresh.performanceReviews=rows.performanceReviews;
-  fresh.payrollPeriods=rows.payrollPeriods;
-  fresh.documents=rows.documents;
-  fresh.announcements=rows.announcements;
-  fresh.notifications=rows.notifications;
-  fresh.approvals=rows.approvals;
-  fresh.auditLogs=rows.auditLogs;
-  fresh.holidays=rows.holidays;
-  fresh.attendance=mapAttendance(rows.attendance);
-  fresh.punches=mapPunches(rows.attendance);
-  return fresh;
-}
-
-async function saveCollectionItem(name,item){
-  if(!item?.id) throw new Error("Missing document id for "+name);
-  const data={...item}; delete data.id;
-  await setDoc(doc(db,name,item.id),data,{merge:true});
-}
-
-async function deleteCollectionItem(name,id){
-  const {deleteDoc}=await import("https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js");
-  await deleteDoc(doc(db,name,id));
+  const merged={...fresh,...data};
+  merged.organization={...fresh.organization,...(data.organization||{}),companyName:"Gurunanak Impex",ownerCeoName:"Mandeep Singh",ownerCeoTitle:"Owner & CEO"};
+  return merged;
 }
 
 async function saveDB(){
-  // Persist only normalized collections. No write is made to hrms/state.
-  const batch=writeBatch(db);
-  const collections=[
-    "employees","leaveTypes","leaveRequests","timesheets","goals","performanceReviews","payrollPeriods",
-    "documents","onboarding","offboarding","holidays","announcements","auditLogs","approvals","notifications"
-  ];
-  for(const name of collections){
-    for(const item of (DB[name]||[])){
-      if(!item?.id) continue;
-      const data={...item};delete data.id;
-      batch.set(doc(db,name,item.id),data,{merge:true});
-    }
-  }
-  // Attendance and punches are stored as individual attendance documents.
-  for(const [key,status] of Object.entries(DB.attendance||{})){
-    const [empId,date]=key.split("|");
-    if(!empId||!date) continue;
-    const punch=DB.punches?.[key]||{};
-    const id=`${empId}_${date}`;
-    batch.set(doc(db,"attendance",id),{empId,date,status,in:punch.in||null,out:punch.out||null,updatedBy:auth.currentUser?.uid||null,updatedAt:serverTimestamp()},{merge:true});
-  }
-  for(const [key,punch] of Object.entries(DB.punches||{})){
-    const [empId,date]=key.split("|");
-    if(!empId||!date) continue;
-    const id=`${empId}_${date}`;
-    batch.set(doc(db,"attendance",id),{empId,date,in:punch?.in||null,out:punch?.out||null,updatedBy:auth.currentUser?.uid||null,updatedAt:serverTimestamp()},{merge:true});
-  }
-  // Company-level settings live in organizations/{ORG_ID}.
-  batch.set(doc(db,"organizations",ORG_ID),{
-    companyName:DB.organization?.companyName||"Gurunanak Impex",
-    ownerCeoName:"Mandeep Singh",
-    ownerCeoTitle:"Owner & CEO",
-    updatedAt:serverTimestamp(),
-    updatedBy:auth.currentUser?.uid||null
-  },{merge:true});
-  await batch.commit();
+  if(!auth.currentUser) throw new Error("Firebase user is not signed in.");
+  const payload=JSON.parse(JSON.stringify(DB));
+  payload.organization={...(payload.organization||{}),companyName:"Gurunanak Impex",ownerCeoName:"Mandeep Singh",ownerCeoTitle:"Owner & CEO"};
+  payload.updatedAt=new Date().toISOString();
+  payload.updatedBy=auth.currentUser.uid;
+  await setDoc(STATE_REF,payload,{merge:true});
 }
+
 function ensureModules(){
   DB.organization=DB.organization||{};
   DB.organization.ownerCeoName='Mandeep Singh';
@@ -1004,6 +944,156 @@ function escapeHtml(v){
 }
 
 
+
+function essCurrentEmployee(){
+  if(!DB?.employees?.length) return null;
+  const email=(auth.currentUser?.email||'').toLowerCase();
+  const linked=DB.employees.find(e=>(e.email||'').toLowerCase()===email && e.status!=='Left');
+  if(linked) return linked;
+  // Owner/CEO login is allowed without an employee profile. In that case,
+  // use the first active employee only for read-only portal rendering.
+  return DB.employees.find(e=>e.status==='Active')||DB.employees[0]||null;
+}
+
+window.essGo=(section)=>{
+  document.querySelectorAll('.ess-section').forEach(x=>x.classList.remove('active'));
+  document.getElementById('ess-'+section)?.classList.add('active');
+  document.querySelectorAll('[data-ess]').forEach(x=>x.classList.toggle('active',x.dataset.ess===section));
+  if(section==='home'||section==='profile'||section==='team'||section==='calendar'||section==='leave'||section==='attendance'||section==='timesheet'||section==='performance'||section==='files'||section==='reports') renderEmployeePortal();
+};
+
+window.essPunch=async()=>{
+  const e=essCurrentEmployee();
+  if(!e){toast('No employee record is available for this account.');return;}
+  const key=e.id+'|'+today;
+  DB.punches=DB.punches||{};
+  const p=DB.punches[key]||{in:null,out:null};
+  const now=new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',timeZone:'Asia/Kolkata'});
+  if(!p.in) p.in=now;
+  else if(!p.out) p.out=now;
+  else {toast('Today\'s attendance is already complete.');return;}
+  DB.punches[key]=p;
+  DB.attendance=DB.attendance||{};
+  DB.attendance[key]='Present';
+  await saveDB();
+  renderEmployeePortal();
+  renderAttendance();
+  renderDashboard();
+  toast(p.out?'Checked out at '+now:'Checked in at '+now);
+};
+
+window.essApplyLeave=()=>{
+  const e=essCurrentEmployee();
+  if(!e){toast('No employee record is available for this account.');return;}
+  openLeave();
+  const sel=document.getElementById('l_emp');
+  if(sel) sel.value=e.id;
+};
+
+window.essLogTime=async()=>{
+  const e=essCurrentEmployee();
+  if(!e){toast('No employee record is available for this account.');return;}
+  const work=prompt('Job / task description:','General work');
+  if(!work) return;
+  const project=prompt('Project / job:','General');
+  const hours=Number(prompt('Hours worked:','8'));
+  if(!Number.isFinite(hours)||hours<0){toast('Please enter valid hours.');return;}
+  DB.timesheets=DB.timesheets||[];
+  DB.timesheets.push({id:'TS-'+Date.now(),date:today,empId:e.id,work,project:project||'',hours,status:'Submitted',submittedOn:today});
+  audit('Timesheet submitted','Timesheet',`${e.name} — ${work}`);
+  await saveDB();
+  renderEmployeePortal();
+  renderTimesheets();
+  renderAudit();
+  toast('Timesheet submitted.');
+};
+
+window.renderEmployeePortal=()=>{
+  if(!DB) return;
+  const e=essCurrentEmployee();
+  if(!e){
+    ['essWelcome','essSub','essEmpId','essProfileName','essProfileRole','essManager','essClockStatus','essClockHours','essLeaveBalance','essPending'].forEach(id=>{const n=document.getElementById(id);if(n)n.textContent='—';});
+    return;
+  }
+  const p=currentPeriod(e);
+  const key=e.id+'|'+today;
+  const punch=DB.punches?.[key]||{};
+  const manager=emp(e.managerId);
+  const leaveRows=(DB.leaveRequests||[]).filter(r=>r.empId===e.id).sort((a,b)=>String(b.from).localeCompare(String(a.from)));
+  const pending=leaveRows.filter(r=>r.status==='Pending');
+  const approved=leaveRows.filter(r=>r.status==='Approved');
+  const rejected=leaveRows.filter(r=>r.status==='Rejected');
+  const activeLeaves=approved.filter(r=>r.from<=today&&r.to>=today);
+  const leaveType=(id)=>DB.leaveTypes?.find(x=>x.id===id)?.name||id||'Leave';
+  const totalAnnual=(DB.leaveTypes||[]).reduce((n,x)=>n+(Number(x.annual)||0),0);
+  const used=approved.reduce((n,r)=>n+(Number(r.days)||days(r.from,r.to)||0),0);
+  const balance=Math.max(0,totalAnnual-used);
+
+  const escv=v=>escapeHtml(v);
+  document.getElementById('essWelcome').textContent='Welcome, '+(e.name||'Employee');
+  document.getElementById('essSub').textContent=(p.designation||e.designation||'Employee')+' • '+(p.department||e.department||'');
+  document.getElementById('essEmpId').textContent=e.id||'GI-EMP-—';
+  document.getElementById('essToday').textContent=new Date(today+'T00:00:00').toLocaleDateString('en-IN',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+  document.getElementById('essClockStatus').textContent=punch.out?'Completed':(punch.in?'Checked In':'Not In');
+  document.getElementById('essClockHours').textContent=(punch.in?'Check-in '+punch.in:'No check-in recorded')+(punch.out?' • Check-out '+punch.out:'');
+  document.getElementById('essLeaveBalance').textContent=String(balance);
+  document.getElementById('essPending').textContent=String(pending.length);
+  document.getElementById('essManager').textContent=manager?.name||'Mandeep Singh';
+
+  const av=(e.name||'E').split(/\s+/).map(x=>x[0]).join('').slice(0,2).toUpperCase();
+  document.getElementById('essAvatar').textContent=av;
+  document.getElementById('essProfileName').textContent=e.name||'—';
+  document.getElementById('essProfileRole').textContent=(p.designation||e.designation||'Employee')+' • '+(e.status||'Active');
+  document.getElementById('essProfileGrid').innerHTML=[
+    ['Employee ID',e.id],['Department',p.department||e.department||'—'],['Designation',p.designation||e.designation||'—'],
+    ['Joining Date',fmt(p.joining)],['Employment Type',e.empType||'—'],['Shift',e.shift||'—'],['Work Email',e.email||auth.currentUser?.email||'—'],['Mobile',e.mobile||'—'],
+    ['Location',e.location||'Head Office'],['Reporting Manager',manager?.name||'Mandeep Singh']
+  ].map(([k,v])=>`<div class="ess-info"><span class="ess-muted">${escv(k)}</span><b>${escv(v)}</b></div>`).join('');
+
+  document.getElementById('essTeamList').innerHTML=(()=>{
+    const team=DB.employees.filter(x=>x.status==='Active' && x.managerId===e.id);
+    if(!team.length) return '<div class="empty">No direct reports are configured.</div>';
+    return team.map(x=>`<div class="ess-list-item"><div class="person"><div class="avatar">${escv((x.name||'?')[0])}</div><div><b>${escv(x.name)}</b><div class="personmeta">${escv(currentPeriod(x).designation||x.designation||'Employee')} • ${escv(currentPeriod(x).department||x.department||'')}</div></div></div><span class="badge green">Active</span></div>`).join('');
+  })();
+
+  document.getElementById('essUpcoming').innerHTML=activeLeaves.length?activeLeaves.map(r=>`<div class="ess-list-item"><div><b>${escv(leaveType(r.typeId))}</b><div class="personmeta">${fmt(r.from)} – ${fmt(r.to)}</div></div>${statusBadge(r.status)}</div>`).join(''):'<div class="empty">No upcoming approved leave.</div>';
+  const anns=(DB.announcements||[]).slice().reverse().slice(0,5);
+  document.getElementById('essAnnouncements').innerHTML=anns.length?anns.map(a=>`<div class="ess-list-item"><div><b>${escv(a.title||a.name||'Announcement')}</b><div class="personmeta">${escv(a.message||a.description||'')}</div></div></div>`).join(''):'<div class="empty">No announcements yet.</div>';
+  const pendingWork=(DB.approvals||[]).filter(x=>x.empId===e.id&&x.status==='Pending');
+  document.getElementById('essPendingWork').innerHTML=pendingWork.length?pendingWork.map(x=>`<div class="ess-list-item"><div><b>${escv(x.title||x.type||'Pending request')}</b><div class="personmeta">Awaiting action</div></div>${statusBadge('Pending')}</div>`).join(''):'<div class="empty">No pending work.</div>';
+
+  document.getElementById('essLeaveCount').textContent=leaveRows.length;
+  document.getElementById('essLeavePending').textContent=pending.length;
+  document.getElementById('essLeaveApproved').textContent=approved.length;
+  document.getElementById('essLeaveRejected').textContent=rejected.length;
+  document.getElementById('essLeaveList').innerHTML=leaveRows.length?leaveRows.map(r=>`<div class="ess-list-item"><div><b>${escv(leaveType(r.typeId))}</b><div class="personmeta">${fmt(r.from)} – ${fmt(r.to)} • ${r.days||days(r.from,r.to)} day(s)</div><div class="personmeta">${escv(r.reason||'No reason provided')}</div></div>${statusBadge(r.status)}</div>`).join(''):'<div class="empty">No leave requests yet.</div>';
+
+  const attRows=[];
+  for(let i=0;i<30;i++){
+    const d=new Date();d.setDate(d.getDate()-i);const date=d.toLocaleDateString('en-CA',{timeZone:'Asia/Kolkata'});const k=e.id+'|'+date;const pu=DB.punches?.[k]||{};const st=DB.attendance?.[k]||((pu.in)?'Present':'Not Marked');
+    if(pu.in||pu.out||st!=='Not Marked') attRows.push({date,pu,st});
+  }
+  document.getElementById('essAttendanceBody').innerHTML=attRows.length?attRows.map(r=>`<tr><td>${fmt(r.date)}</td><td>${escv(e.shift||'—')}</td><td>${escv(r.pu.in||'—')}</td><td>${escv(r.pu.out||'—')}</td><td>${statusBadge(r.st)}</td></tr>`).join(''):'<tr><td colspan="5"><div class="empty">No attendance records yet.</div></td></tr>';
+
+  const ts=(DB.timesheets||[]).filter(x=>x.empId===e.id).slice().reverse();
+  document.getElementById('essTimesheetBody').innerHTML=ts.length?ts.map(x=>`<tr><td>${fmt(x.date)}</td><td>${escv(x.work||'—')}</td><td>${escv(x.project||'—')}</td><td>${escv(x.hours||0)}</td><td>${statusBadge(x.status||'Submitted')}</td></tr>`).join(''):'<tr><td colspan="5"><div class="empty">No timesheet entries yet.</div></td></tr>';
+
+  const goals=(DB.goals||[]).filter(x=>x.empId===e.id);
+  document.getElementById('essGoals').innerHTML=goals.length?goals.map(g=>`<div class="ess-list-item"><div><b>${escv(g.title||g.kra||'Goal')}</b><div class="personmeta">Progress ${Number(g.progress)||0}% • Weight ${Number(g.weight)||0}%</div></div>${statusBadge(g.status||'Active')}</div>`).join(''):'<div class="empty">No goals assigned yet.</div>';
+  const reviews=(DB.performanceReviews||[]).filter(x=>x.empId===e.id).slice().reverse();
+  document.getElementById('essReviews').innerHTML=reviews.length?reviews.map(r=>`<div class="ess-list-item"><div><b>${escv(r.title||r.cycle||'Performance Review')}</b><div class="personmeta">${escv(r.rating||r.status||'Review')}</div></div></div>`).join(''):'<div class="empty">No performance reviews yet.</div>';
+
+  const files=(DB.documents||[]).filter(x=>!x.empId||x.empId===e.id);
+  document.getElementById('essFiles').innerHTML=files.length?files.map(f=>`<div class="ess-list-item"><div><b>${escv(f.name||f.title||'Document')}</b><div class="personmeta">${escv(f.type||f.category||'HR document')}</div></div>${f.url?`<a class="btn btn-secondary" href="${escv(f.url)}" target="_blank" rel="noopener">Open</a>`:''}</div>`).join(''):'<div class="empty">No employee documents or policies available.</div>';
+
+  const month=new Date(today+'T00:00:00');
+  document.getElementById('essMonthLabel').textContent=month.toLocaleDateString('en-IN',{month:'long',year:'numeric'});
+  const first=new Date(month.getFullYear(),month.getMonth(),1), last=new Date(month.getFullYear(),month.getMonth()+1,0);
+  const cells=[];for(let i=0;i<first.getDay();i++)cells.push('<div class="ess-day" style="visibility:hidden"></div>');
+  for(let day=1;day<=last.getDate();day++){const dd=String(day).padStart(2,'0'),mm=String(month.getMonth()+1).padStart(2,'0'),date=`${month.getFullYear()}-${mm}-${dd}`,k=e.id+'|'+date,pu=DB.punches?.[k]||{},st=DB.attendance?.[k];cells.push(`<div class="ess-day"><b>${day}</b><div style="margin-top:7px;color:#64748b">${pu.in?'✓ In':(st||'')}</div></div>`)}
+  document.getElementById('essCalendar').innerHTML=cells.join('');
+};
+
 window.renderTimesheets=()=>{
   ensureModules();
   const sel=document.getElementById("timesheetEmployee");
@@ -1098,7 +1188,7 @@ document.getElementById("loginForm").addEventListener("submit",async e=>{e.preve
 onAuthStateChanged(auth,async user=>{
  if(!user){document.getElementById("loginScreen").classList.remove("hide");document.getElementById("app").classList.add("hide");return}
  try{DB=await loadDB();ensureModules();document.getElementById("loginScreen").classList.add("hide");document.getElementById("app").classList.remove("hide");document.getElementById("sideUser").textContent=user.email||"Authenticated user";document.getElementById("userAvatar").textContent=(user.email||"H")[0].toUpperCase();const linked=DB.employees.find(e=>(e.email||"").toLowerCase()===(user.email||"").toLowerCase());go(linked?"employee-portal":"dashboard");toast("Connected to GI People.");}
-  catch(err){console.error(err);const msg="Authentication succeeded, but some GI People data could not be loaded: "+(err?.message||err);alert(msg)}
+  catch(err){console.error("GI People Firestore load failed:",err);const code=err?.code?` [${err.code}]`:"";const msg="Firebase login worked, but GI People could not read hrms/state"+code+". "+(err?.message||err);document.getElementById("loginMsg").textContent=msg;document.getElementById("loginScreen").classList.remove("hide");document.getElementById("app").classList.add("hide");}
 })
 </script>
 </body>
