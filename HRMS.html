@@ -1,0 +1,476 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Gurunanak Impex — People</title>
+<style>
+:root{
+  --bg:#f6f7f9; --card:#fff; --text:#1a1d23; --muted:#6b7280; --border:#e5e7eb;
+  --brand:#0f4c3a; --brand2:#137a5e; --accent:#c8952b; --danger:#b3261e; --ok:#1a7f37;
+  --radius:10px;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:14px}
+header{background:var(--brand);color:#fff;padding:14px 16px;display:flex;align-items:center;gap:10px;justify-content:space-between}
+header .left{display:flex;align-items:center;gap:10px}
+header .logo{width:30px;height:30px;border-radius:7px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;color:#1a1d23}
+header h1{font-size:16px;margin:0;font-weight:600}
+header .sub{font-size:11px;opacity:.8}
+header .who{font-size:12px;opacity:.9;cursor:pointer;text-decoration:underline}
+nav{display:flex;gap:4px;overflow-x:auto;background:var(--card);border-bottom:1px solid var(--border);padding:0 8px}
+nav button{border:none;background:transparent;padding:12px 12px;font-size:13px;color:var(--muted);cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent}
+nav button.active{color:var(--brand2);border-color:var(--brand2);font-weight:600}
+main{max-width:1000px;margin:0 auto;padding:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px}
+.stat{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:12px}
+.stat .n{font-size:22px;font-weight:700}
+.stat .l{color:var(--muted);font-size:12px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:12px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+input,select,textarea{background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:7px;padding:8px 9px;font-size:13px;font-family:inherit}
+textarea{width:100%;min-height:50px}
+label{font-size:11px;color:var(--muted);display:block;margin-bottom:3px}
+.field{margin-bottom:8px}
+button.btn{background:var(--brand2);color:#fff;border:none;border-radius:7px;padding:8px 13px;font-size:13px;cursor:pointer;font-weight:600}
+button.btn.ghost{background:transparent;color:var(--brand2);border:1px solid var(--brand2)}
+button.btn.danger{background:var(--danger)}
+button.btn.small{padding:5px 9px;font-size:12px}
+button.btn:disabled{opacity:.5;cursor:default}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--border)}
+th{color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase}
+.pill{display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600}
+.pill.Active{background:#dcf7e3;color:var(--ok)}
+.pill.Left{background:#fde2e1;color:var(--danger)}
+.scrollx{overflow-x:auto}
+.link{color:var(--brand2);cursor:pointer;text-decoration:underline;font-size:12.5px}
+.muted{color:var(--muted)}
+.toast{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);background:var(--brand);color:#fff;padding:9px 16px;border-radius:8px;font-size:13px;z-index:50;opacity:0;transition:opacity .25s}
+.toast.show{opacity:1}
+#loginWrap{max-width:340px;margin:60px auto;padding:0 14px}
+.err{color:var(--danger);font-size:12px;margin-top:4px}
+</style>
+</head>
+<body>
+<header>
+  <div class="left"><div class="logo">GI</div><div><h1>Gurunanak Impex — People</h1><div class="sub">HR & Attendance</div></div></div>
+  <div class="who" id="whoBox"></div>
+</header>
+<nav id="nav" style="display:none"></nav>
+<main id="main"></main>
+<div id="loginWrap"></div>
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getAuth, signInWithEmailAndPassword, sendPasswordResetEmail, signOut, onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {
+  getFirestore, collection, doc, setDoc, getDocs, query
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAtmg8G_dEqu58paEa-qnRMQy-GCYToBwg",
+  authDomain: "gi--hrms.firebaseapp.com",
+  projectId: "gi--hrms",
+  storageBucket: "gi--hrms.firebasestorage.app",
+  messagingSenderId: "91230577575",
+  appId: "1:91230577575:web:be7f7e4ab64ee6f0190c82"
+};
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const dbfs = getFirestore(app);
+
+let employees = [];
+let view = "dashboard";
+let editingId = null;
+let currentUser = null;
+
+function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1800); }
+function uid(){ return Math.random().toString(36).slice(2,9); }
+function todayStr(){ return new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Kolkata'}); }
+function fmtDate(d){ if(!d) return '—'; try{ return new Date(d).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});}catch(e){return d;} }
+function activePeriod(emp){ return (emp.employmentHistory||[]).find(p=>!p.endDate) || null; }
+function currentSalary(emp){ const sh=emp.salaryHistory||[]; return sh.length? sh[sh.length-1].amount : null; }
+
+const NAV = [
+  {id:'dashboard', label:'Dashboard'},
+  {id:'employees', label:'Employees'},
+  {id:'attendance', label:'Attendance'},
+  {id:'former', label:'Former'},
+];
+
+// ---------- AUTH ----------
+function renderLogin(){
+  document.getElementById('nav').style.display='none';
+  document.getElementById('main').innerHTML='';
+  document.getElementById('whoBox').textContent='';
+  document.getElementById('loginWrap').innerHTML = `
+    <div class="card">
+      <b>Sign in</b>
+      <div class="field" style="margin-top:10px"><label>Work Email</label><input id="li_email" type="email"></div>
+      <div class="field"><label>Password</label><input id="li_pass" type="password"></div>
+      <div id="li_err" class="err"></div>
+      <div class="row" style="margin-top:6px">
+        <button class="btn" id="li_go">Sign in</button>
+        <span class="link" id="li_forgot">Forgot password?</span>
+      </div>
+      <div class="muted" style="margin-top:10px;font-size:12px">HR accounts are created by your Firebase admin in the Authentication console.</div>
+    </div>`;
+  document.getElementById('li_go').onclick = async ()=>{
+    const email = document.getElementById('li_email').value.trim();
+    const pass = document.getElementById('li_pass').value;
+    try{ await signInWithEmailAndPassword(auth, email, pass); }
+    catch(e){ document.getElementById('li_err').textContent = e.message; }
+  };
+  document.getElementById('li_forgot').onclick = async ()=>{
+    const email = document.getElementById('li_email').value.trim();
+    if(!email){ document.getElementById('li_err').textContent='Enter your email above first.'; return; }
+    try{ await sendPasswordResetEmail(auth, email); toast('Reset email sent'); }
+    catch(e){ document.getElementById('li_err').textContent = e.message; }
+  };
+}
+
+onAuthStateChanged(auth, async (user)=>{
+  currentUser = user;
+  if(!user){ document.getElementById('loginWrap').style.display='block'; renderLogin(); return; }
+  document.getElementById('loginWrap').style.display='none';
+  document.getElementById('loginWrap').innerHTML='';
+  document.getElementById('nav').style.display='flex';
+  document.getElementById('whoBox').innerHTML = `${user.email} · <span class="link" id="logoutLink" style="color:#fff">Sign out</span>`;
+  document.getElementById('logoutLink').onclick = ()=>signOut(auth);
+  await seedIfEmpty();
+  await loadAll();
+});
+
+// ---------- DATA LAYER (Firestore) ----------
+const empCol = collection(dbfs, 'employees');
+
+async function saveEmployee(e){
+  const id = e.id || doc(empCol).id;
+  e.id = id;
+  await setDoc(doc(dbfs, 'employees', id), e);
+  await loadAll();
+}
+
+async function loadAll(){
+  const snap = await getDocs(query(empCol));
+  employees = snap.docs.map(d=>d.data());
+  render();
+}
+
+async function seedIfEmpty(){
+  const snap = await getDocs(query(empCol));
+  if(snap.docs.length>0) return;
+  const empId = 'GI-EMP-001';
+  const emp = {
+    id: empId, empCode: empId, name:'Uma', mobile:'+91 80909 53624', dob:'', gender:'',
+    address:'', emergencyContact:'', aadhaar:'', notes:'', status:'Active',
+    employmentHistory:[{
+      id: uid(), startDate:'2026-09-23', endDate:null, status:'Active',
+      department:'', designation:'', employmentType:'', shift:'10:00 AM – 7:00 PM',
+      weeklyOff:'', salary:9000
+    }],
+    salaryHistory:[{id:uid(), amount:9000, effectiveDate:'2026-09-23'}],
+    attendance:{}
+  };
+  await setDoc(doc(dbfs,'employees', empId), emp);
+}
+
+function nextEmpCode(){
+  const nums = employees.map(e=>{ const m=(e.empCode||'').match(/(\d+)$/); return m?parseInt(m[1]):0; });
+  const n = (nums.length?Math.max(...nums):0)+1;
+  return 'GI-EMP-'+String(n).padStart(3,'0');
+}
+
+// ---------- RENDER ----------
+function renderNav(){
+  const nav = document.getElementById('nav');
+  nav.innerHTML = NAV.map(n=>`<button data-v="${n.id}" class="${view===n.id?'active':''}">${n.label}</button>`).join('');
+  nav.querySelectorAll('button').forEach(b=>b.onclick=()=>{ view=b.dataset.v; editingId=null; render(); });
+}
+
+function render(){
+  renderNav();
+  const m = document.getElementById('main');
+  if(view==='dashboard') return renderDashboard(m);
+  if(view==='employees') return renderEmployees(m, false);
+  if(view==='former') return renderEmployees(m, true);
+  if(view==='attendance') return renderAttendance(m);
+  if(view==='profile') return renderProfile(m);
+}
+
+function renderDashboard(m){
+  const active = employees.filter(e=>e.status==='Active');
+  const former = employees.filter(e=>e.status==='Left');
+  const today = todayStr();
+  let present=0, absent=0, onLeave=0;
+  active.forEach(e=>{
+    const st = (e.attendance||{})[today];
+    if(st==='Present'||st==='WFH') present++;
+    else if(st==='Absent') absent++;
+    else if(st==='Paid Leave'||st==='Sick Leave') onLeave++;
+  });
+  m.innerHTML = `
+  <div class="grid">
+    <div class="stat"><div class="n">${employees.length}</div><div class="l">Total Employees</div></div>
+    <div class="stat"><div class="n">${active.length}</div><div class="l">Active</div></div>
+    <div class="stat"><div class="n">${present}</div><div class="l">Present Today</div></div>
+    <div class="stat"><div class="n">${absent}</div><div class="l">Absent Today</div></div>
+    <div class="stat"><div class="n">${onLeave}</div><div class="l">On Leave Today</div></div>
+    <div class="stat"><div class="n">${former.length}</div><div class="l">Former Employees</div></div>
+  </div>
+  <div class="card">
+    <b>Active Employees</b>
+    <div class="scrollx"><table><tr><th>ID</th><th>Name</th><th>Designation</th><th>Salary</th><th>Today</th><th></th></tr>
+    ${active.map(e=>{
+      const st=(e.attendance||{})[today]||'—';
+      return `<tr><td>${e.empCode}</td><td>${e.name}</td><td>${activePeriod(e)?.designation||'—'}</td><td>₹${currentSalary(e)??'—'}</td><td>${st}</td><td><span class="link" data-open="${e.id}">View</span></td></tr>`;
+    }).join('') || '<tr><td colspan="6" class="muted">No employees yet.</td></tr>'}
+    </table></div>
+  </div>`;
+  m.querySelectorAll('[data-open]').forEach(el=>el.onclick=()=>{ editingId=el.dataset.open; view='profile'; render(); });
+}
+
+function employeeForm(emp){
+  const p = activePeriod(emp) || {};
+  return `
+  <div class="card">
+    <b>${emp.id? 'Edit Employee' : 'Add Employee'}</b>
+    <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr));margin-top:10px">
+      <div class="field"><label>Full Name *</label><input id="f_name" value="${emp.name||''}"></div>
+      <div class="field"><label>Mobile</label><input id="f_mobile" value="${emp.mobile||''}"></div>
+      <div class="field"><label>Date of Birth</label><input id="f_dob" type="date" value="${emp.dob||''}"></div>
+      <div class="field"><label>Gender</label><input id="f_gender" value="${emp.gender||''}"></div>
+      <div class="field"><label>Emergency Contact</label><input id="f_ec" value="${emp.emergencyContact||''}"></div>
+      <div class="field"><label>Aadhaar (stored securely)</label><input id="f_aadhaar" value="${emp.aadhaar||''}"></div>
+      <div class="field"><label>Joining Date *</label><input id="f_join" type="date" value="${p.startDate||''}"></div>
+      <div class="field"><label>Department</label><input id="f_dept" value="${p.department||''}"></div>
+      <div class="field"><label>Designation</label><input id="f_desig" value="${p.designation||''}"></div>
+      <div class="field"><label>Employment Type</label><input id="f_type" value="${p.employmentType||''}"></div>
+      <div class="field"><label>Shift</label><input id="f_shift" value="${p.shift||'10:00 AM – 7:00 PM'}"></div>
+      <div class="field"><label>Weekly Off</label><input id="f_off" value="${p.weeklyOff||''}"></div>
+      <div class="field"><label>Salary (₹/month) *</label><input id="f_salary" type="number" value="${p.salary??''}"></div>
+    </div>
+    <div class="field"><label>Address</label><textarea id="f_addr">${emp.address||''}</textarea></div>
+    <div class="field"><label>Notes</label><textarea id="f_notes">${emp.notes||''}</textarea></div>
+    <div class="row">
+      <button class="btn" id="f_save">Save</button>
+      <button class="btn ghost" id="f_cancel">Cancel</button>
+    </div>
+  </div>`;
+}
+
+function bindEmployeeForm(emp){
+  document.getElementById('f_cancel').onclick = ()=>{ editingId=null; view='employees'; render(); };
+  document.getElementById('f_save').onclick = async ()=>{
+    const name = document.getElementById('f_name').value.trim();
+    const join = document.getElementById('f_join').value;
+    const salary = parseFloat(document.getElementById('f_salary').value);
+    if(!name || !join || !salary){ toast('Name, joining date and salary are required'); return; }
+    const isNew = !emp.id;
+    const period = activePeriod(emp) || { id: uid(), startDate: join, endDate:null, status:'Active' };
+    period.startDate = join;
+    period.department = document.getElementById('f_dept').value;
+    period.designation = document.getElementById('f_desig').value;
+    period.employmentType = document.getElementById('f_type').value;
+    period.shift = document.getElementById('f_shift').value;
+    period.weeklyOff = document.getElementById('f_off').value;
+    const prevSalary = period.salary;
+    period.salary = salary;
+
+    const out = {
+      id: emp.id || null,
+      empCode: emp.empCode || nextEmpCode(),
+      name, mobile: document.getElementById('f_mobile').value,
+      dob: document.getElementById('f_dob').value,
+      gender: document.getElementById('f_gender').value,
+      emergencyContact: document.getElementById('f_ec').value,
+      aadhaar: document.getElementById('f_aadhaar').value,
+      address: document.getElementById('f_addr').value,
+      notes: document.getElementById('f_notes').value,
+      status: emp.status || 'Active',
+      employmentHistory: emp.employmentHistory ? emp.employmentHistory.map(h=>h.id===period.id?period:h) : [period],
+      salaryHistory: emp.salaryHistory || [],
+      attendance: emp.attendance || {}
+    };
+    if(isNew || out.employmentHistory.length===0) out.employmentHistory=[period];
+    if(prevSalary !== salary){
+      out.salaryHistory = [...out.salaryHistory, {id:uid(), amount:salary, effectiveDate: join<=todayStr()? todayStr() : join}];
+    } else if(out.salaryHistory.length===0){
+      out.salaryHistory = [{id:uid(), amount:salary, effectiveDate: period.startDate}];
+    }
+    await saveEmployee(out);
+    toast('Saved');
+    editingId = out.id; view='profile'; render();
+  };
+}
+
+function renderEmployees(m, former){
+  if(editingId==='new' && !former){
+    m.innerHTML = employeeForm({}); bindEmployeeForm({}); return;
+  }
+  const list = employees.filter(e => former ? e.status==='Left' : e.status==='Active');
+  m.innerHTML = `
+  ${former?'':`<div class="row" style="margin-bottom:10px"><input id="search" placeholder="Search name / ID / mobile" style="flex:1;min-width:160px"><button class="btn" id="addBtn">+ Add Employee</button></div>`}
+  <div class="card">
+    <div class="scrollx"><table><tr><th>ID</th><th>Name</th><th>Mobile</th><th>Designation</th><th>Salary</th><th>Status</th><th></th></tr>
+    <tbody id="tbody"></tbody>
+    </table></div>
+  </div>`;
+  function draw(filter){
+    const f = (filter||'').toLowerCase();
+    const rows = list.filter(e=> !f || e.name.toLowerCase().includes(f) || (e.empCode||'').toLowerCase().includes(f) || (e.mobile||'').includes(f));
+    document.getElementById('tbody').innerHTML = rows.map(e=>`
+      <tr><td>${e.empCode}</td><td>${e.name}</td><td>${e.mobile||'—'}</td><td>${activePeriod(e)?.designation||(e.employmentHistory?.slice(-1)[0]?.designation)||'—'}</td>
+      <td>₹${currentSalary(e)??'—'}</td><td><span class="pill ${e.status}">${e.status}</span></td>
+      <td><span class="link" data-open="${e.id}">View</span></td></tr>`).join('') || '<tr><td colspan="7" class="muted">No records.</td></tr>';
+    document.querySelectorAll('[data-open]').forEach(el=>el.onclick=()=>{ editingId=el.dataset.open; view='profile'; render(); });
+  }
+  draw('');
+  if(!former){
+    document.getElementById('search').oninput = (e)=>draw(e.target.value);
+    document.getElementById('addBtn').onclick = ()=>{ editingId='new'; render(); };
+  }
+}
+
+function renderProfile(m){
+  const emp = employees.find(e=>e.id===editingId);
+  if(!emp){ view='employees'; editingId=null; return render(); }
+  const p = activePeriod(emp);
+  const hist = [...(emp.employmentHistory||[])].sort((a,b)=>a.startDate.localeCompare(b.startDate));
+  const sal = [...(emp.salaryHistory||[])].sort((a,b)=>a.effectiveDate.localeCompare(b.effectiveDate));
+  const att = emp.attendance||{};
+  const month = todayStr().slice(0,7);
+  let present=0,absent=0,leave=0,half=0;
+  Object.entries(att).forEach(([d,s])=>{ if(!d.startsWith(month)) return;
+    if(s==='Present'||s==='WFH') present++; else if(s==='Absent') absent++;
+    else if(s==='Half Day') half++; else if(s==='Paid Leave'||s==='Sick Leave') leave++; });
+
+  m.innerHTML = `
+  <div class="card">
+    <div class="row" style="justify-content:space-between">
+      <div><b style="font-size:16px">${emp.name}</b> <span class="pill ${emp.status}">${emp.status}</span><br>
+      <span class="muted">${emp.empCode} · ${emp.mobile||'—'}</span></div>
+      <div class="row">
+        <button class="btn ghost small" id="editBtn">Edit</button>
+        ${emp.status==='Active' ? '<button class="btn danger small" id="leaveBtn">Mark as Left</button>' : '<button class="btn small" id="rejoinBtn">Rejoin</button>'}
+      </div>
+    </div>
+  </div>
+  <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr))">
+    <div class="stat"><div class="n">${present}</div><div class="l">Present (this mo.)</div></div>
+    <div class="stat"><div class="n">${absent}</div><div class="l">Absent</div></div>
+    <div class="stat"><div class="n">${half}</div><div class="l">Half Day</div></div>
+    <div class="stat"><div class="n">${leave}</div><div class="l">Leave</div></div>
+  </div>
+  <div class="card">
+    <b>Employment Details</b>
+    <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr));margin-top:8px;font-size:13px">
+      <div><span class="muted">Department</span><br>${p?.department||'—'}</div>
+      <div><span class="muted">Designation</span><br>${p?.designation||'—'}</div>
+      <div><span class="muted">Shift</span><br>${p?.shift||'—'}</div>
+      <div><span class="muted">Weekly Off</span><br>${p?.weeklyOff||'—'}</div>
+      <div><span class="muted">Employment Type</span><br>${p?.employmentType||'—'}</div>
+      <div><span class="muted">Current Salary</span><br>₹${currentSalary(emp)??'—'}/mo</div>
+    </div>
+    <div class="field" style="margin-top:10px"><label>Address</label><div>${emp.address||'—'}</div></div>
+    <div class="field"><label>Notes</label><div>${emp.notes||'—'}</div></div>
+  </div>
+  <div class="card">
+    <b>Employment History</b>
+    <div class="scrollx"><table><tr><th>Period</th><th>Status</th><th>Salary</th><th>Designation</th></tr>
+    ${hist.map(h=>`<tr><td>${fmtDate(h.startDate)} – ${h.endDate?fmtDate(h.endDate):'Present'}</td><td><span class="pill ${h.status}">${h.status}</span></td><td>₹${h.salary}</td><td>${h.designation||'—'}</td></tr>`).join('')}
+    </table></div>
+  </div>
+  <div class="card">
+    <b>Salary History</b>
+    <div class="scrollx"><table><tr><th>Amount</th><th>Effective From</th></tr>
+    ${sal.map(s=>`<tr><td>₹${s.amount}</td><td>${fmtDate(s.effectiveDate)}</td></tr>`).join('') || '<tr><td colspan="2" class="muted">None</td></tr>'}
+    </table></div>
+    ${emp.status==='Active'?`<div class="row" style="margin-top:8px"><input id="newSalary" type="number" placeholder="New salary ₹"><button class="btn small" id="salBtn">Record Revision</button></div>`:''}
+  </div>
+  <div class="link" id="backBtn">&larr; Back</div>
+  `;
+  document.getElementById('backBtn').onclick=()=>{ editingId=null; view='employees'; render(); };
+  document.getElementById('editBtn').onclick=()=>{ m.innerHTML = employeeForm(emp); bindEmployeeForm(emp); };
+  if(emp.status==='Active'){
+    document.getElementById('leaveBtn').onclick=()=>openLeaveDialog(emp);
+    document.getElementById('salBtn').onclick=async ()=>{
+      const v = parseFloat(document.getElementById('newSalary').value);
+      if(!v){ toast('Enter an amount'); return; }
+      const period = activePeriod(emp); period.salary=v;
+      emp.employmentHistory = emp.employmentHistory.map(h=>h.id===period.id?period:h);
+      emp.salaryHistory = [...(emp.salaryHistory||[]), {id:uid(), amount:v, effectiveDate:todayStr()}];
+      await saveEmployee(emp); toast('Salary updated'); render();
+    };
+  } else {
+    document.getElementById('rejoinBtn').onclick=()=>openRejoinDialog(emp);
+  }
+}
+
+function openLeaveDialog(emp){
+  const exitDate = prompt('Exit date (YYYY-MM-DD):', todayStr());
+  if(!exitDate) return;
+  const reason = prompt('Exit reason:', '') || '';
+  (async ()=>{
+    const p = activePeriod(emp);
+    p.endDate = exitDate; p.status='Left'; p.exitReason = reason;
+    emp.employmentHistory = emp.employmentHistory.map(h=>h.id===p.id?p:h);
+    emp.status='Left';
+    await saveEmployee(emp); toast('Marked as Left'); render();
+  })();
+}
+
+function openRejoinDialog(emp){
+  const joinDate = prompt('Rejoining date (YYYY-MM-DD):', todayStr());
+  if(!joinDate) return;
+  const salary = parseFloat(prompt('Salary (₹/month):', currentSalary(emp)||''));
+  if(!salary) { toast('Salary required'); return; }
+  const dept = prompt('Department:', activePeriod(emp)?.department || (emp.employmentHistory?.slice(-1)[0]?.department) || '') || '';
+  const desig = prompt('Designation:', emp.employmentHistory?.slice(-1)[0]?.designation || '') || '';
+  (async ()=>{
+    const newPeriod = { id: uid(), startDate: joinDate, endDate:null, status:'Active', department:dept, designation:desig,
+      shift: emp.employmentHistory?.slice(-1)[0]?.shift || '10:00 AM – 7:00 PM', weeklyOff: emp.employmentHistory?.slice(-1)[0]?.weeklyOff||'', salary };
+    emp.employmentHistory = [...emp.employmentHistory, newPeriod];
+    emp.salaryHistory = [...(emp.salaryHistory||[]), {id:uid(), amount:salary, effectiveDate:joinDate}];
+    emp.status='Active';
+    await saveEmployee(emp); toast('Rejoined'); render();
+  })();
+}
+
+function renderAttendance(m){
+  const today = todayStr();
+  const active = employees.filter(e=>e.status==='Active');
+  const statuses = ['Present','Absent','Half Day','Paid Leave','Sick Leave','Weekly Off','Holiday','WFH','Comp-Off'];
+  m.innerHTML = `
+  <div class="card"><div class="row"><label style="margin:0">Date</label><input id="attDate" type="date" value="${today}"></div></div>
+  <div class="card">
+    <div class="scrollx"><table><tr><th>Employee</th><th>Status</th></tr><tbody id="attBody"></tbody></table></div>
+  </div>`;
+  function draw(date){
+    document.getElementById('attBody').innerHTML = active.map(e=>{
+      const cur = (e.attendance||{})[date]||'';
+      return `<tr><td>${e.name} <span class="muted">(${e.empCode})</span></td><td>
+        <select data-emp="${e.id}">
+        <option value="">—</option>
+        ${statuses.map(s=>`<option value="${s}" ${cur===s?'selected':''}>${s}</option>`).join('')}
+        </select></td></tr>`;
+    }).join('') || '<tr><td colspan="2" class="muted">No active employees.</td></tr>';
+    document.querySelectorAll('[data-emp]').forEach(sel=>{
+      sel.onchange = async ()=>{
+        const emp = employees.find(x=>x.id===sel.dataset.emp);
+        emp.attendance = emp.attendance||{};
+        if(sel.value) emp.attendance[date]=sel.value; else delete emp.attendance[date];
+        await saveEmployee(emp); toast('Attendance saved');
+      };
+    });
+  }
+  draw(today);
+  document.getElementById('attDate').onchange=(e)=>draw(e.target.value);
+}
+</script>
+</body>
+</html>
