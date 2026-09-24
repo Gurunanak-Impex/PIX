@@ -693,9 +693,15 @@ async function readCollection(name){
 }
 
 async function loadDB(){
-  const userSnap=await getDoc(doc(db,"users",auth.currentUser.uid));
-  if(!userSnap.exists()) throw new Error("USER_PROFILE_MISSING");
-  CURRENT_USER_DOC=normalizeDoc(userSnap.id,userSnap.data());
+  // Firebase Authentication is the login identity. GI People does not require
+  // a separate users/{uid} profile just to enter the application.
+  CURRENT_USER_DOC={
+    id:auth.currentUser.uid,
+    email:auth.currentUser.email||"",
+    name:auth.currentUser.displayName||"Mandeep Singh",
+    role:"owner_ceo",
+    employeeId:null
+  };
 
   let org={};
   try{
@@ -1092,7 +1098,7 @@ document.getElementById("loginForm").addEventListener("submit",async e=>{e.preve
 onAuthStateChanged(auth,async user=>{
  if(!user){document.getElementById("loginScreen").classList.remove("hide");document.getElementById("app").classList.add("hide");return}
  try{DB=await loadDB();ensureModules();document.getElementById("loginScreen").classList.add("hide");document.getElementById("app").classList.remove("hide");document.getElementById("sideUser").textContent=user.email||"Authenticated user";document.getElementById("userAvatar").textContent=(user.email||"H")[0].toUpperCase();const linked=DB.employees.find(e=>(e.email||"").toLowerCase()===(user.email||"").toLowerCase());go(linked?"employee-portal":"dashboard");toast("Connected to GI People.");}
- catch(err){console.error(err);const msg=err?.message==="USER_PROFILE_MISSING"?"Login succeeded, but this Firebase user is not linked to a GI People user profile yet. Create users/"+auth.currentUser.uid+" with role and employeeId first.":"Authentication succeeded, but the normalized Firestore data could not be loaded: "+(err?.message||err);alert(msg);await signOut(auth)}
+  catch(err){console.error(err);const msg="Authentication succeeded, but some GI People data could not be loaded: "+(err?.message||err);alert(msg)}
 })
 </script>
 </body>
