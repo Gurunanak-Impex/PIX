@@ -59,9 +59,118 @@
   .loginbox{width:min(430px,calc(100% - 32px));background:#fff;border-radius:16px;padding:30px;box-shadow:0 25px 70px rgba(0,0,0,.25)}
   .loginbrand{display:flex;align-items:center;gap:12px;margin-bottom:25px}.loginmark{width:44px;height:44px;background:var(--navy);border-radius:11px;color:#fbbf24;display:grid;place-items:center;font-weight:800}
   .hide{display:none!important}
-  @media(max-width:1000px){.sidebar{width:220px}.main{margin-left:220px}.stats{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr}.quick{grid-template-columns:repeat(2,1fr)}}
-  @media(max-width:720px){.sidebar{display:none}.main{margin-left:0}.topbar{padding:0 15px;height:62px}.topbar .search{display:none}.content{padding:16px}.stats{grid-template-columns:repeat(2,1fr);gap:10px}.three{grid-template-columns:1fr}.formgrid{grid-template-columns:1fr}.field.full{grid-column:auto}.quick{grid-template-columns:1fr 1fr}.mobilebar{display:flex;position:fixed;bottom:0;left:0;right:0;height:62px;background:#fff;border-top:1px solid var(--line);z-index:80;justify-content:space-around}.mobilebar button{border:0;background:none;font-size:10px;color:#64748b;font-weight:700}.mobilebar button.active{color:#1d4ed8}.content{padding-bottom:82px}}
+  /* ---------- Responsive / All-device layout ---------- */
+  @media(min-width:1600px){
+    .content{padding:32px 40px}
+    .sidebar{width:270px}
+    .main{margin-left:270px}
+    .stats{grid-template-columns:repeat(4,minmax(220px,1fr))}
+  }
+  @media(min-width:1201px) and (max-width:1599px){
+    .content{padding:28px 32px}
+  }
+  @media(max-width:1200px){
+    .sidebar{width:230px}
+    .main{margin-left:230px}
+    .content{padding:24px}
+    .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .two{grid-template-columns:1fr}
+    .quick{grid-template-columns:repeat(2,1fr)}
+  }
+  @media(max-width:900px){
+    .sidebar{display:none}
+    .main{margin-left:0}
+    .mobilebar{display:flex}
+    .topbar{height:64px;padding:0 18px}
+    .content{padding:20px}
+    .topbar .search{display:block;width:min(300px,38vw)}
+    .three{grid-template-columns:repeat(2,1fr)}
+  }
+  @media(max-width:640px){
+    .topbar{height:60px;padding:0 12px}
+    .topbar>div:first-child .btn{display:inline-flex}
+    .topbar .search{display:none}
+    .content{padding:14px;padding-bottom:86px}
+    .pagehead{flex-direction:column;align-items:stretch;margin-bottom:16px}
+    .pagehead .btn{align-self:flex-start}
+    .title{font-size:22px}
+    .subtitle{font-size:11px}
+    .stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+    .stat{padding:14px}
+    .stat-value{font-size:22px}
+    .three{grid-template-columns:1fr}
+    .quick{grid-template-columns:1fr 1fr}
+    .cardhead{padding:14px}
+    .cardbody{padding:14px}
+    .toolbar{flex-direction:column}
+    .toolbar .input,.toolbar .select{width:100%!important}
+    .table th,.table td{padding:10px 9px}
+    .formgrid{grid-template-columns:1fr}
+    .field.full{grid-column:auto}
+    .modalback{padding:10px}
+    .modal{max-height:94vh;border-radius:12px}
+    .modalbody{padding:15px}
+    .modalfoot{padding:12px 15px}
+    .mobilebar{height:66px}
+    .mobilebar button{min-width:18%;font-size:9px}
+  }
+  @media(max-width:380px){
+    .content{padding:10px;padding-bottom:84px}
+    .stats{grid-template-columns:1fr 1fr}
+    .stat-label{font-size:9px}
+    .stat-value{font-size:20px}
+    .quick{grid-template-columns:1fr}
+    .pagehead .btn{width:100%;justify-content:center}
+    .topbar{padding:0 9px}
+    #pageTitle{font-size:13px}
+  }
+  @media(min-width:901px){
+    .mobilebar{display:none!important}
+  }
+  @media print{
+    .sidebar,.topbar,.mobilebar,.btn,.modalback{display:none!important}
+    .main{margin-left:0}
+    .content{padding:0}
+    .card{box-shadow:none}
+  }
 </style>
+<style>
+  /* Employee organization chart */
+  .orgchart{overflow:auto;padding:20px 10px 28px;min-height:220px}
+  .org-root{display:flex;flex-direction:column;align-items:center;min-width:620px}
+  .org-root-card{min-width:230px;max-width:300px;background:#0f2942;color:#fff;border-radius:12px;padding:16px 18px;text-align:center;box-shadow:0 8px 22px rgba(15,41,66,.16)}
+  .org-root-card .org-avatar{margin:0 auto 9px;background:#fbbf24;color:#0f2942}
+  .org-line{width:2px;height:28px;background:#cbd5e1}
+  .org-departments{display:flex;align-items:flex-start;justify-content:center;gap:24px;position:relative;padding-top:28px}
+  .org-departments:before{content:"";position:absolute;top:0;left:10%;right:10%;height:2px;background:#cbd5e1}
+  .org-dept{position:relative;min-width:250px;max-width:330px}
+  .org-dept:before{content:"";position:absolute;top:-28px;left:50%;width:2px;height:28px;background:#cbd5e1}
+  .org-dept-head{background:#eaf2ff;border:1px solid #bfdbfe;color:#1e40af;border-radius:10px;padding:12px 14px;text-align:center;font-weight:800;font-size:12px}
+  .org-members{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+  .org-member{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:10px;text-align:left;box-shadow:0 2px 6px rgba(15,23,42,.04)}
+  .org-member:hover{border-color:#93c5fd;background:#f8fbff}
+  .org-avatar{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;font-size:12px;font-weight:800;flex:none}
+  .org-name{font-size:11px;font-weight:800;color:#172033}
+  .org-role{font-size:9px;color:#64748b;margin-top:2px}
+  .org-status{margin-left:auto}
+  @media(max-width:900px){
+    .orgchart{padding:14px 4px 24px}
+    .org-root{min-width:560px}
+    .org-departments{gap:16px}
+    .org-dept{min-width:220px}
+  }
+  @media(max-width:640px){
+    .orgchart{overflow-x:auto}
+    .org-root{min-width:520px}
+  }
+  /* Device-safe utilities */
+  .topbar>div:first-child .btn{display:none}
+  @media(max-width:900px){.topbar>div:first-child .btn{display:inline-flex}}
+  .tablewrap{-webkit-overflow-scrolling:touch;scrollbar-width:thin}
+  button,input,select,textarea{touch-action:manipulation}
+  @media(max-width:900px){.navbtn{min-height:44px}.btn{min-height:40px}}
+</style>
+
 </head>
 <body>
 <div id="loginScreen" class="login">
@@ -88,14 +197,22 @@
       <div class="nav-section">Workspace</div>
       <button class="navbtn active" data-page="dashboard" onclick="go('dashboard')">▦ <span>Dashboard</span></button>
       <button class="navbtn" data-page="people" onclick="go('people')">♙ <span>People</span></button>
+      <button class="navbtn" data-page="employee-chart" onclick="go('employee-chart')">⌘ <span>Employee Chart</span></button>
       <button class="navbtn" data-page="attendance" onclick="go('attendance')">◷ <span>Attendance</span></button>
       <button class="navbtn" data-page="leave" onclick="go('leave')">▣ <span>Leave</span></button>
+      <button class="navbtn" data-page="timesheets" onclick="go('timesheets')">◫ <span>Timesheets</span></button>
       <button class="navbtn" data-page="approvals" onclick="go('approvals')">✓ <span>Approvals</span></button>
+      <div class="nav-section">People & Growth</div>
+      <button class="navbtn" data-page="performance" onclick="go('performance')">★ <span>Performance</span></button>
+      <button class="navbtn" data-page="compensation" onclick="go('compensation')">₹ <span>Compensation</span></button>
+      <button class="navbtn" data-page="payroll" onclick="go('payroll')">▤ <span>Payroll</span></button>
       <div class="nav-section">Employee Lifecycle</div>
-      <button class="navbtn" data-page="former" onclick="go('former')">↺ <span>Former & Rejoined</span></button>
+      <button class="navbtn" data-page="onboarding" onclick="go('onboarding')">＋ <span>Onboarding</span></button>
+      <button class="navbtn" data-page="former" onclick="go('former')">↺ <span>Offboarding & Rejoined</span></button>
       <button class="navbtn" data-page="documents" onclick="go('documents')">□ <span>Documents</span></button>
       <div class="nav-section">Administration</div>
-      <button class="navbtn" data-page="reports" onclick="go('reports')">▤ <span>Reports</span></button>
+      <button class="navbtn" data-page="reports" onclick="go('reports')">▥ <span>Reports & Analytics</span></button>
+      <button class="navbtn" data-page="audit" onclick="go('audit')">⌁ <span>Audit Log</span></button>
       <button class="navbtn" data-page="settings" onclick="go('settings')">⚙ <span>Settings</span></button>
     </nav>
     <div style="padding:14px;border-top:1px solid var(--line);font-size:11px;color:#64748b">
@@ -147,8 +264,52 @@
         <div class="pagehead"><div><div class="title">People</div><div class="subtitle">Employee directory and employment master.</div></div><button class="btn btn-primary" onclick="openEmployee()">＋ Add Employee</button></div>
         <div class="card"><div class="cardbody">
           <div class="toolbar"><input class="input" id="peopleSearch" placeholder="Search by name, employee ID, department..." oninput="renderPeople()"><select class="select" id="peopleStatus" style="width:150px" onchange="renderPeople()"><option>All</option><option>Active</option><option>Left</option></select></div>
-          <div class="tablewrap"><table class="table"><thead><tr><th>Employee</th><th>Department</th><th>Designation</th><th>Joining</th><th>Salary</th><th>Status</th><th>Actions</th></tr></thead><tbody id="peopleBody"></tbody></table></div>
+          <div class="tablewrap"><table class="table"><thead><tr><th>Employee</th><th>Department</th><th>Designation</th><th>Manager</th><th>Joining</th><th>Salary</th><th>Status</th><th>Actions</th></tr></thead><tbody id="peopleBody"></tbody></table></div>
         </div></div>
+      </div>
+
+      <div id="page-employee-chart" class="page">
+        <div class="pagehead">
+          <div>
+            <div class="title">Employee Chart</div>
+            <div class="subtitle">Visual organization view of your employee structure.</div>
+          </div>
+          <button class="btn btn-primary" onclick="openEmployee()">＋ Add Employee</button>
+        </div>
+
+        <div class="notice" style="margin-bottom:16px">
+          The chart is generated from the employee master. Add department, designation and manager information to build a richer reporting hierarchy.
+        </div>
+
+        <div class="card">
+          <div class="cardhead">
+            <div class="cardtitle">Organization Chart</div>
+            <div style="display:flex;gap:8px;align-items:center">
+              <select id="chartFilter" class="select" style="width:180px" onchange="renderEmployeeChart()">
+                <option value="All">All Departments</option>
+              </select>
+              <button class="btn btn-secondary" style="padding:7px 10px" onclick="renderEmployeeChart()">↻ Refresh</button>
+            </div>
+          </div>
+          <div class="cardbody">
+            <div id="employeeChart" class="orgchart"></div>
+          </div>
+        </div>
+
+        <div class="grid three" style="margin-top:16px">
+          <div class="card stat">
+            <div class="stat-label">Active Employees</div>
+            <div class="stat-value" id="chartActive">0</div>
+          </div>
+          <div class="card stat">
+            <div class="stat-label">Departments</div>
+            <div class="stat-value" id="chartDepartments">0</div>
+          </div>
+          <div class="card stat">
+            <div class="stat-label">Designations</div>
+            <div class="stat-value" id="chartDesignations">0</div>
+          </div>
+        </div>
       </div>
 
       <div id="page-attendance" class="page">
@@ -187,6 +348,42 @@
         </div>
       </div>
 
+
+      <div id="page-timesheets" class="page">
+        <div class="pagehead"><div><div class="title">Timesheets</div><div class="subtitle">Track work hours, project time and overtime.</div></div><button class="btn btn-primary" onclick="addTimesheet()">＋ Log Time</button></div>
+        <div class="card"><div class="cardhead"><div class="cardtitle">Timesheet Register</div><select class="select" id="timesheetEmployee" style="width:220px" onchange="renderTimesheets()"></select></div>
+        <div class="tablewrap"><table class="table"><thead><tr><th>Date</th><th>Employee</th><th>Project / Work</th><th>Hours</th><th>Overtime</th><th>Status</th></tr></thead><tbody id="timesheetBody"></tbody></table></div></div>
+      </div>
+
+      <div id="page-performance" class="page">
+        <div class="pagehead"><div><div class="title">Performance</div><div class="subtitle">Goals, KRA/KPI, reviews and appraisal history.</div></div><button class="btn btn-primary" onclick="addGoal()">＋ Add Goal</button></div>
+        <div class="grid stats"><div class="card stat"><div class="stat-label">Active Goals</div><div class="stat-value" id="perfGoals">0</div></div><div class="card stat"><div class="stat-label">Review Cycles</div><div class="stat-value" id="perfCycles">0</div></div><div class="card stat"><div class="stat-label">Completed Reviews</div><div class="stat-value" id="perfReviews">0</div></div><div class="card stat"><div class="stat-label">Avg Progress</div><div class="stat-value" id="perfProgress">0%</div></div></div>
+        <div class="card" style="margin-top:16px"><div class="cardhead"><div class="cardtitle">Goals & KRAs</div></div><div class="tablewrap"><table class="table"><thead><tr><th>Employee</th><th>Goal / KRA</th><th>Weight</th><th>Progress</th><th>Status</th></tr></thead><tbody id="performanceBody"></tbody></table></div></div>
+      </div>
+
+      <div id="page-compensation" class="page">
+        <div class="pagehead"><div><div class="title">Compensation</div><div class="subtitle">Salary structures, revisions and compensation history.</div></div></div>
+        <div class="card"><div class="cardhead"><div class="cardtitle">Compensation Register</div></div><div class="tablewrap"><table class="table"><thead><tr><th>Employee</th><th>Department</th><th>Monthly Salary</th><th>Annualized</th><th>Last Effective</th><th>History</th></tr></thead><tbody id="compBody"></tbody></table></div></div>
+      </div>
+
+      <div id="page-payroll" class="page">
+        <div class="pagehead"><div><div class="title">Payroll</div><div class="subtitle">Payroll preparation workspace. Statutory calculations should be configured before production use.</div></div><button class="btn btn-primary" onclick="preparePayroll()">＋ New Payroll Period</button></div>
+        <div class="notice" style="margin-bottom:16px">Payroll is intentionally presented as a controlled preparation workflow. Do not treat calculated values as statutory payroll until PF, ESI, TDS, PT and company-specific rules are configured and verified.</div>
+        <div class="card"><div class="cardhead"><div class="cardtitle">Payroll Periods</div></div><div class="tablewrap"><table class="table"><thead><tr><th>Period</th><th>Employees</th><th>Gross</th><th>Status</th><th>Action</th></tr></thead><tbody id="payrollBody"></tbody></table></div></div>
+      </div>
+
+      <div id="page-onboarding" class="page">
+        <div class="pagehead"><div><div class="title">Onboarding</div><div class="subtitle">Manage new joiners, tasks and confirmation milestones.</div></div><button class="btn btn-primary" onclick="openEmployee()">＋ Add Joiner</button></div>
+        <div class="grid three"><div class="card stat"><div class="stat-label">New Joiners</div><div class="stat-value" id="onboardNew">0</div></div><div class="card stat"><div class="stat-label">Probation</div><div class="stat-value" id="onboardProb">0</div></div><div class="card stat"><div class="stat-label">Confirmation Due</div><div class="stat-value" id="onboardDue">0</div></div></div>
+        <div class="card" style="margin-top:16px"><div class="cardhead"><div class="cardtitle">Onboarding Tracker</div></div><div class="tablewrap"><table class="table"><thead><tr><th>Employee</th><th>Joining</th><th>Department</th><th>Probation End</th><th>Progress</th><th>Status</th></tr></thead><tbody id="onboardBody"></tbody></table></div></div>
+      </div>
+
+
+      <div id="page-audit" class="page">
+        <div class="pagehead"><div><div class="title">Audit Log</div><div class="subtitle">Track important changes made inside GI People.</div></div></div>
+        <div class="card"><div class="cardhead"><div class="cardtitle">Activity History</div></div><div class="tablewrap"><table class="table"><thead><tr><th>Date</th><th>Action</th><th>Entity</th><th>Details</th></tr></thead><tbody id="auditBody"></tbody></table></div></div>
+      </div>
+
       <div id="page-settings" class="page">
         <div class="pagehead"><div><div class="title">Settings</div><div class="subtitle">Organization-level HR configuration.</div></div></div>
         <div class="grid two">
@@ -216,6 +413,7 @@
           <div class="field"><label>Mobile</label><input class="input" id="f_mobile" type="tel"></div>
           <div class="field"><label>Department</label><input class="input" id="f_department" value="Logistics"></div>
           <div class="field"><label>Designation</label><input class="input" id="f_designation" value="Staff"></div>
+          <div class="field"><label>Reporting Manager</label><select class="select" id="f_manager"><option value="">No manager</option></select></div>
           <div class="field"><label>Shift</label><input class="input" id="f_shift" value="10:00 AM – 7:00 PM"></div>
           <div class="field"><label>Monthly Salary (₹)</label><input class="input" id="f_salary" type="number" min="0" value="9000"></div>
           <div class="field"><label>Joining Date</label><input class="input" id="f_joining" type="date" required></div>
@@ -273,12 +471,29 @@ let currentPage="dashboard";
 
 const seed=()=>({
   nextId:2,
-  employees:[{id:"GI-EMP-0001",name:"Uma",mobile:"+91 80909 53624",email:"",dob:"",gender:"",address:"",emergency:"",department:"Logistics",designation:"Staff",empType:"Full Time",shift:"10:00 AM – 7:00 PM",status:"Active",periods:[{joining:"2026-09-23",exit:null,exitReason:"",lastDay:"",remarks:"",salary:9000,salaryHistory:[{amount:9000,effective:"2026-09-23"}],department:"Logistics",designation:"Staff"}]}],
+  employees:[{id:"GI-EMP-0001",name:"Uma",mobile:"+91 80909 53624",email:"",dob:"",gender:"",address:"",emergency:"",department:"Logistics",designation:"Staff",empType:"Full Time",shift:"10:00 AM – 7:00 PM",managerId:"",location:"Head Office",status:"Active",lifecycle:"Active",probationEnd:"",periods:[{joining:"2026-09-23",exit:null,exitReason:"",lastDay:"",remarks:"",salary:9000,salaryHistory:[{amount:9000,effective:"2026-09-23"}],department:"Logistics",designation:"Staff"}]}],
   attendance:{},punches:{},leaveTypes:[{id:"CL",name:"Casual Leave",annual:12},{id:"SL",name:"Sick Leave",annual:8},{id:"EL",name:"Earned Leave",annual:15}],leaveRequests:[],holidays:[]
 });
 
 async function loadDB(){const s=await getDoc(STATE_REF);if(s.exists())return s.data();const fresh=seed();await setDoc(STATE_REF,fresh);return fresh}
 function saveDB(){return setDoc(STATE_REF,DB)}
+function ensureModules(){
+  DB.timesheets=DB.timesheets||[];
+  DB.goals=DB.goals||[];
+  DB.performanceCycles=DB.performanceCycles||[{id:"PC-2026",name:"FY 2026-27 Annual Review",status:"Open"}];
+  DB.performanceReviews=DB.performanceReviews||[];
+  DB.payrollPeriods=DB.payrollPeriods||[];
+  DB.auditLogs=DB.auditLogs||[];
+  DB.notifications=DB.notifications||[];
+  DB.approvals=DB.approvals||[];
+}
+function audit(action,entity,details){
+  DB.auditLogs=DB.auditLogs||[];
+  DB.auditLogs.push({id:"AUD-"+Date.now(),date:new Date().toISOString(),action,entity,details});
+  if(DB.auditLogs.length>500)DB.auditLogs=DB.auditLogs.slice(-500);
+}
+function esc(v){return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m]))}
+
 function toast(m){const t=document.getElementById("toast");t.textContent=m;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2800)}
 function fmt(d){return d?new Date(d+"T00:00:00").toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric"}):"—"}
 function currentPeriod(e){return e.periods?.[e.periods.length-1]||{}}
@@ -293,12 +508,31 @@ window.go=(page)=>{
   document.getElementById("page-"+page)?.classList.add("active");
   document.querySelectorAll(".navbtn").forEach(x=>x.classList.toggle("active",x.dataset.page===page));
   document.querySelectorAll(".mobilebar button").forEach(x=>x.classList.toggle("active",x.dataset.mobile===page));
-  const names={dashboard:"Dashboard",people:"People",attendance:"Attendance",leave:"Leave",approvals:"Approval Center",former:"Former & Rejoined",documents:"Documents",reports:"Reports",settings:"Settings"};
+  const side=document.querySelector(".sidebar");
+  if(window.innerWidth<=900 && side){
+    side.style.display="none";
+    side.dataset.mobileOpen="0";
+  }
+  const names={dashboard:"Dashboard",people:"People","employee-chart":"Employee Chart",attendance:"Attendance",leave:"Leave",timesheets:"Timesheets",approvals:"Approval Center",performance:"Performance",compensation:"Compensation",payroll:"Payroll",onboarding:"Onboarding",former:"Offboarding & Rejoined",documents:"Documents",reports:"Reports & Analytics",audit:"Audit Log",settings:"Settings"};
   document.getElementById("pageTitle").textContent=names[page]||page;
   document.getElementById("breadcrumb").textContent="Home / "+(names[page]||page);
-  ({dashboard:renderDashboard,people:renderPeople,attendance:renderAttendance,leave:renderLeave,approvals:renderApprovals,former:renderFormer}[page]||(()=>{}))();
+  ({dashboard:renderDashboard,people:renderPeople,"employee-chart":renderEmployeeChart,attendance:renderAttendance,leave:renderLeave,timesheets:renderTimesheets,approvals:renderApprovals,performance:renderPerformance,compensation:renderCompensation,payroll:renderPayroll,onboarding:renderOnboarding,former:renderFormer,documents:renderDocuments,reports:renderReports,audit:renderAudit}[page]||(()=>{}))();
 }
-window.mobileNav=()=>{document.querySelector(".sidebar").style.display=document.querySelector(".sidebar").style.display==="flex"?"none":"flex";document.querySelector(".sidebar").style.position="fixed";document.querySelector(".sidebar").style.height="100vh"}
+window.mobileNav=()=>{
+  const s=document.querySelector(".sidebar");
+  const open=s.dataset.mobileOpen==="1";
+  if(open){
+    s.style.display="none";
+    s.dataset.mobileOpen="0";
+  }else{
+    s.style.display="flex";
+    s.style.position="fixed";
+    s.style.height="100vh";
+    s.style.width="270px";
+    s.style.boxShadow="10px 0 30px rgba(15,23,42,.14)";
+    s.dataset.mobileOpen="1";
+  }
+}
 window.closeModals=()=>document.querySelectorAll(".modalback").forEach(x=>x.classList.remove("show"));
 
 window.openEmployee=(id=null)=>{
@@ -309,6 +543,9 @@ window.openEmployee=(id=null)=>{
   document.getElementById("f_mobile").value=e?.mobile||"";
   document.getElementById("f_department").value=p.department||e?.department||"Logistics";
   document.getElementById("f_designation").value=p.designation||e?.designation||"Staff";
+  const mgr=document.getElementById("f_manager");
+  mgr.innerHTML='<option value="">No manager</option>'+DB.employees.filter(x=>x.id!==e?.id&&x.status==="Active").map(x=>`<option value="${x.id}">${x.name} — ${x.id}</option>`).join("");
+  mgr.value=e?.managerId||"";
   document.getElementById("f_shift").value=e?.shift||"10:00 AM – 7:00 PM";
   document.getElementById("f_salary").value=e?salary(e):9000;
   document.getElementById("f_joining").value=p.joining||today;
@@ -323,23 +560,23 @@ document.getElementById("employeeForm").addEventListener("submit",async ev=>{
   ev.preventDefault();
   const id=document.getElementById("f_id").value,name=document.getElementById("f_name").value.trim();
   if(!name)return;
-  const data={name,mobile:document.getElementById("f_mobile").value.trim(),department:document.getElementById("f_department").value.trim(),designation:document.getElementById("f_designation").value.trim(),shift:document.getElementById("f_shift").value.trim(),salary:Number(document.getElementById("f_salary").value)||0,joining:document.getElementById("f_joining").value,empType:document.getElementById("f_type").value,email:document.getElementById("f_email").value.trim(),emergency:document.getElementById("f_emergency").value.trim(),address:document.getElementById("f_address").value.trim(),docref:document.getElementById("f_docref").value.trim()};
+  const data={name,mobile:document.getElementById("f_mobile").value.trim(),department:document.getElementById("f_department").value.trim(),designation:document.getElementById("f_designation").value.trim(),managerId:document.getElementById("f_manager").value,shift:document.getElementById("f_shift").value.trim(),salary:Number(document.getElementById("f_salary").value)||0,joining:document.getElementById("f_joining").value,empType:document.getElementById("f_type").value,email:document.getElementById("f_email").value.trim(),emergency:document.getElementById("f_emergency").value.trim(),address:document.getElementById("f_address").value.trim(),docref:document.getElementById("f_docref").value.trim()};
   if(id){
-    const e=emp(id),p=currentPeriod(e);Object.assign(e,data);e.status=e.status||"Active";
+    const e=emp(id),p=currentPeriod(e);Object.assign(e,data);e.status=e.status||"Active";e.lifecycle=e.lifecycle||"Active";
     Object.assign(p,{department:data.department,designation:data.designation});
     if(salary(e)!==data.salary)p.salaryHistory=[...(p.salaryHistory||[]),{amount:data.salary,effective:today}],p.salary=data.salary;
   }else{
     const newId="GI-EMP-"+String(DB.nextId++).padStart(4,"0");
-    DB.employees.push({id:newId,name:data.name,mobile:data.mobile,email:data.email,address:data.address,emergency:data.emergency,docref:data.docref,department:data.department,designation:data.designation,empType:data.empType,shift:data.shift,status:"Active",periods:[{joining:data.joining,exit:null,exitReason:"",lastDay:"",remarks:"",salary:data.salary,salaryHistory:[{amount:data.salary,effective:data.joining}],department:data.department,designation:data.designation}]});
+    DB.employees.push({id:newId,name:data.name,mobile:data.mobile,email:data.email,address:data.address,emergency:data.emergency,docref:data.docref,department:data.department,designation:data.designation,managerId:data.managerId||"",location:"Head Office",empType:data.empType,shift:data.shift,status:"Active",lifecycle:"Onboarding",probationEnd:"",periods:[{joining:data.joining,exit:null,exitReason:"",lastDay:"",remarks:"",salary:data.salary,salaryHistory:[{amount:data.salary,effective:data.joining}],department:data.department,designation:data.designation}]});
   }
-  await saveDB();closeModals();renderPeople();renderDashboard();toast("Employee record saved successfully.");
+  audit(id?"Employee updated":"Employee created","Employee",`${name} (${id||"new"})`);await saveDB();closeModals();renderPeople();renderDashboard();renderAudit();toast("Employee record saved successfully.");
 });
 
 window.markLeft=async id=>{
   const e=emp(id),p=currentPeriod(e);if(!e||e.status==="Left")return;
   const exit=prompt("Last working day (YYYY-MM-DD):",today);if(!exit)return;
   const reason=prompt("Exit reason:","Resignation")||"";
-  p.exit=exit;p.lastDay=exit;p.exitReason=reason;e.status="Left";await saveDB();renderPeople();renderFormer();renderDashboard();toast(e.name+" moved to Former Employees.");
+  p.exit=exit;p.lastDay=exit;p.exitReason=reason;e.status="Left";e.lifecycle="Left";audit("Employee offboarded","Employee",`${e.name} — ${reason}`);await saveDB();renderPeople();renderFormer();renderDashboard();renderAudit();toast(e.name+" moved to Former Employees.");
 }
 window.rejoin=async id=>{
   const e=emp(id);if(!e)return;
@@ -348,7 +585,7 @@ window.rejoin=async id=>{
   const des=prompt("Designation:",currentPeriod(e).designation||e.designation||"Staff")||"";
   const sal=Number(prompt("Monthly salary:",String(salary(e)))||salary(e));
   e.periods.push({joining,exit:null,exitReason:"",lastDay:"",remarks:"Rejoined",salary:sal,salaryHistory:[{amount:sal,effective:joining}],department:dept,designation:des});
-  e.status="Active";e.department=dept;e.designation=des;await saveDB();renderFormer();renderPeople();renderDashboard();toast(e.name+" rejoined successfully.");
+  e.status="Active";e.lifecycle="Active";e.department=dept;e.designation=des;audit("Employee rejoined","Employee",e.name);await saveDB();renderFormer();renderPeople();renderDashboard();renderAudit();toast(e.name+" rejoined successfully.");
 }
 
 function renderDashboard(){
@@ -367,7 +604,109 @@ function renderDashboard(){
 window.renderPeople=()=>{
   const q=(document.getElementById("peopleSearch")?.value||"").toLowerCase(), st=document.getElementById("peopleStatus")?.value||"All";
   const list=DB.employees.filter(e=>(st==="All"||e.status===st)&&(!q||[e.name,e.id,e.department,e.designation].join(" ").toLowerCase().includes(q)));
-  document.getElementById("peopleBody").innerHTML=list.length?list.map(e=>{const p=currentPeriod(e);return `<tr><td><div class="person"><div class="avatar">${(e.name||"?")[0]}</div><div><div class="personname">${e.name}</div><div class="personmeta">${e.id} • ${e.mobile||"No mobile"}</div></div></div></td><td>${p.department||e.department||"—"}</td><td>${p.designation||e.designation||"—"}</td><td>${fmt(p.joining)}</td><td>₹${salary(e).toLocaleString("en-IN")}</td><td>${statusBadge(e.status)}</td><td><div style="display:flex;gap:5px"><button class="btn btn-secondary" style="padding:7px 9px" onclick="openEmployee('${e.id}')">Edit</button>${e.status==="Active"?`<button class="btn btn-danger" style="padding:7px 9px" onclick="markLeft('${e.id}')">Mark Left</button>`:`<button class="btn btn-secondary" style="padding:7px 9px" onclick="rejoin('${e.id}')">Rejoin</button>`}</div></td></tr>`}).join(""):`<tr><td colspan="7"><div class="empty">No employees found.</div></td></tr>`;
+  document.getElementById("peopleBody").innerHTML=list.length?list.map(e=>{const p=currentPeriod(e);return `<tr><td><div class="person"><div class="avatar">${(e.name||"?")[0]}</div><div><div class="personname">${e.name}</div><div class="personmeta">${e.id} • ${e.mobile||"No mobile"}</div></div></div></td><td>${p.department||e.department||"—"}</td><td>${p.designation||e.designation||"—"}</td><td>${esc(emp(e.managerId)?.name||"—")}</td><td>${fmt(p.joining)}</td><td>₹${salary(e).toLocaleString("en-IN")}</td><td>${statusBadge(e.status)}</td><td><div style="display:flex;gap:5px"><button class="btn btn-secondary" style="padding:7px 9px" onclick="openEmployee('${e.id}')">Edit</button>${e.status==="Active"?`<button class="btn btn-danger" style="padding:7px 9px" onclick="markLeft('${e.id}')">Mark Left</button>`:`<button class="btn btn-secondary" style="padding:7px 9px" onclick="rejoin('${e.id}')">Rejoin</button>`}</div></td></tr>`}).join(""):`<tr><td colspan="8"><div class="empty">No employees found.</div></td></tr>`;
+}
+
+window.renderEmployeeChart=()=>{
+  if(!DB)return;
+  const active=DB.employees.filter(e=>e.status==="Active");
+  const departments=[...new Set(active.map(e=>currentPeriod(e).department||e.department||"Unassigned"))].sort();
+  const designations=[...new Set(active.map(e=>currentPeriod(e).designation||e.designation||"Staff"))];
+  const filter=document.getElementById("chartFilter");
+  if(filter){
+    const old=filter.value||"All";
+    filter.innerHTML='<option value="All">All Departments</option>'+departments.map(d=>`<option value="${escapeHtml(d)}">${escapeHtml(d)}</option>`).join("");
+    filter.value=departments.includes(old)?old:"All";
+  }
+  const selected=filter?.value||"All";
+  const grouped={};
+  departments.filter(d=>selected==="All"||d===selected).forEach(d=>grouped[d]=active.filter(e=>(currentPeriod(e).department||e.department||"Unassigned")===d));
+  document.getElementById("chartActive").textContent=active.length;
+  document.getElementById("chartDepartments").textContent=departments.length;
+  document.getElementById("chartDesignations").textContent=designations.length;
+
+  const root=active[0];
+  const rootHtml=root?`
+    <div class="org-root-card">
+      <div class="org-avatar">${escapeHtml((root.name||"?")[0].toUpperCase())}</div>
+      <div style="font-size:13px;font-weight:800">${escapeHtml(root.name)}</div>
+      <div style="font-size:10px;color:#cbd5e1;margin-top:3px">${escapeHtml(currentPeriod(root).designation||root.designation||"Employee")}</div>
+      <div style="font-size:9px;color:#fbbf24;margin-top:6px">Organization / Primary Employee</div>
+    </div>
+    <div class="org-line"></div>`:"";
+
+  const deptHtml=Object.entries(grouped).map(([dept,members])=>`
+    <div class="org-dept">
+      <div class="org-dept-head">${escapeHtml(dept)} <span style="font-weight:600;color:#64748b">(${members.length})</span></div>
+      <div class="org-members">
+        ${members.map(e=>`
+          <div class="org-member" title="${escapeHtml(e.name)}">
+            <div class="org-avatar" style="background:#f1f5f9;color:#334155">${escapeHtml((e.name||"?")[0].toUpperCase())}</div>
+            <div style="min-width:0">
+              <div class="org-name">${escapeHtml(e.name)}</div>
+              <div class="org-role">${escapeHtml(currentPeriod(e).designation||e.designation||"Staff")} • ${escapeHtml(e.id)}</div>
+            </div>
+            <div class="org-status"><span class="badge green">Active</span></div>
+          </div>`).join("")}
+      </div>
+    </div>`).join("");
+
+  document.getElementById("employeeChart").innerHTML=active.length?
+    `<div class="org-root">${rootHtml}<div class="org-departments">${deptHtml}</div></div>`:
+    `<div class="empty">No active employees available to build the chart.</div>`;
+}
+
+function escapeHtml(v){
+  return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m]));
+}
+
+
+window.renderTimesheets=()=>{
+  ensureModules();
+  const sel=document.getElementById("timesheetEmployee");
+  if(sel)sel.innerHTML='<option value="All">All Employees</option>'+DB.employees.map(e=>`<option value="${e.id}">${esc(e.name)}</option>`).join("");
+  const chosen=sel?.value||"All", rows=DB.timesheets.filter(x=>chosen==="All"||x.empId===chosen);
+  document.getElementById("timesheetBody").innerHTML=rows.length?rows.slice().reverse().map(x=>`<tr><td>${fmt(x.date)}</td><td>${esc(emp(x.empId)?.name||x.empId)}</td><td>${esc(x.work)}</td><td>${x.hours}</td><td>${x.overtime||0}</td><td>${statusBadge(x.status||"Draft")}</td></tr>`).join(""):`<tr><td colspan="6"><div class="empty">No timesheet entries yet.</div></td></tr>`;
+}
+window.addTimesheet=async()=>{
+  const e=DB.employees.find(x=>x.status==="Active");if(!e)return toast("No active employee.");
+  const work=prompt("Project / work description:","General work");if(!work)return;
+  const hours=Number(prompt("Hours worked:","8"));if(!Number.isFinite(hours))return;
+  DB.timesheets.push({id:"TS-"+Date.now(),date:today,empId:e.id,work,hours,overtime:Math.max(0,hours-8),status:"Submitted"});audit("Timesheet submitted","Timesheet",e.name);await saveDB();renderTimesheets();renderAudit();toast("Timesheet saved.");
+}
+window.renderPerformance=()=>{
+  ensureModules();const goals=DB.goals||[], reviews=DB.performanceReviews||[];
+  document.getElementById("perfGoals").textContent=goals.filter(g=>g.status!=="Completed").length;
+  document.getElementById("perfCycles").textContent=DB.performanceCycles.length;
+  document.getElementById("perfReviews").textContent=reviews.length;
+  const avg=goals.length?Math.round(goals.reduce((a,g)=>a+(Number(g.progress)||0),0)/goals.length):0;document.getElementById("perfProgress").textContent=avg+"%";
+  document.getElementById("performanceBody").innerHTML=goals.length?goals.map(g=>`<tr><td>${esc(emp(g.empId)?.name||g.empId)}</td><td><b>${esc(g.title)}</b><div class="personmeta">${esc(g.kra||"KRA/KPI")}</div></td><td>${g.weight||0}%</td><td><div style="min-width:100px"><div class="progress"><span style="width:${Math.min(100,g.progress||0)}%"></span></div><div style="font-size:10px;margin-top:4px">${g.progress||0}%</div></div></td><td>${statusBadge(g.status||"Active")}</td></tr>`).join(""):`<tr><td colspan="5"><div class="empty">No goals configured.</div></td></tr>`;
+}
+window.addGoal=async()=>{
+  const e=DB.employees.find(x=>x.status==="Active");if(!e)return toast("No active employee.");
+  const title=prompt("Goal / KRA:","Improve operational efficiency");if(!title)return;
+  const weight=Number(prompt("Weight %:","20"))||0;DB.goals.push({id:"GOAL-"+Date.now(),empId:e.id,title,kra:"KRA/KPI",weight,progress:0,status:"Active",createdOn:today});audit("Goal created","Performance",`${e.name}: ${title}`);await saveDB();renderPerformance();renderAudit();toast("Goal added.");
+}
+window.renderCompensation=()=>{
+  const list=DB.employees.filter(e=>e.status==="Active");document.getElementById("compBody").innerHTML=list.length?list.map(e=>{const p=currentPeriod(e),hist=p.salaryHistory||[];return `<tr><td><b>${esc(e.name)}</b><div class="personmeta">${e.id}</div></td><td>${esc(p.department||e.department||"—")}</td><td>₹${salary(e).toLocaleString("en-IN")}</td><td>₹${(salary(e)*12).toLocaleString("en-IN")}</td><td>${fmt(hist[hist.length-1]?.effective)}</td><td>${hist.length} revision(s)</td></tr>`}).join(""):`<tr><td colspan="6"><div class="empty">No active employees.</div></td></tr>`;
+}
+window.renderPayroll=()=>{
+  ensureModules();const rows=DB.payrollPeriods||[];document.getElementById("payrollBody").innerHTML=rows.length?rows.slice().reverse().map(x=>`<tr><td>${esc(x.period)}</td><td>${x.employeeCount}</td><td>₹${Number(x.gross||0).toLocaleString("en-IN")}</td><td>${statusBadge(x.status||"Draft")}</td><td><button class="btn btn-secondary" style="padding:7px 9px" onclick="toast('Payroll preparation is available; statutory rules must be configured before finalization.')">Review</button></td></tr>`).join(""):`<tr><td colspan="5"><div class="empty">No payroll periods created.</div></td></tr>`;
+}
+window.preparePayroll=async()=>{
+  ensureModules();const gross=DB.employees.filter(e=>e.status==="Active").reduce((a,e)=>a+salary(e),0);
+  const period=prompt("Payroll period:","September 2026");if(!period)return;
+  DB.payrollPeriods.push({id:"PAY-"+Date.now(),period,employeeCount:DB.employees.filter(e=>e.status==="Active").length,gross,status:"Draft",createdOn:today});audit("Payroll period created","Payroll",period);await saveDB();renderPayroll();renderAudit();toast("Payroll period created as Draft.");
+}
+window.renderOnboarding=()=>{
+  const active=DB.employees.filter(e=>e.status==="Active"), onboarding=active.filter(e=>e.lifecycle==="Onboarding"), probation=active.filter(e=>e.lifecycle==="Probation");
+  document.getElementById("onboardNew").textContent=onboarding.length;document.getElementById("onboardProb").textContent=probation.length;document.getElementById("onboardDue").textContent=probation.filter(e=>e.probationEnd&&e.probationEnd<=today).length;
+  document.getElementById("onboardBody").innerHTML=active.length?active.map(e=>{const p=currentPeriod(e);return `<tr><td><b>${esc(e.name)}</b><div class="personmeta">${e.id}</div></td><td>${fmt(p.joining)}</td><td>${esc(p.department||e.department||"—")}</td><td>${fmt(e.probationEnd)}</td><td><div class="progress"><span style="width:${e.lifecycle==="Confirmed"?100:e.lifecycle==="Probation"?65:e.lifecycle==="Onboarding"?30:100}%"></span></div></td><td>${statusBadge(e.lifecycle||"Active")}</td></tr>`}).join(""):`<tr><td colspan="6"><div class="empty">No active employees.</div></td></tr>`;
+}
+window.renderDocuments=()=>{};
+window.renderReports=()=>{renderDashboard();};
+window.renderAudit=()=>{
+  ensureModules();const rows=DB.auditLogs||[];document.getElementById("auditBody").innerHTML=rows.length?rows.slice().reverse().map(x=>`<tr><td>${new Date(x.date).toLocaleString("en-IN",{dateStyle:"medium",timeStyle:"short"})}</td><td><b>${esc(x.action)}</b></td><td>${esc(x.entity)}</td><td>${esc(x.details)}</td></tr>`).join(""):`<tr><td colspan="4"><div class="empty">No audit activity recorded yet.</div></td></tr>`;
 }
 
 window.renderAttendance=()=>{
@@ -400,7 +739,7 @@ window.renderLeave=()=>{
   document.getElementById("leaveBody").innerHTML=r.length?[...r].reverse().map(x=>{const e=emp(x.empId),t=DB.leaveTypes.find(y=>y.id===x.typeId);return `<tr><td><b>${e?.name||x.empId}</b></td><td>${t?.name||x.typeId}</td><td>${fmt(x.from)} – ${fmt(x.to)}</td><td>${x.days}</td><td>${x.reason||"—"}</td><td>${statusBadge(x.status)}</td><td>${x.status==="Pending"?`<button class="btn btn-primary" style="padding:7px 9px" onclick="decide('${x.id}','Approved')">Approve</button> <button class="btn btn-danger" style="padding:7px 9px" onclick="decide('${x.id}','Rejected')">Reject</button>`:"—"}</td></tr>`}).join(""):`<tr><td colspan="7"><div class="empty">No leave requests yet.</div></td></tr>`;
 }
 window.renderApprovals=()=>{const r=(DB.leaveRequests||[]).filter(x=>x.status==="Pending");document.getElementById("approvalBody").innerHTML=r.length?r.map(x=>{const e=emp(x.empId);return `<tr><td><b>${e?.name||x.empId}</b><div class="personmeta">${x.empId}</div></td><td>${x.typeId}</td><td>${fmt(x.from)} – ${fmt(x.to)}</td><td>${fmt(x.appliedOn)}</td><td>${statusBadge(x.status)}</td><td><button class="btn btn-primary" style="padding:7px 9px" onclick="decide('${x.id}','Approved')">Approve</button> <button class="btn btn-danger" style="padding:7px 9px" onclick="decide('${x.id}','Rejected')">Reject</button></td></tr>`}).join(""):`<tr><td colspan="6"><div class="empty">No pending approvals.</div></td></tr>`}
-window.decide=async(id,status)=>{const r=DB.leaveRequests.find(x=>x.id===id);if(!r)return;r.status=status;r.decidedOn=today;await saveDB();renderLeave();renderApprovals();renderDashboard();toast("Request "+status.toLowerCase()+".")}
+window.decide=async(id,status)=>{const r=DB.leaveRequests.find(x=>x.id===id);if(!r)return;r.status=status;r.decidedOn=today;audit("Leave request "+status.toLowerCase(),"Leave",`${r.empId} — ${r.typeId}`);await saveDB();renderLeave();renderApprovals();renderDashboard();renderAudit();toast("Request "+status.toLowerCase()+".")}
 window.renderFormer=()=>{
  const list=DB.employees.filter(e=>e.status==="Left");
  document.getElementById("formerBody").innerHTML=list.length?list.map(e=>{const p=currentPeriod(e);return `<tr><td><div class="person"><div class="avatar">${e.name[0]}</div><div><div class="personname">${e.name}</div><div class="personmeta">${e.id}</div></div></div></td><td>${p.department||e.department||"—"}</td><td>${fmt(p.lastDay||p.exit)}</td><td>${e.periods?.length||1} period(s)</td><td>${statusBadge(e.status)}</td><td><button class="btn btn-secondary" style="padding:7px 9px" onclick="rejoin('${e.id}')">Rejoin</button></td></tr>`}).join(""):`<tr><td colspan="6"><div class="empty">No former employees.</div></td></tr>`;
@@ -415,7 +754,7 @@ document.getElementById("loginForm").addEventListener("submit",async e=>{e.preve
 
 onAuthStateChanged(auth,async user=>{
  if(!user){document.getElementById("loginScreen").classList.remove("hide");document.getElementById("app").classList.add("hide");return}
- try{DB=await loadDB();document.getElementById("loginScreen").classList.add("hide");document.getElementById("app").classList.remove("hide");document.getElementById("sideUser").textContent=user.email||"Authenticated user";document.getElementById("userAvatar").textContent=(user.email||"H")[0].toUpperCase();go("dashboard");toast("Connected to GI People.");}
+ try{DB=await loadDB();ensureModules();document.getElementById("loginScreen").classList.add("hide");document.getElementById("app").classList.remove("hide");document.getElementById("sideUser").textContent=user.email||"Authenticated user";document.getElementById("userAvatar").textContent=(user.email||"H")[0].toUpperCase();go("dashboard");toast("Connected to GI People.");}
  catch(err){console.error(err);alert("Authentication succeeded, but Firestore data could not be loaded. Check Firestore rules.");await signOut(auth)}
 })
 </script>
