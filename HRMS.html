@@ -194,6 +194,43 @@
     .orgchart{overflow-x:auto}
     .org-root{min-width:520px}
   }
+
+
+
+  .document-list{display:grid;gap:8px}
+  .document-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--line);border-radius:9px;background:#f8fafc}
+  .document-row b{font-size:11px;color:#334155}
+  .document-row .personmeta{font-size:10px;color:#64748b;margin-top:2px}
+  .modal{max-height:92vh;overflow:auto}
+  .form-section-title{grid-column:1/-1;font-size:12px;font-weight:800;color:#0f2942;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--line);padding:12px 0 8px;margin-top:8px}
+  .document-upload-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px}
+  .uploadbox{border:1px dashed #cbd5e1;border-radius:10px;padding:12px;background:#f8fafc}
+  .uploadbox label{display:block;font-size:11px;font-weight:800;color:#334155;margin-bottom:7px}
+  .uploadbox input{width:100%;font-size:11px}
+  .upload-status{font-size:11px;color:#64748b;margin-top:10px;min-height:16px}
+  .sensitive-input{letter-spacing:.03em}
+  @media(max-width:700px){.document-upload-grid{grid-template-columns:1fr}}
+  .employee-database-table tbody tr.employee-row{cursor:pointer;transition:background .15s ease}
+  .employee-database-table tbody tr.employee-row:hover{background:#f8fafc}
+  .employee-database-table tbody tr.employee-ceo-row{background:#f8fafc}
+  .employee-database-table td,.employee-database-table th{white-space:nowrap}
+  .employee-photo{font-size:10px;font-weight:800}
+  .employee-detail-head{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;padding:18px 20px;margin-bottom:16px;border:1px solid var(--line);border-radius:14px;background:#fff}
+  .employee-detail-person{display:flex;align-items:center;gap:13px}
+  .employee-detail-avatar{width:52px;height:52px;border-radius:14px;background:#0f2942;color:#fff;display:grid;place-items:center;font-weight:800;font-size:16px;flex:none}
+  .employee-detail-id{font-size:10px;color:#64748b;font-weight:800}
+  .employee-detail-name{font-size:21px;font-weight:800;color:#0f2942;margin-top:2px}
+  .employee-detail-role{font-size:11px;color:#64748b;margin-top:3px}
+  .employee-info-card{margin-bottom:16px}
+  .employee-info-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 42px}
+  .employee-info-field{min-height:55px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:18px}
+  .employee-info-field span{color:#64748b;font-size:12px}
+  .employee-info-field b{text-align:right;color:#1e293b;font-size:12px;max-width:65%;word-break:break-word}
+  @media(max-width:700px){
+    .employee-info-grid{grid-template-columns:1fr}
+    .employee-info-field{min-height:52px}
+    .employee-info-field b{max-width:60%}
+  }
   /* Device-safe utilities */
   .topbar>div:first-child .btn{display:none}
   @media(max-width:900px){.topbar>div:first-child .btn{display:inline-flex}}
@@ -227,7 +264,7 @@
     <nav class="nav">
       <div class="nav-section">Workspace</div>
       <button class="navbtn active" data-page="dashboard" onclick="go('dashboard')">▦ <span>Dashboard</span></button>
-      <button class="navbtn" data-page="people" onclick="go('people')">♙ <span>People</span></button>
+      <button class="navbtn" data-page="people" onclick="go('people')">♙ <span>Employee Database</span></button>
       <button class="navbtn" data-page="employee-chart" onclick="go('employee-chart')">⌘ <span>Employee Chart</span></button>
       <button class="navbtn" data-page="attendance" onclick="go('attendance')">◷ <span>Attendance</span></button>
       <button class="navbtn" data-page="leave" onclick="go('leave')">▣ <span>Leave</span></button>
@@ -439,11 +476,67 @@
       </div>
 
       <div id="page-people" class="page">
-        <div class="pagehead"><div><div class="title">People</div><div class="subtitle">Employee directory and employment master.</div></div><button class="btn btn-primary" onclick="openEmployee()">＋ Add Employee</button></div>
-        <div class="card"><div class="cardbody">
-          <div class="toolbar"><input class="input" id="peopleSearch" placeholder="Search by name, employee ID, department..." oninput="renderPeople()"><select class="select" id="peopleStatus" style="width:150px" onchange="renderPeople()"><option>All</option><option>Active</option><option>Left</option></select></div>
-          <div class="tablewrap"><table class="table"><thead><tr><th>Employee</th><th>Department</th><th>Designation</th><th>Manager</th><th>Joining</th><th>Salary</th><th>Status</th><th>Actions</th></tr></thead><tbody id="peopleBody"></tbody></table></div>
-        </div></div>
+        <div class="pagehead">
+          <div>
+            <div class="title">Employee Information</div>
+            <div class="subtitle">Employee Database — complete employee master and employment records.</div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-secondary" onclick="exportEmployees()">⇩ Export CSV</button>
+            <button class="btn btn-primary" onclick="openEmployee()">＋ Add Employee</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="cardbody">
+            <div class="toolbar" style="align-items:center">
+              <input class="input" id="peopleSearch" placeholder="Search employee ID, name, email, department, designation..." oninput="renderPeople()">
+              <select class="select" id="peopleStatus" style="width:150px" onchange="renderPeople()">
+                <option>All</option><option>Active</option><option>Left</option>
+              </select>
+              <div style="margin-left:auto;font-size:11px;color:#64748b;font-weight:700" id="employeeRecordCount"></div>
+            </div>
+
+            <div class="tablewrap">
+              <table class="table employee-database-table">
+                <thead>
+                  <tr>
+                    <th>Employee ID</th>
+                    <th>First Name</th>
+                    <th>Last Name</th>
+                    <th>Nickname</th>
+                    <th>Email Address</th>
+                    <th>Photo</th>
+                    <th>Department</th>
+                    <th>Designation</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="peopleBody"></tbody>
+              </table>
+            </div>
+
+            <div style="margin-top:10px;font-size:10px;color:#94a3b8">
+              Click any employee row to open the full Employee Information record and employment history.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="page-employee-detail" class="page">
+        <div class="pagehead">
+          <div>
+            <div class="title">Employee Information</div>
+            <div class="subtitle">Complete employee record, work information and employment history.</div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-secondary" onclick="go('people')">← Employee Database</button>
+            <button class="btn btn-primary" id="employeeDetailEditBtn" onclick="editCurrentEmployee()">✎ Edit</button>
+          </div>
+        </div>
+
+        <div id="employeeDetailContent"></div>
       </div>
 
       <div id="page-employee-chart" class="page">
@@ -471,7 +564,22 @@
             </div>
           </div>
           <div class="cardbody">
-            <div id="employeeChart" class="orgchart"></div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px 0">
+      <button class="btn btn-secondary" id="chartEditBtn" onclick="toggleChartEditor()">✎ Edit Chart</button>
+      <button class="btn btn-primary" id="chartSaveBtn" onclick="saveChartEdits()" style="display:none">✓ Save Chart</button>
+      <button class="btn btn-secondary" id="chartCancelBtn" onclick="cancelChartEdits()" style="display:none">Cancel</button>
+      <button class="btn btn-secondary" onclick="downloadEmployeeChart()">⇩ Download Chart</button>
+    </div>
+    <div id="chartEditor" class="card" style="display:none;margin-bottom:14px">
+      <div class="cardhead"><div class="cardtitle">Edit Employee Chart</div></div>
+      <div class="cardbody">
+        <div style="font-size:12px;color:#64748b;margin-bottom:10px">
+          Owner & CEO remains fixed at the top. Edit reporting managers below.
+        </div>
+        <div id="chartEditorRows"></div>
+      </div>
+    </div>
+    <div id="employeeChart" class="orgchart"></div>
           </div>
         </div>
 
@@ -575,7 +683,7 @@
 
   <nav class="mobilebar">
     <button data-mobile="dashboard" onclick="go('dashboard')">▦<br>Home</button>
-    <button data-mobile="people" onclick="go('people')">♙<br>People</button>
+    <button data-mobile="people" onclick="go('people')">♙<br>Employees</button>
     <button data-mobile="attendance" onclick="go('attendance')">◷<br>Attendance</button>
     <button data-mobile="leave" onclick="go('leave')">▣<br>Leave</button>
     <button data-mobile="approvals" onclick="go('approvals')">✓<br>Approvals</button>
@@ -587,24 +695,87 @@
     <div class="modalhead"><div><div id="empModalTitle" style="font-size:16px;font-weight:800">Add Employee</div><div style="font-size:10px;color:#94a3b8">Employee master record</div></div><button class="btn btn-secondary" onclick="closeModals()">✕</button></div>
     <form id="employeeForm">
       <div class="modalbody"><input type="hidden" id="f_id">
+        <div class="form-section-title">Basic Information</div>
         <div class="formgrid">
           <div class="field"><label>Employee ID</label><input class="input" id="f_preview_id" disabled placeholder="Generated automatically from DOJ"></div>
           <div class="field"><label>Full Name *</label><input class="input" id="f_name" required></div>
+          <div class="field"><label>Nickname</label><input class="input" id="f_nickname"></div>
+          <div class="field"><label>Father's Name</label><input class="input" id="f_father"></div>
           <div class="field"><label>Mobile</label><input class="input" id="f_mobile" type="tel"></div>
+          <div class="field"><label>Email</label><input class="input" id="f_email" type="email"></div>
+          <div class="field"><label>Date of Birth</label><input class="input" id="f_dob" type="date"></div>
+          <div class="field"><label>Gender</label><select class="select" id="f_gender"><option value="">Select</option><option>Female</option><option>Male</option><option>Other</option></select></div>
+          <div class="field"><label>Marital Status</label><select class="select" id="f_marital"><option value="">Select</option><option>Single</option><option>Married</option><option>Other</option></select></div>
+          <div class="field"><label>Citizenship</label><input class="input" id="f_citizenship" value="INDIA"></div>
+          <div class="field"><label>Blood Group</label><input class="input" id="f_blood"></div>
+          <div class="field"><label>Emergency Contact</label><input class="input" id="f_emergency"></div>
+          <div class="field full"><label>About Me / Expertise</label><textarea class="textarea" id="f_about" rows="2"></textarea></div>
+        </div>
+
+        <div class="form-section-title">Work Information</div>
+        <div class="formgrid">
           <div class="field"><label>Department</label><input class="input" id="f_department" value="Logistics"></div>
           <div class="field"><label>Designation</label><input class="input" id="f_designation" value="Staff"></div>
           <div class="field"><label>Reporting Manager</label><select class="select" id="f_manager"><option value="">No manager</option></select></div>
+          <div class="field"><label>Secondary Reporting Manager</label><select class="select" id="f_secondary_manager"><option value="">None</option></select></div>
+          <div class="field"><label>Head Office</label><input class="input" id="f_location" value="Head Office"></div>
+          <div class="field"><label>Seating Location</label><input class="input" id="f_seating"></div>
           <div class="field"><label>Shift</label><input class="input" id="f_shift" value="10:00 AM – 7:00 PM"></div>
+          <div class="field"><label>Employment Type</label><select class="select" id="f_type"><option>Full Time</option><option>Part Time</option><option>Contract</option><option>Intern</option><option>Permanent</option></select></div>
+          <div class="field"><label>Employment Status</label><select class="select" id="f_status"><option>Active</option><option>Left</option></select></div>
+          <div class="field"><label>Source of Hire</label><input class="input" id="f_source"></div>
+          <div class="field"><label>Date of Joining</label><input class="input" id="f_joining" type="date" required></div>
           <div class="field"><label>Monthly Salary (₹)</label><input class="input" id="f_salary" type="number" min="0" value="9000"></div>
-          <div class="field"><label>Joining Date</label><input class="input" id="f_joining" type="date" required></div>
-          <div class="field"><label>Employment Type</label><select class="select" id="f_type"><option>Full Time</option><option>Part Time</option><option>Contract</option><option>Intern</option></select></div>
-          <div class="field"><label>Email</label><input class="input" id="f_email" type="email"></div>
-          <div class="field"><label>Emergency Contact</label><input class="input" id="f_emergency"></div>
-          <div class="field full"><label>Address</label><textarea class="textarea" id="f_address" rows="2"></textarea></div>
-          <div class="field full"><label>Document / Aadhaar Reference</label><input class="input" id="f_docref" placeholder="Store only a reference here; secure documents should use Storage"></div>
+          <div class="field"><label>Zoho Role / System Role</label><input class="input" id="f_systemrole" value="Team member"></div>
+          <div class="field"><label>Probation End Date</label><input class="input" id="f_probation" type="date"></div>
+        </div>
+
+        <div class="form-section-title">Contact Details</div>
+        <div class="formgrid">
+          <div class="field"><label>Work Phone Number</label><input class="input" id="f_workphone"></div>
+          <div class="field"><label>Extension</label><input class="input" id="f_extension"></div>
+          <div class="field"><label>Personal Mobile Number</label><input class="input" id="f_personal_mobile"></div>
+          <div class="field"><label>Personal Email Address</label><input class="input" id="f_personal_email" type="email"></div>
+          <div class="field full"><label>Present Address</label><textarea class="textarea" id="f_present_address" rows="3"></textarea></div>
+          <div class="field full"><label>Permanent Address</label><textarea class="textarea" id="f_permanent_address" rows="3"></textarea></div>
+          <div class="field full"><label>Tags</label><input class="input" id="f_tags"></div>
+        </div>
+
+        <div class="form-section-title">Identity & Banking</div>
+        <div class="formgrid">
+          <div class="field"><label>UAN</label><input class="input sensitive-input" id="f_uan"></div>
+          <div class="field"><label>PAN</label><input class="input sensitive-input" id="f_pan"></div>
+          <div class="field"><label>Aadhaar</label><input class="input sensitive-input" id="f_aadhaar"></div>
+          <div class="field"><label>Payment Mode</label><select class="select" id="f_payment"><option>Bank Transfer</option><option>Cash</option><option>Cheque</option></select></div>
+          <div class="field"><label>Bank Account Number</label><input class="input sensitive-input" id="f_account"></div>
+          <div class="field"><label>Account Type</label><select class="select" id="f_account_type"><option>Savings</option><option>Current</option><option>Other</option></select></div>
+          <div class="field"><label>Bank Name</label><input class="input" id="f_bank_name"></div>
+          <div class="field"><label>Bank Holder Name</label><input class="input" id="f_bank_holder"></div>
+          <div class="field"><label>Bank IFSC</label><input class="input" id="f_ifsc"></div>
+          <div class="field"><label>PF Account Number</label><input class="input sensitive-input" id="f_pf"></div>
+          <div class="field"><label>Passport</label><input class="input sensitive-input" id="f_passport"></div>
+          <div class="field"><label>Passport Valid Until</label><input class="input" id="f_passport_valid" type="date"></div>
+        </div>
+
+        <div class="form-section-title">Secure Document Uploads</div>
+        <div class="document-upload-grid">
+          <div class="uploadbox"><label>Aadhaar Card</label><input type="file" id="f_aadhaar_file" accept=".pdf,.jpg,.jpeg,.png"></div>
+          <div class="uploadbox"><label>PAN Card</label><input type="file" id="f_pan_file" accept=".pdf,.jpg,.jpeg,.png"></div>
+          <div class="uploadbox"><label>Cancelled Cheque / Bank Passbook</label><input type="file" id="f_bank_file" accept=".pdf,.jpg,.jpeg,.png"></div>
+          <div class="uploadbox"><label>Employment Agreement</label><input type="file" id="f_agreement_file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"></div>
+          <div class="uploadbox"><label>Employee Photo</label><input type="file" id="f_photo_file" accept=".jpg,.jpeg,.png"></div>
+          <div class="uploadbox"><label>Other Document</label><input type="file" id="f_other_file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"></div>
+        </div>
+        <div id="uploadStatus" class="upload-status"></div>
+
+        <div class="form-section-title">Separation & System</div>
+        <div class="formgrid">
+          <div class="field"><label>Date of Exit</label><input class="input" id="f_exit" type="date"></div>
+          <div class="field"><label>Onboarding Status</label><select class="select" id="f_onboarding"><option>Not Started</option><option>In Progress</option><option>Completed</option></select></div>
+          <div class="field full"><label>Document / Aadhaar Reference</label><input class="input" id="f_docref" placeholder="Optional reference"></div>
         </div>
       </div>
-      <div class="modalfoot"><button type="button" class="btn btn-secondary" onclick="closeModals()">Cancel</button><button class="btn btn-primary">Save Employee</button></div>
+      <div class="modalfoot"><button type="button" class="btn btn-secondary" onclick="closeModals()">Cancel</button><button type="submit" class="btn btn-primary">Save Employee</button></div>
     </form>
   </div>
 </div>
@@ -631,6 +802,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/fireba
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-analytics.js";
 import { getFirestore, doc, getDoc, setDoc, collection, getDocs, writeBatch, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
+import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-storage.js";
 
 const firebaseConfig = {
   apiKey:"AIzaSyAtmg8G_dEqu58paEa-qnRMQy-GCYToBwg",
@@ -643,6 +815,7 @@ const firebaseConfig = {
 };
 
 const app=initializeApp(firebaseConfig);
+const storage=getStorage(app);
 try{getAnalytics(app)}catch(e){}
 const db= getFirestore(app), auth=getAuth(app);
 // GI People Firestore data store. This is the same document-based architecture used by the original app.
@@ -693,46 +866,25 @@ async function readCollection(name){
 }
 
 async function loadDB(){
-  // GI People stores its HRMS state in /hrms/state.
-  // If the document does not exist yet, create it after authentication.
-  const user=auth.currentUser;
-  if(!user) throw new Error("Firebase user is not signed in.");
-
+  // GI People uses one Firestore state document for this build.
+  // Authentication identifies the signed-in person; no separate users/{uid} document is required.
   CURRENT_USER_DOC={
-    id:user.uid,
-    email:user.email||"",
-    name:user.displayName||user.email?.split("@")[0]||"HR Admin",
+    id:auth.currentUser?.uid||"",
+    email:auth.currentUser?.email||"",
+    name:auth.currentUser?.displayName||"",
     role:"owner_ceo",
     employeeId:null
   };
-
   const snap=await getDoc(STATE_REF);
-
   if(!snap.exists()){
     const fresh=seed();
-    fresh.organization={
-      companyName:"Gurunanak Impex",
-      ownerCeoName:"Mandeep Singh",
-      ownerCeoTitle:"Owner & CEO"
-    };
-    fresh.createdAt=new Date().toISOString();
-    fresh.createdBy=user.uid;
-
-    // First authenticated HR user creates the initial state document.
-    await setDoc(STATE_REF,fresh,{merge:true});
+    fresh.organization={companyName:"Gurunanak Impex",ownerCeoName:"Mandeep Singh",ownerCeoTitle:"Owner & CEO"};
     return fresh;
   }
-
   const data=snap.data()||{};
   const fresh=seed();
   const merged={...fresh,...data};
-  merged.organization={
-    ...fresh.organization,
-    ...(data.organization||{}),
-    companyName:"Gurunanak Impex",
-    ownerCeoName:"Mandeep Singh",
-    ownerCeoTitle:"Owner & CEO"
-  };
+  merged.organization={...fresh.organization,...(data.organization||{}),companyName:"Gurunanak Impex",ownerCeoName:"Mandeep Singh",ownerCeoTitle:"Owner & CEO"};
   return merged;
 }
 
@@ -810,10 +962,10 @@ window.go=(page)=>{
     side.style.display="none";
     side.dataset.mobileOpen="0";
   }
-  const names={dashboard:"Dashboard","employee-portal":"Employee Portal",people:"People","employee-chart":"Employee Chart",attendance:"Attendance",leave:"Leave",timesheets:"Timesheets",approvals:"Approval Center",performance:"Performance",compensation:"Compensation",payroll:"Payroll",onboarding:"Onboarding",former:"Offboarding & Rejoined",documents:"Documents",reports:"Reports & Analytics",audit:"Audit Log",settings:"Settings"};
+  const names={dashboard:"Dashboard","employee-portal":"Employee Portal",people:"Employee Database","employee-detail":"Employee Information","employee-chart":"Employee Chart",attendance:"Attendance",leave:"Leave",timesheets:"Timesheets",approvals:"Approval Center",performance:"Performance",compensation:"Compensation",payroll:"Payroll",onboarding:"Onboarding",former:"Offboarding & Rejoined",documents:"Documents",reports:"Reports & Analytics",audit:"Audit Log",settings:"Settings"};
   document.getElementById("pageTitle").textContent=names[page]||page;
   document.getElementById("breadcrumb").textContent="Home / "+(names[page]||page);
-  ({dashboard:renderDashboard,"employee-portal":renderEmployeePortal,people:renderPeople,"employee-chart":renderEmployeeChart,attendance:renderAttendance,leave:renderLeave,timesheets:renderTimesheets,approvals:renderApprovals,performance:renderPerformance,compensation:renderCompensation,payroll:renderPayroll,onboarding:renderOnboarding,former:renderFormer,documents:renderDocuments,reports:renderReports,audit:renderAudit}[page]||(()=>{}))();
+  ({dashboard:renderDashboard,"employee-portal":renderEmployeePortal,people:renderPeople,"employee-detail":renderEmployeeDetail,"employee-chart":renderEmployeeChart,attendance:renderAttendance,leave:renderLeave,timesheets:renderTimesheets,approvals:renderApprovals,performance:renderPerformance,compensation:renderCompensation,payroll:renderPayroll,onboarding:renderOnboarding,former:renderFormer,documents:renderDocuments,reports:renderReports,audit:renderAudit}[page]||(()=>{}))();
 }
 window.mobileNav=()=>{
   const s=document.querySelector(".sidebar");
@@ -834,46 +986,113 @@ window.closeModals=()=>document.querySelectorAll(".modalback").forEach(x=>x.clas
 
 window.openEmployee=(id=null)=>{
   const e=id?emp(id):null,p=e?currentPeriod(e):{};
+  const val=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v??""};
   document.getElementById("empModalTitle").textContent=e?"Edit Employee":"Add Employee";
-  document.getElementById("f_id").value=e?.id||"";
-  document.getElementById("f_preview_id").value=e?.id||"Auto-generated from DOJ";
-  document.getElementById("f_name").value=e?.name||"";
-  document.getElementById("f_mobile").value=e?.mobile||"";
-  document.getElementById("f_department").value=p.department||e?.department||"Logistics";
-  document.getElementById("f_designation").value=p.designation||e?.designation||"Staff";
+  val("f_id",e?.id||""); val("f_preview_id",e?.id||"Auto-generated from DOJ"); val("f_name",e?.name||"");
+  val("f_nickname",e?.nickname||e?.nickName||""); val("f_father",e?.fatherName||""); val("f_mobile",e?.mobile||"");
+  val("f_department",p.department||e?.department||"Logistics"); val("f_designation",p.designation||e?.designation||"Staff");
   const mgr=document.getElementById("f_manager");
-  mgr.innerHTML='<option value="">No manager</option>'+DB.employees.filter(x=>x.id!==e?.id&&x.status==="Active").map(x=>`<option value="${x.id}">${x.name} — ${x.id}</option>`).join("");
+  const mgrs=(DB.employees||[]).filter(x=>x.id!==e?.id&&x.status==="Active");
+  mgr.innerHTML='<option value="">No manager / Direct to Owner</option>'+mgrs.map(x=>`<option value="${esc(x.id)}">${esc(x.name)} — ${esc(x.id)}</option>`).join("");
   mgr.value=e?.managerId||"";
-  document.getElementById("f_shift").value=e?.shift||"10:00 AM – 7:00 PM";
-  document.getElementById("f_salary").value=e?salary(e):9000;
-  document.getElementById("f_joining").value=p.joining||today;
-  document.getElementById("f_type").value=e?.empType||"Full Time";
-  document.getElementById("f_email").value=e?.email||"";
-  document.getElementById("f_emergency").value=e?.emergency||"";
-  document.getElementById("f_address").value=e?.address||"";
-  document.getElementById("f_docref").value=e?.docref||"";
+  const sm=document.getElementById("f_secondary_manager");
+  sm.innerHTML='<option value="">None</option>'+mgrs.map(x=>`<option value="${esc(x.id)}">${esc(x.name)} — ${esc(x.id)}</option>`).join("");
+  sm.value=e?.secondaryManagerId||"";
+  val("f_shift",e?.shift||"10:00 AM – 7:00 PM"); val("f_salary",e?salary(e):9000); val("f_joining",p.joining||today);
+  val("f_type",e?.empType||"Full Time"); val("f_email",e?.email||""); val("f_emergency",e?.emergency||"");
+  val("f_address",e?.address||""); val("f_docref",e?.docref||""); val("f_location",e?.location||"Head Office");
+  val("f_seating",e?.seatingLocation||""); val("f_status",e?.status||"Active"); val("f_source",e?.sourceOfHire||"");
+  val("f_systemrole",e?.systemRole||"Team member"); val("f_probation",e?.probationEnd||""); val("f_exit",p.exit||p.lastDay||"");
+  val("f_workphone",e?.workPhone||""); val("f_extension",e?.extension||""); val("f_personal_mobile",e?.personalMobile||e?.mobile||"");
+  val("f_personal_email",e?.personalEmail||""); val("f_present_address",e?.presentAddress||e?.address||""); val("f_permanent_address",e?.permanentAddress||"");
+  val("f_tags",e?.tags||""); val("f_uan",e?.uan||""); val("f_pan",e?.pan||""); val("f_aadhaar",e?.aadhaar||"");
+  val("f_payment",e?.paymentMode||"Bank Transfer"); val("f_account",e?.bankAccountNumber||""); val("f_account_type",e?.accountType||"Savings");
+  val("f_bank_name",e?.bankName||""); val("f_bank_holder",e?.bankHolderName||e?.name||""); val("f_ifsc",e?.bankIFSC||"");
+  val("f_pf",e?.pfAccountNumber||""); val("f_passport",e?.passport||""); val("f_passport_valid",e?.passportValidUntil||"");
+  val("f_dob",e?.dob||""); val("f_gender",e?.gender||""); val("f_marital",e?.maritalStatus||""); val("f_citizenship",e?.citizenship||"INDIA");
+  val("f_blood",e?.bloodGroup||""); val("f_about",e?.aboutMe||e?.expertise||""); val("f_onboarding",e?.onboardingStatus||"Not Started");
+  const us=document.getElementById("uploadStatus");
+  if(us)us.innerHTML=e?.documents?Object.entries(e.documents).filter(([,x])=>x?.url).map(([k,x])=>`<span class="badge">✓ ${esc(k)}</span>`).join(" "):"";
   document.getElementById("employeeModal").classList.add("show");
-}
+};
+
 document.getElementById("f_joining").addEventListener("change",()=>{
   if(!document.getElementById("f_id").value){
     const d=document.getElementById("f_joining").value;
     document.getElementById("f_preview_id").value=d?`GI-EMP-${d.replace(/-/g,"")}-001`:"Auto-generated from DOJ";
   }
 });
+
+async function uploadEmployeeDocument(employeeId,file,folder){
+  if(!file)return null;
+  if(file.size>10*1024*1024)throw new Error(`${file.name} is larger than 10 MB.`);
+  if(!auth.currentUser)throw new Error("Please sign in before uploading documents.");
+  const safe=file.name.replace(/[^a-zA-Z0-9._-]/g,"_");
+  const path=`employee-documents/${employeeId}/${folder}/${Date.now()}-${safe}`;
+  const ref=storageRef(storage,path);
+  await uploadBytes(ref,file,{contentType:file.type||"application/octet-stream"});
+  return {name:file.name,path,url:await getDownloadURL(ref),uploadedAt:new Date().toISOString()};
+}
+
 document.getElementById("employeeForm").addEventListener("submit",async ev=>{
   ev.preventDefault();
   const id=document.getElementById("f_id").value,name=document.getElementById("f_name").value.trim();
   if(!name)return;
-  const data={name,mobile:document.getElementById("f_mobile").value.trim(),department:document.getElementById("f_department").value.trim(),designation:document.getElementById("f_designation").value.trim(),managerId:document.getElementById("f_manager").value,shift:document.getElementById("f_shift").value.trim(),salary:Number(document.getElementById("f_salary").value)||0,joining:document.getElementById("f_joining").value,empType:document.getElementById("f_type").value,email:document.getElementById("f_email").value.trim(),emergency:document.getElementById("f_emergency").value.trim(),address:document.getElementById("f_address").value.trim(),docref:document.getElementById("f_docref").value.trim()};
-  if(id){
-    const e=emp(id),p=currentPeriod(e);Object.assign(e,data);e.status=e.status||"Active";e.lifecycle=e.lifecycle||"Active";
-    Object.assign(p,{department:data.department,designation:data.designation});
-    if(salary(e)!==data.salary)p.salaryHistory=[...(p.salaryHistory||[]),{amount:data.salary,effective:today}],p.salary=data.salary;
-  }else{
-    const newId=makeEmployeeId(data.joining);
-    DB.employees.push({id:newId,name:data.name,mobile:data.mobile,email:data.email,address:data.address,emergency:data.emergency,docref:data.docref,department:data.department,designation:data.designation,managerId:data.managerId||"",location:"Head Office",empType:data.empType,shift:data.shift,status:"Active",lifecycle:"Onboarding",probationEnd:"",periods:[{joining:data.joining,exit:null,exitReason:"",lastDay:"",remarks:"",salary:data.salary,salaryHistory:[{amount:data.salary,effective:data.joining}],department:data.department,designation:data.designation}]});
+  const g=id=>document.getElementById(id)?.value?.trim()||"";
+  const files=[
+    ["aadhaar","f_aadhaar_file"],["pan","f_pan_file"],["bankPassbook","f_bank_file"],
+    ["employmentAgreement","f_agreement_file"],["photo","f_photo_file"],["other","f_other_file"]
+  ];
+  const uploadStatus=document.getElementById("uploadStatus");
+  try{
+    uploadStatus.textContent="Saving employee record…";
+    const data={
+      name,mobile:g("f_mobile"),nickname:g("f_nickname"),fatherName:g("f_father"),department:g("f_department"),designation:g("f_designation"),
+      managerId:g("f_manager"),secondaryManagerId:g("f_secondary_manager"),shift:g("f_shift"),salary:Number(g("f_salary"))||0,joining:g("f_joining"),
+      empType:g("f_type"),email:g("f_email"),emergency:g("f_emergency"),address:g("f_address"),docref:g("f_docref"),location:g("f_location"),
+      seatingLocation:g("f_seating"),status:g("f_status")||"Active",sourceOfHire:g("f_source"),systemRole:g("f_systemrole"),probationEnd:g("f_probation"),
+      workPhone:g("f_workphone"),extension:g("f_extension"),personalMobile:g("f_personal_mobile"),personalEmail:g("f_personal_email"),
+      presentAddress:g("f_present_address"),permanentAddress:g("f_permanent_address"),tags:g("f_tags"),uan:g("f_uan"),pan:g("f_pan"),aadhaar:g("f_aadhaar"),
+      paymentMode:g("f_payment"),bankAccountNumber:g("f_account"),accountType:g("f_account_type"),bankName:g("f_bank_name"),
+      bankHolderName:g("f_bank_holder")||name,bankIFSC:g("f_ifsc"),pfAccountNumber:g("f_pf"),passport:g("f_passport"),passportValidUntil:g("f_passport_valid"),
+      dob:g("f_dob"),gender:g("f_gender"),maritalStatus:g("f_marital"),citizenship:g("f_citizenship")||"INDIA",bloodGroup:g("f_blood"),
+      aboutMe:g("f_about"),onboardingStatus:g("f_onboarding")
+    };
+
+    let targetId=id;
+    let employee;
+    if(id){
+      employee=emp(id); Object.assign(employee,data); employee.status=data.status||employee.status||"Active"; employee.lifecycle=employee.lifecycle||"Active";
+      const p=currentPeriod(employee); Object.assign(p,{department:data.department,designation:data.designation});
+      if(salary(employee)!==data.salary){p.salaryHistory=[...(p.salaryHistory||[]),{amount:data.salary,effective:today}];p.salary=data.salary;}
+    }else{
+      targetId=makeEmployeeId(data.joining);
+      employee={id:targetId,...data,address:data.address,docref:data.docref,lifecycle:"Onboarding",
+        periods:[{joining:data.joining,exit:null,exitReason:"",lastDay:"",remarks:"",salary:data.salary,salaryHistory:[{amount:data.salary,effective:data.joining}],department:data.department,designation:data.designation}]};
+      DB.employees.push(employee);
+    }
+
+    employee.documents=employee.documents||{};
+    for(const [key,inputId] of files){
+      const file=document.getElementById(inputId)?.files?.[0];
+      if(file){
+        uploadStatus.textContent=`Uploading ${key}…`;
+        employee.documents[key]=await uploadEmployeeDocument(targetId,file,key);
+      }
+    }
+    if(data.status==="Left"){
+      const cp=currentPeriod(employee); cp.exit=data.exit||cp.exit||today; cp.lastDay=data.exit||cp.lastDay||today;
+    }
+
+    audit(id?"Employee updated":"Employee created","Employee",`${name} (${targetId})`);
+    await saveDB(); closeModals(); renderPeople(); renderDashboard(); renderAudit();
+    if(window.currentDetailEmployeeId===targetId)renderEmployeeDetail();
+    toast("Employee record saved successfully.");
+  }catch(err){
+    console.error(err);
+    uploadStatus.textContent="";
+    toast(err?.message||"Could not save employee record.");
   }
-  audit(id?"Employee updated":"Employee created","Employee",`${name} (${id||"new"})`);await saveDB();closeModals();renderPeople();renderDashboard();renderAudit();toast("Employee record saved successfully.");
 });
 
 window.markLeft=async id=>{
@@ -905,11 +1124,322 @@ function renderDashboard(){
   document.getElementById("dashPending").innerHTML=pending.length?pending.slice(0,4).map(r=>{const e=emp(r.empId);return `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #eef2f7"><div><b style="font-size:12px">${e?.name||r.empId}</b><div style="font-size:10px;color:#94a3b8">${r.typeId} • ${fmt(r.from)}–${fmt(r.to)}</div></div>${statusBadge(r.status)}</div>`}).join(""):`<div class="empty">No pending approvals. You're all caught up.</div>`;
 }
 
-window.renderPeople=()=>{
-  const q=(document.getElementById("peopleSearch")?.value||"").toLowerCase(), st=document.getElementById("peopleStatus")?.value||"All";
-  const list=DB.employees.filter(e=>(st==="All"||e.status===st)&&(!q||[e.name,e.id,e.department,e.designation].join(" ").toLowerCase().includes(q)));
-  document.getElementById("peopleBody").innerHTML=list.length?list.map(e=>{const p=currentPeriod(e);return `<tr><td><div class="person"><div class="avatar">${(e.name||"?")[0]}</div><div><div class="personname">${e.name}</div><div class="personmeta">${e.id} • ${e.mobile||"No mobile"}</div></div></div></td><td>${p.department||e.department||"—"}</td><td>${p.designation||e.designation||"—"}</td><td>${esc(emp(e.managerId)?.name||"—")}</td><td>${fmt(p.joining)}</td><td>₹${salary(e).toLocaleString("en-IN")}</td><td>${statusBadge(e.status)}</td><td><div style="display:flex;gap:5px"><button class="btn btn-secondary" style="padding:7px 9px" onclick="openEmployee('${e.id}')">Edit</button>${e.status==="Active"?`<button class="btn btn-danger" style="padding:7px 9px" onclick="markLeft('${e.id}')">Mark Left</button>`:`<button class="btn btn-secondary" style="padding:7px 9px" onclick="rejoin('${e.id}')">Rejoin</button>`}</div></td></tr>`}).join(""):`<tr><td colspan="8"><div class="empty">No employees found.</div></td></tr>`;
+function isOwnerCeo(e){
+  const name=String(e?.name||"").trim().toLowerCase();
+  return name==="mandeep singh" || name.includes("mandeep singh");
 }
+function ownerCeoRecord(){
+  return {id:"GI-CEO",name:"Mandeep Singh",mobile:"",email:"",department:"Executive Leadership",designation:"Owner & CEO",managerId:"",status:"Active",lifecycle:"Active",location:"Head Office",empType:"Leadership",shift:"",periods:[{joining:null,exit:null,department:"Executive Leadership",designation:"Owner & CEO",salary:0,salaryHistory:[]}]};
+}
+
+window.renderPeople=()=>{
+  const q=(document.getElementById("peopleSearch")?.value||"").trim().toLowerCase();
+  const st=document.getElementById("peopleStatus")?.value||"All";
+  let list=(DB.employees||[]).filter(e=>{
+    const p=currentPeriod(e);
+    const hay=[e.name,e.id,e.email,e.department,e.designation,p.department,p.designation].join(" ").toLowerCase();
+    return (st==="All"||e.status===st)&&(!q||hay.includes(q));
+  });
+
+  // Owner & CEO is always first.
+  const storedCeo=list.find(isOwnerCeo);
+  list=list.filter(e=>!isOwnerCeo(e));
+  if(storedCeo) list.unshift(storedCeo);
+  else if((st==="All"||st==="Active") && (!q||"mandeep singh owner ceo executive leadership".includes(q))){
+    list.unshift(ownerCeoRecord());
+  }
+
+  const count=document.getElementById("employeeRecordCount");
+  if(count) count.textContent=`${list.length} record${list.length===1?"":"s"}`;
+
+  document.getElementById("peopleBody").innerHTML=list.length ? list.map(e=>{
+    const p=currentPeriod(e);
+    const ceo=isOwnerCeo(e)||e.id==="GI-CEO";
+    const parts=String(e.name||"").trim().split(/\s+/);
+    const first=parts[0]||"—";
+    const last=parts.length>1?parts.slice(1).join(" "):"—";
+    const nickname=e.nickname||e.nickName||"—";
+    const email=e.email||"—";
+    const dept=p.department||e.department||"—";
+    const des=p.designation||e.designation||"—";
+    const initials=String(e.name||"?").split(/\s+/).map(x=>x[0]).join("").slice(0,2).toUpperCase();
+
+    return `<tr class="employee-row${ceo?' employee-ceo-row':''}" onclick="openEmployeeDetail('${e.id}')">
+      <td><b>${esc(e.id||"—")}</b></td>
+      <td><b>${esc(first)}</b></td>
+      <td>${esc(last)}</td>
+      <td>${esc(nickname)}</td>
+      <td>${esc(email)}</td>
+      <td><div class="avatar employee-photo">${esc(initials)}</div></td>
+      <td>${esc(dept)}</td>
+      <td>${esc(des)}${ceo?' <span class="badge" style="margin-left:5px;background:#eaf2f8;color:#0f2942">Owner & CEO</span>':''}</td>
+      <td>${statusBadge(e.status)}</td>
+      <td>
+        <div style="display:flex;gap:5px" onclick="event.stopPropagation()">
+          <button class="btn btn-secondary" style="padding:7px 9px" onclick="openEmployeeDetail('${e.id}')">View</button>
+          ${ceo
+            ? '<span style="font-size:10px;color:#64748b;font-weight:700;display:flex;align-items:center">Organization Root</span>'
+            : `<button class="btn btn-secondary" style="padding:7px 9px" onclick="openEmployee('${e.id}')">Edit</button>`
+          }
+        </div>
+      </td>
+    </tr>`;
+  }).join("") : `<tr><td colspan="10"><div class="empty">No employees found.</div></td></tr>`;
+};
+
+window.openEmployeeDetail=(id)=>{
+  if(!id)return;
+  const e=(id==="GI-CEO")?ownerCeoRecord():emp(id);
+  if(!e)return toast("Employee record not found.");
+  window.currentDetailEmployeeId=id;
+  go("employee-detail");
+};
+
+window.editCurrentEmployee=()=>{
+  const id=window.currentDetailEmployeeId;
+  if(!id||id==="GI-CEO") return toast("The Owner & CEO organization record is protected.");
+  openEmployee(id);
+};
+
+function maskSensitive(v){
+  const x=String(v||"");
+  if(!x)return "—";
+  if(x.length<=4)return "••••";
+  return "••••••••"+x.slice(-4);
+}
+function money(v){
+  return Number(v||0)?("₹"+Number(v).toLocaleString("en-IN")):"—";
+}
+function renderEmployeeDocuments(e){
+  const docs=e.documents||{};
+  const labels={aadhaar:"Aadhaar Card",pan:"PAN Card",bankPassbook:"Cancelled Cheque / Bank Passbook",employmentAgreement:"Employment Agreement",photo:"Employee Photo",other:"Other Document"};
+  const rows=Object.entries(labels).map(([k,label])=>{
+    const d=docs[k];
+    return `<div class="document-row"><div><b>${label}</b><div class="personmeta">${d?.name||"Not uploaded"}</div></div>${d?.url?`<a class="btn btn-secondary" href="${esc(d.url)}" target="_blank" rel="noopener">View</a>`:`<span class="badge">Not uploaded</span>`}</div>`;
+  }).join("");
+  return `<div class="document-list">${rows}</div>`;
+}
+function renderSimpleRows(rows,fields){
+  if(!Array.isArray(rows)||!rows.length)return '<div class="empty">No rows found.</div>';
+  return `<div class="tablewrap"><table class="table"><thead><tr>${fields.map(x=>`<th>${x[0]}</th>`).join("")}</tr></thead><tbody>${rows.map(r=>`<tr>${fields.map(x=>`<td>${esc(r?.[x[1]]||"—")}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+}
+
+window.renderEmployeeDetail=()=>{
+  const id=window.currentDetailEmployeeId;
+  const host=document.getElementById("employeeDetailContent");
+  if(!host)return;
+  const e=(id==="GI-CEO")?ownerCeoRecord():emp(id);
+  if(!e){
+    host.innerHTML='<div class="empty">Employee record not found.</div>';
+    return;
+  }
+
+  const p=currentPeriod(e);
+  const parts=String(e.name||"").trim().split(/\s+/);
+  const first=parts[0]||"—";
+  const last=parts.length>1?parts.slice(1).join(" "):"—";
+  const nickname=e.nickname||e.nickName||"—";
+  const manager=e.managerId?emp(e.managerId):null;
+  const ceo=isOwnerCeo(e)||e.id==="GI-CEO";
+  const history=[...(e.periods||[])].sort((a,b)=>String(b.joining||"").localeCompare(String(a.joining||"")));
+
+  const escv=v=>esc(v||"—");
+  const info=(label,value)=>`<div class="employee-info-field"><span>${escv(label)}</span><b>${escv(value)}</b></div>`;
+
+  host.innerHTML=`
+    <div class="employee-detail-head">
+      <div class="employee-detail-person">
+        <div class="employee-detail-avatar">${escv(String(e.name||"?").split(/\\s+/).map(x=>x[0]).join("").slice(0,2).toUpperCase())}</div>
+        <div>
+          <div class="employee-detail-id">${escv(e.id)}</div>
+          <div class="employee-detail-name">${escv(e.name)}</div>
+          <div class="employee-detail-role">${escv(p.designation||e.designation||"Employee")} • ${escv(p.department||e.department||"")}</div>
+        </div>
+      </div>
+      <div>${statusBadge(e.status)}</div>
+    </div>
+
+    <div class="card employee-info-card">
+      <div class="cardhead"><div class="cardtitle">Basic Information</div></div>
+      <div class="cardbody employee-info-grid">
+        ${info("Employee ID",e.id)}
+        ${info("First Name",first)}
+        ${info("Last Name",last)}
+        ${info("Nickname",nickname)}
+        ${info("Email Address",e.email)}
+        ${info("Mobile",e.mobile)}
+        ${info("Emergency Contact",e.emergency)}
+        ${info("Address",e.address)}
+      </div>
+    </div>
+
+    <div class="card employee-info-card">
+      <div class="cardhead"><div class="cardtitle">Work Information</div></div>
+      <div class="cardbody employee-info-grid">
+        ${info("Department",p.department||e.department)}
+        ${info("Designation",p.designation||e.designation)}
+        ${info("Reporting Manager",ceo?"—":(manager?.name||"Direct to Owner / Not Assigned"))}
+        ${info("Head Office",e.location||"Head Office")}
+        ${info("Employment Type",e.empType)}
+        ${info("Employee Status",e.status)}
+        ${info("Shift",e.shift)}
+        ${info("Joining Date",p.joining?fmt(p.joining):"—")}
+        ${info("Last Working Day",p.lastDay||p.exit?fmt(p.lastDay||p.exit):"—")}
+        ${info("Exit Reason",p.exitReason||"—")}
+      </div>
+    </div>
+
+    <div class="card employee-info-card">
+      <div class="cardhead"><div class="cardtitle">Personal Details</div></div>
+      <div class="cardbody employee-info-grid">
+        ${info("Date of Birth",e.dob?fmt(e.dob):"—")}
+        ${info("Gender",e.gender)}
+        ${info("Marital Status",e.maritalStatus)}
+        ${info("Citizenship",e.citizenship||"INDIA")}
+        ${info("Blood Group",e.bloodGroup)}
+        ${info("About Me / Expertise",e.aboutMe||e.expertise)}
+        ${info("Current Experience",e.currentExperience||"—")}
+        ${info("Total Experience",e.totalExperience||"—")}
+      </div>
+    </div>
+
+    <div class="card employee-info-card">
+      <div class="cardhead"><div class="cardtitle">Identity & Payment Information</div></div>
+      <div class="cardbody employee-info-grid">
+        ${info("UAN",e.uan||"—")}
+        ${info("PAN",maskSensitive(e.pan))}
+        ${info("Aadhaar",maskSensitive(e.aadhaar))}
+        ${info("Payment Mode",e.paymentMode)}
+        ${info("Bank Account Number",maskSensitive(e.bankAccountNumber))}
+        ${info("Account Type",e.accountType)}
+        ${info("Bank Name",e.bankName)}
+        ${info("Bank Holder Name",e.bankHolderName)}
+        ${info("Bank IFSC",e.bankIFSC)}
+        ${info("PF Account Number",maskSensitive(e.pfAccountNumber))}
+        ${info("Passport",maskSensitive(e.passport))}
+        ${info("Passport Valid Until",e.passportValidUntil?fmt(e.passportValidUntil):"—")}
+      </div>
+    </div>
+
+    <div class="card employee-info-card">
+      <div class="cardhead"><div class="cardtitle">Contact Details</div></div>
+      <div class="cardbody employee-info-grid">
+        ${info("Work Phone Number",e.workPhone)}
+        ${info("Extension",e.extension)}
+        ${info("Personal Mobile Number",e.personalMobile||e.mobile)}
+        ${info("Personal Email Address",e.personalEmail)}
+        ${info("Present Address",e.presentAddress||e.address)}
+        ${info("Permanent Address",e.permanentAddress)}
+        ${info("Tags",e.tags)}
+      </div>
+    </div>
+
+    <div class="card employee-info-card">
+      <div class="cardhead"><div class="cardtitle">Documents</div></div>
+      <div class="cardbody">
+        ${renderEmployeeDocuments(e)}
+      </div>
+    </div>
+
+    <div class="card employee-info-card">
+      <div class="cardhead"><div class="cardtitle">Work Experience</div></div>
+      <div class="cardbody">
+        ${renderSimpleRows(e.workExperience,[["Company Name","company"],["Job Title","jobTitle"],["From Date","from"],["To Date","to"],["Job Description","description"],["Relevant","relevant"]])}
+      </div>
+    </div>
+
+    <div class="card employee-info-card">
+      <div class="cardhead"><div class="cardtitle">Education Details</div></div>
+      <div class="cardbody">
+        ${renderSimpleRows(e.education,[["Institute Name","institute"],["Degree / Diploma","degree"],["Specialization","specialization"],["Date of Completion","completion"]])}
+      </div>
+    </div>
+
+    <div class="card employee-info-card">
+      <div class="cardhead"><div class="cardtitle">Dependent Details</div></div>
+      <div class="cardbody">
+        ${renderSimpleRows(e.dependents,[["Name","name"],["Relationship","relationship"],["Date of Birth","dob"]])}
+      </div>
+    </div>
+
+    <div class="card employee-info-card">
+      <div class="cardhead"><div class="cardtitle">Salary Details</div></div>
+      <div class="cardbody employee-info-grid">
+        ${info("CTC (Annual)",money(e.annualCTC))}
+        ${info("Basic (Annual)",money(e.annualBasic))}
+        ${info("House Rent Allowance (Annual)",money(e.annualHRA))}
+        ${info("Conveyance (Annual)",money(e.annualConveyance))}
+        ${info("PF Employer Contribution (Annual)",money(e.annualPFEmployer))}
+        ${info("Gross Salary (Annual)",money(e.annualGross))}
+        ${info("Gross CTC (Annual)",money(e.annualGrossCTC||e.annualCTC))}
+        ${info("PF Employee Contribution (Annual)",money(e.annualPFEmployee))}
+        ${info("Professional Tax (Annual)",money(e.annualProfessionalTax))}
+        ${info("Total Deductions (Annual)",money(e.annualDeductions))}
+        ${info("Fixed Net Pay / In Hand (Annual)",money(e.annualNetPay))}
+        ${info("CTC (Monthly)",money(e.monthlyCTC||salary(e)))}
+        ${info("Basic (Monthly)",money(e.monthlyBasic))}
+        ${info("House Rent Allowance (Monthly)",money(e.monthlyHRA))}
+        ${info("Conveyance (Monthly)",money(e.monthlyConveyance))}
+        ${info("PF Employer Contribution (Monthly)",money(e.monthlyPFEmployer))}
+        ${info("Gross Salary (Monthly)",money(e.monthlyGross))}
+        ${info("PF Employee Contribution (Monthly)",money(e.monthlyPFEmployee))}
+        ${info("Professional Tax (Monthly)",money(e.monthlyProfessionalTax))}
+        ${info("Total Deductions (Monthly)",money(e.monthlyDeductions))}
+        ${info("Fixed Net Pay / In Hand (Monthly)",money(e.monthlyNetPay))}
+      </div>
+    </div>
+
+    <div class="card employee-info-card">
+      <div class="cardhead"><div class="cardtitle">System Fields</div></div>
+      <div class="cardbody employee-info-grid">
+        ${info("Added By",e.addedBy)}
+        ${info("Added Time",e.addedTime)}
+        ${info("Modified By",e.modifiedBy)}
+        ${info("Modified Time",e.modifiedTime)}
+        ${info("Onboarding Status",e.onboardingStatus)}
+      </div>
+    </div>
+
+    <div class="card employee-info-card">
+      <div class="cardhead">
+        <div>
+          <div class="cardtitle">Employment History</div>
+          <div class="personmeta">All joining, rejoining, department, designation and exit periods for this employee.</div>
+        </div>
+        <span class="badge">${history.length} period${history.length===1?"":"s"}</span>
+      </div>
+      <div class="cardbody">
+        ${history.length ? `<div class="tablewrap"><table class="table">
+          <thead><tr><th>Period</th><th>Joining</th><th>Exit / Last Day</th><th>Department</th><th>Designation</th><th>Salary</th><th>Exit Reason</th></tr></thead>
+          <tbody>${history.map((h,i)=>`<tr>
+            <td><b>Period ${history.length-i}</b>${h.remarks?`<div class="personmeta">${esc(h.remarks)}</div>`:""}</td>
+            <td>${h.joining?fmt(h.joining):"—"}</td>
+            <td>${h.lastDay||h.exit?fmt(h.lastDay||h.exit):"Current"}</td>
+            <td>${escv(h.department||e.department)}</td>
+            <td>${escv(h.designation||e.designation)}</td>
+            <td>${Number(h.salary||0)?'₹'+Number(h.salary).toLocaleString("en-IN"):"—"}</td>
+            <td>${escv(h.exitReason)}</td>
+          </tr>`).join("")}</tbody>
+        </table></div>` : '<div class="empty">No employment history has been recorded yet.</div>'}
+      </div>
+    </div>
+
+    <div class="card employee-info-card">
+      <div class="cardhead"><div class="cardtitle">Compensation History</div></div>
+      <div class="cardbody">
+        ${history.flatMap(h=>(h.salaryHistory||[]).map(x=>({amount:x.amount,effective:x.effective,period:h.joining||""})))
+          .sort((a,b)=>String(b.effective||"").localeCompare(String(a.effective||"")))
+          .length
+          ? `<div class="tablewrap"><table class="table"><thead><tr><th>Effective Date</th><th>Monthly Salary</th><th>Employment Period</th></tr></thead><tbody>${
+              history.flatMap(h=>(h.salaryHistory||[]).map(x=>({amount:x.amount,effective:x.effective,period:h.joining||""})))
+                .sort((a,b)=>String(b.effective||"").localeCompare(String(a.effective||"")))
+                .map(x=>`<tr><td>${x.effective?fmt(x.effective):"—"}</td><td><b>₹${Number(x.amount||0).toLocaleString("en-IN")}</b></td><td>${x.period?fmt(x.period):"—"}</td></tr>`).join("")
+            }</tbody></table></div>`
+          : '<div class="empty">No compensation history recorded.</div>'}
+      </div>
+    </div>`;
+};
+
 
 window.renderEmployeeChart=()=>{
   if(!DB)return;
@@ -924,20 +1454,22 @@ window.renderEmployeeChart=()=>{
   }
   const selected=filter?.value||"All";
   const grouped={};
-  departments.filter(d=>selected==="All"||d===selected).forEach(d=>grouped[d]=active.filter(e=>(currentPeriod(e).department||e.department||"Unassigned")===d));
+  departments.filter(d=>selected==="All"||d===selected).forEach(d=>grouped[d]=active.filter(e=>!isOwnerCeo(e)&&(currentPeriod(e).department||e.department||"Unassigned")===d));
   document.getElementById("chartActive").textContent=active.length;
   document.getElementById("chartDepartments").textContent=departments.length;
   document.getElementById("chartDesignations").textContent=designations.length;
 
-  const root=active[0];
-  const rootHtml=root?`
+  // The organization root is always the Owner & CEO — never the first employee alphabetically
+  // or the first record returned from Firestore.
+  const root=ownerCeoRecord();
+  const rootHtml=`
     <div class="org-root-card">
-      <div class="org-avatar">${escapeHtml((root.name||"?")[0].toUpperCase())}</div>
-      <div style="font-size:13px;font-weight:800">${escapeHtml(root.name)}</div>
-      <div style="font-size:10px;color:#cbd5e1;margin-top:3px">${escapeHtml(currentPeriod(root).designation||root.designation||"Employee")}</div>
-      <div style="font-size:9px;color:#fbbf24;margin-top:6px">Organization / Primary Employee</div>
+      <div class="org-avatar">MS</div>
+      <div style="font-size:13px;font-weight:800">Mandeep Singh</div>
+      <div style="font-size:10px;color:#cbd5e1;margin-top:3px">Owner & CEO</div>
+      <div style="font-size:9px;color:#fbbf24;margin-top:6px">Gurunanak Impex / Organization Root</div>
     </div>
-    <div class="org-line"></div>`:"";
+    <div class="org-line"></div>`;
 
   const deptHtml=Object.entries(grouped).map(([dept,members])=>`
     <div class="org-dept">
@@ -959,6 +1491,118 @@ window.renderEmployeeChart=()=>{
     `<div class="org-root">${rootHtml}<div class="org-departments">${deptHtml}</div></div>`:
     `<div class="empty">No active employees available to build the chart.</div>`;
 }
+
+
+function chartEmployeesOrdered(){
+  const employees=(DB.employees||[]).filter(e=>e.status==='Active');
+  const ownerName='Mandeep Singh';
+  const owner = employees.find(e=>(e.name||'').trim().toLowerCase()===ownerName.toLowerCase());
+  const rest=employees.filter(e=>e!==owner);
+  return {owner,rest};
+}
+
+window.toggleChartEditor=()=>{
+  const box=document.getElementById('chartEditor');
+  if(!box) return;
+  const opening=box.style.display==='none'||!box.style.display;
+  if(opening){
+    renderChartEditor();
+    box.style.display='block';
+    document.getElementById('chartEditBtn').style.display='none';
+    document.getElementById('chartSaveBtn').style.display='inline-flex';
+    document.getElementById('chartCancelBtn').style.display='inline-flex';
+  }else{
+    cancelChartEdits();
+  }
+};
+
+function renderChartEditor(){
+  const wrap=document.getElementById('chartEditorRows');
+  if(!wrap) return;
+  const {owner,rest}=chartEmployeesOrdered();
+  const employees=(DB.employees||[]).filter(e=>e.status==='Active');
+  const options=employees.map(x=>`<option value="${escapeHtml(x.id)}">${escapeHtml(x.name)} — ${escapeHtml(currentPeriod(x).designation||x.designation||'Employee')}</option>`).join('');
+  wrap.innerHTML = (owner ? `
+    <div class="tablewrap" style="margin-bottom:12px">
+      <table><thead><tr><th>Employee</th><th>Designation</th><th>Reports To</th></tr></thead>
+      <tbody><tr>
+        <td><b>${escapeHtml(owner.name)}</b><div class="personmeta">Owner & CEO • Organization Head</div></td>
+        <td>Owner & CEO</td><td><span class="badge blue">Top / No Manager</span></td>
+      </tr></tbody></table>
+    </div>` : '') +
+    (rest.length ? `<div class="tablewrap"><table><thead><tr><th>Employee</th><th>Designation</th><th>Reports To</th></tr></thead><tbody>` +
+    rest.map(e=>{
+      const p=currentPeriod(e);
+      return `<tr>
+        <td><b>${escapeHtml(e.name||'—')}</b><div class="personmeta">${escapeHtml(e.id||'')}</div></td>
+        <td>${escapeHtml(p.designation||e.designation||'Employee')}</td>
+        <td><select class="input chart-manager-select" data-emp-id="${escapeHtml(e.id)}">
+          <option value="">No manager / Direct to Owner</option>
+          ${options}
+        </select></td>
+      </tr>`;
+    }).join('') + `</tbody></table></div>` : '<div class="empty">No active employees other than the Owner & CEO.</div>');
+
+  rest.forEach(e=>{
+    const sel=wrap.querySelector(`.chart-manager-select[data-emp-id="${CSS.escape(e.id)}"]`);
+    if(sel) sel.value=e.managerId||'';
+  });
+}
+
+window.saveChartEdits=async()=>{
+  const selects=document.querySelectorAll('.chart-manager-select');
+  for(const sel of selects){
+    const id=sel.dataset.empId;
+    const e=(DB.employees||[]).find(x=>x.id===id);
+    if(!e) continue;
+    if(sel.value===id) { toast('An employee cannot report to themselves.'); return; }
+    e.managerId=sel.value||'';
+  }
+  const owner=(DB.employees||[]).find(e=>(e.name||'').trim().toLowerCase()==='mandeep singh');
+  if(owner) owner.managerId='';
+  audit('Employee chart updated','Organization Chart','Reporting hierarchy updated');
+  await saveDB();
+  renderEmployeeChart();
+  renderPeople();
+  cancelChartEdits();
+  toast('Employee chart saved.');
+};
+
+window.cancelChartEdits=()=>{
+  const box=document.getElementById('chartEditor');
+  if(box) box.style.display='none';
+  const edit=document.getElementById('chartEditBtn');
+  const save=document.getElementById('chartSaveBtn');
+  const cancel=document.getElementById('chartCancelBtn');
+  if(edit) edit.style.display='inline-flex';
+  if(save) save.style.display='none';
+  if(cancel) cancel.style.display='none';
+};
+
+window.downloadEmployeeChart=()=>{
+  const chart=document.getElementById('employeeChart');
+  if(!chart){toast('Employee chart is not available.');return;}
+  const clone=chart.cloneNode(true);
+  const styles=[...document.querySelectorAll('style')].map(x=>x.textContent).join('\n');
+  const htmlDoc=`<!doctype html><html><head><meta charset="utf-8"><title>Gurunanak Impex — Employee Chart</title><style>${styles}
+  body{margin:0;padding:28px;background:#fff;font-family:Arial,sans-serif}
+  #employeeChart{display:block!important}
+  @media print{body{padding:10mm}.orgchart{overflow:visible!important}}
+  </style></head><body>
+  <h1 style="margin:0 0 5px;color:#0f2942">Gurunanak Impex</h1>
+  <div style="margin:0 0 20px;color:#64748b;font-size:13px">Employee Organization Chart</div>
+  ${clone.outerHTML}
+  </body></html>`;
+  const blob=new Blob([htmlDoc],{type:'text/html;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download='Gurunanak-Impex-Employee-Chart.html';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+};
 
 function escapeHtml(v){
   return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m]));
@@ -1204,48 +1848,12 @@ window.exportEmployees=()=>{
 }
 window.logout=async()=>{await signOut(auth)}
 document.getElementById("globalSearch").addEventListener("keydown",e=>{if(e.key==="Enter"){document.getElementById("peopleSearch").value=e.target.value;go("people");renderPeople()}})
-document.getElementById("loginForm").addEventListener("submit",async e=>{
-  e.preventDefault();
-  const b=document.getElementById("loginBtn"),m=document.getElementById("loginMsg");
-  b.disabled=true;b.textContent="Signing in…";m.textContent="";
-  try{
-    await signInWithEmailAndPassword(auth,document.getElementById("loginEmail").value,document.getElementById("loginPassword").value);
-  }catch(err){
-    console.error("Firebase Authentication error:",err);
-    const messages={
-      "auth/invalid-credential":"Invalid email or password.",
-      "auth/invalid-email":"Please enter a valid work email.",
-      "auth/user-disabled":"This Firebase user account is disabled.",
-      "auth/too-many-requests":"Too many login attempts. Please wait and try again.",
-      "auth/network-request-failed":"Network error. Check your internet connection."
-    };
-    m.textContent=messages[err?.code]||("Login failed"+(err?.code?` [${err.code}]`:"")+": "+(err?.message||"Check your Firebase Authentication account and password."));
-    b.disabled=false;b.textContent="Sign In";
-  }
-})
+document.getElementById("loginForm").addEventListener("submit",async e=>{e.preventDefault();const b=document.getElementById("loginBtn"),m=document.getElementById("loginMsg");b.disabled=true;b.textContent="Signing in…";m.textContent="";try{await signInWithEmailAndPassword(auth,document.getElementById("loginEmail").value,document.getElementById("loginPassword").value)}catch(err){m.textContent="Login failed. Check your Firebase Authentication account and password.";b.disabled=false;b.textContent="Sign In"}})
 
 onAuthStateChanged(auth,async user=>{
  if(!user){document.getElementById("loginScreen").classList.remove("hide");document.getElementById("app").classList.add("hide");return}
  try{DB=await loadDB();ensureModules();document.getElementById("loginScreen").classList.add("hide");document.getElementById("app").classList.remove("hide");document.getElementById("sideUser").textContent=user.email||"Authenticated user";document.getElementById("userAvatar").textContent=(user.email||"H")[0].toUpperCase();const linked=DB.employees.find(e=>(e.email||"").toLowerCase()===(user.email||"").toLowerCase());go(linked?"employee-portal":"dashboard");toast("Connected to GI People.");}
-  catch(err){
-    console.error("GI People Firestore load failed:",err);
-    const code=err?.code||"";
-    let msg="";
-    if(code==="permission-denied"){
-      msg="Firebase login succeeded, but Firestore denied access to /hrms/state. Update Firestore Rules to allow the authenticated HRMS user to read and write this document.";
-    }else if(code==="failed-precondition"){
-      msg="Firestore is not configured/created for this Firebase project.";
-    }else if(code==="unavailable"){
-      msg="Firestore is temporarily unavailable. Check your internet connection and try again.";
-    }else{
-      msg="GI People could not connect to Firestore"+(code?` [${code}]`:"")+": "+(err?.message||"Unknown error.");
-    }
-    document.getElementById("loginMsg").textContent=msg;
-    document.getElementById("loginScreen").classList.remove("hide");
-    document.getElementById("app").classList.add("hide");
-    const b=document.getElementById("loginBtn");
-    if(b){b.disabled=false;b.textContent="Sign In";}
-  }
+  catch(err){console.error("GI People Firestore load failed:",err);const code=err?.code?` [${err.code}]`:"";const msg="Firebase login worked, but GI People could not read hrms/state"+code+". "+(err?.message||err);document.getElementById("loginMsg").textContent=msg;document.getElementById("loginScreen").classList.remove("hide");document.getElementById("app").classList.add("hide");}
 })
 </script>
 </body>
