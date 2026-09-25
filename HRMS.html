@@ -470,7 +470,7 @@
               </div>
 
               <div id="ess-attendance" class="ess-section">
-                <div class="ess-card"><div class="cardhead" style="padding:0 0 12px"><div class="cardtitle">My Attendance</div><div class="ess-actions"><button class="btn btn-primary" onclick="essPunch()">◷ Check In / Out</button></div></div><div class="tablewrap"><table class="table"><thead><tr><th>Date</th><th>Shift</th><th>Check In</th><th>Check Out</th><th>Status</th></tr></thead><tbody id="essAttendanceBody"></tbody></table></div></div>
+                <div class="ess-card"><div class="cardhead" style="padding:0 0 12px"><div><div class="cardtitle">My Attendance</div><div class="ess-muted">Punch in/out and request corrections for the last 30 days.</div></div><div class="ess-actions"><button class="btn btn-primary" onclick="essPunch()">◷ Check In / Out</button><button class="btn btn-secondary" onclick="openAttendanceCorrection()">✎ Correct Attendance</button></div></div><div class="tablewrap"><table class="table"><thead><tr><th>Date</th><th>Shift</th><th>Check In</th><th>Check Out</th><th>Status</th></tr></thead><tbody id="essAttendanceBody"></tbody></table></div></div>
               </div>
 
               <div id="ess-timesheet" class="ess-section">
@@ -639,6 +639,8 @@
       <div id="page-approvals" class="page">
         <div class="pagehead"><div><div class="title">Approval Center</div><div class="subtitle">One place for HR actions waiting for a decision.</div></div></div>
         <div class="card"><div class="cardhead"><div class="cardtitle">Leave approvals</div></div><div class="tablewrap"><table class="table"><thead><tr><th>Employee</th><th>Request</th><th>Dates</th><th>Applied</th><th>Status</th><th>Decision</th></tr></thead><tbody id="approvalBody"></tbody></table></div></div>
+      </div>
+        <div class="card" style="margin-top:16px"><div class="cardhead"><div><div class="cardtitle">Attendance correction approvals</div><div style="font-size:10px;color:#64748b">Employee requests for missed/incorrect attendance. Rejected requests do not change attendance.</div></div></div><div class="tablewrap"><table class="table"><thead><tr><th>Employee</th><th>Date</th><th>Requested</th><th>Reason</th><th>Status</th><th>Decision</th></tr></thead><tbody id="attendanceApprovalBody"></tbody></table></div></div>
       </div>
 
       <div id="page-former" class="page">
@@ -832,6 +834,20 @@
   </div>
 </div>
 
+<div id="attendanceCorrectionModal" class="modalback">
+  <div class="modal" style="width:min(600px,100%)">
+    <div class="modalhead"><div><div style="font-size:17px;font-weight:800">Correct Attendance</div><div style="font-size:11px;color:#64748b">Request a correction for a date within the last 30 days.</div></div><button type="button" class="btn btn-secondary" onclick="closeAttendanceCorrection()">✕</button></div>
+    <form id="attendanceCorrectionForm"><div class="modalbody"><div class="formgrid">
+      <div class="field"><label>Date</label><input class="input" id="ac_date" type="date" required></div>
+      <div class="field"><label>Status</label><select class="select" id="ac_status"><option value="Present">Present</option><option value="Half Day">Half Day</option><option value="Leave">Leave</option></select></div>
+      <div class="field"><label>Check In</label><input class="input" id="ac_in" type="time"></div>
+      <div class="field"><label>Check Out</label><input class="input" id="ac_out" type="time"></div>
+      <div class="field full"><label>Reason</label><textarea class="textarea" id="ac_reason" rows="3" required placeholder="Example: I forgot to punch in on this date."></textarea></div>
+    </div><div class="notice" style="margin-top:12px">Your request will go to the Admin for approval. <b>Nothing changes in attendance until Admin approves it.</b></div></div>
+    <div class="modalfoot"><button type="button" class="btn btn-secondary" onclick="closeAttendanceCorrection()">Cancel</button><button type="submit" class="btn btn-primary">Submit for Approval</button></div></form>
+  </div>
+</div>
+
 <div id="leaveModal" class="modalback">
   <div class="modal" style="width:min(560px,100%)">
     <div class="modalhead"><div><div style="font-size:16px;font-weight:800">Apply Leave</div><div style="font-size:10px;color:#94a3b8">Create a leave request</div></div><button class="btn btn-secondary" onclick="closeModals()">✕</button></div>
@@ -853,7 +869,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-analytics.js";
 import { getFirestore, doc, getDoc, setDoc, collection, getDocs, writeBatch, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
-import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, createUserWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey:"AIzaSyAtmg8G_dEqu58paEa-qnRMQy-GCYToBwg",
@@ -869,6 +885,9 @@ const app=initializeApp(firebaseConfig);
 const GOOGLE_APPS_SCRIPT_URL="https://script.google.com/macros/s/AKfycbxxWyEv0HwtHy8Q0_mk18LfFhbeu2XSOPZAB2lo1sVKnCmgCv51jMYlParPIVWd5FC6/exec";
 try{getAnalytics(app)}catch(e){}
 const db= getFirestore(app), auth=getAuth(app);
+// A secondary Firebase Auth instance provisions employee accounts without signing the admin out.
+const employeeAuthApp=initializeApp(firebaseConfig,"GIEmployeeProvisioning");
+const employeeAuth=getAuth(employeeAuthApp);
 // GI People Firestore data store. This is the same document-based architecture used by the original app.
 const STATE_REF=doc(db,"hrms","state");
 const ORG_ID="gi-impex";
@@ -878,7 +897,7 @@ let currentPage="dashboard";
 const seed=()=>({
   idSequences:{},
   employees:[{id:"GI-EMP-20260923-001",name:"Uma",mobile:"+91 80909 53624",email:"",dob:"",gender:"",address:"",emergency:"",department:"Logistics",designation:"Staff",empType:"Full Time",shift:"10:00 AM – 7:00 PM",managerId:"",location:"Head Office",status:"Active",lifecycle:"Active",probationEnd:"",periods:[{joining:"2026-09-23",exit:null,exitReason:"",lastDay:"",remarks:"",salary:9000,salaryHistory:[{amount:9000,effective:"2026-09-23"}],department:"Logistics",designation:"Staff"}]}],
-  attendance:{},punches:{},leaveTypes:[{id:"CL",name:"Casual Leave",annual:12},{id:"SL",name:"Sick Leave",annual:8},{id:"EL",name:"Earned Leave",annual:15}],leaveRequests:[],holidays:[]
+  attendance:{},punches:{},attendanceRegularizations:[],leaveTypes:[{id:"CL",name:"Casual Leave",annual:12},{id:"SL",name:"Sick Leave",annual:8},{id:"EL",name:"Earned Leave",annual:15}],leaveRequests:[],holidays:[]
 });
 
 const NORMALIZED_COLLECTIONS=[
@@ -919,13 +938,7 @@ async function readCollection(name){
 async function loadDB(){
   // GI People uses one Firestore state document for this build.
   // Authentication identifies the signed-in person; no separate users/{uid} document is required.
-  CURRENT_USER_DOC={
-    id:auth.currentUser?.uid||"",
-    email:auth.currentUser?.email||"",
-    name:auth.currentUser?.displayName||"",
-    role:"owner_ceo",
-    employeeId:null
-  };
+  CURRENT_USER_DOC={id:auth.currentUser?.uid||"",email:auth.currentUser?.email||"",name:auth.currentUser?.displayName||"",role:"owner_ceo",employeeId:null};
   const snap=await getDoc(STATE_REF);
   if(!snap.exists()){
     const fresh=seed();
@@ -953,7 +966,7 @@ function ensureModules(){
   DB.organization.ownerCeoName='Mandeep Singh';
   DB.organization.ownerCeoTitle='Owner & CEO';
   DB.organization.companyName='Gurunanak Impex';
-  DB.announcements=DB.announcements||[];DB.documents=DB.documents||[];
+  DB.announcements=DB.announcements||[];DB.documents=DB.documents||[];DB.attendanceRegularizations=DB.attendanceRegularizations||[];
   DB.timesheets=DB.timesheets||[];
   DB.goals=DB.goals||[];
   DB.performanceCycles=DB.performanceCycles||[{id:"PC-2026",name:"FY 2026-27 Annual Review",status:"Open"}];
@@ -987,6 +1000,56 @@ function migrateLegacyEmployeeIds(){
   return changed;
 }
 
+
+function isAdminUser(){
+  const email=(auth.currentUser?.email||"").toLowerCase();
+  return !!email && !DB?.employees?.some(e=>(e.email||"").toLowerCase()===email && e.status!=="Left");
+}
+function employeeEmailBase(name){
+  const parts=String(name||"").trim().toLowerCase().replace(/[^a-z0-9 ]/g,"").split(/\s+/).filter(Boolean);
+  if(!parts.length) return "employee";
+  return parts.length===1?parts[0]:parts[0]+parts[parts.length-1];
+}
+function randomEmployeePassword(){
+  const chars="ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789@#$%";
+  const arr=new Uint32Array(14); crypto.getRandomValues(arr);
+  return Array.from(arr,x=>chars[x%chars.length]).join("");
+}
+async function generateUniqueEmployeeEmail(name){
+  const base=employeeEmailBase(name);
+  const existing=new Set((DB.employees||[]).map(e=>(e.email||"").toLowerCase()));
+  let i=0, email=`${base}@gurunanakimpex.com`;
+  while(existing.has(email.toLowerCase())){ i++; email=`${base}${i}@gurunanakimpex.com`; }
+  return email;
+}
+async function provisionEmployeeAuth(name,email){
+  const password=randomEmployeePassword();
+  try{
+    const cred=await createUserWithEmailAndPassword(employeeAuth,email,password);
+    try{await updateProfile(cred.user,{displayName:name});}catch(_e){}
+    await signOut(employeeAuth);
+    return {uid:cred.user.uid,email,password};
+  }catch(err){
+    try{await signOut(employeeAuth);}catch(_e){}
+    if(err?.code==="auth/email-already-in-use") throw new Error("The generated employee email already exists in Firebase Authentication. Please try adding the employee again.");
+    if(err?.code==="auth/operation-not-allowed") throw new Error("Firebase Authentication Email/Password sign-in is not enabled. Enable Email/Password in Firebase Console → Authentication → Sign-in method.");
+    throw new Error(err?.message||"Could not create the employee Firebase login.");
+  }
+}
+function showEmployeeCredentials(creds,name){
+  let m=document.getElementById("employeeCredentialsModal");
+  if(!m){
+    m=document.createElement("div");m.id="employeeCredentialsModal";m.className="modalback";
+    m.innerHTML=`<div class="modal" style="width:min(560px,100%)"><div class="modalhead"><div><div style="font-size:18px;font-weight:800">Employee Login Created</div><div style="font-size:11px;color:#64748b">Give these credentials securely to the employee.</div></div><button type="button" class="btn btn-secondary" id="credentialClose">✕</button></div><div class="modalbody"><div class="notice"><b>Important:</b> Firebase Authentication stores the password securely and does not allow this password to be retrieved later. Copy/save it now and share it securely with the employee.</div><div class="field" style="margin-top:14px"><label>Employee</label><input class="input" id="credentialName" readonly></div><div class="field"><label>Login Email</label><input class="input" id="credentialEmail" readonly></div><div class="field"><label>Temporary Password</label><input class="input" id="credentialPassword" readonly></div><div class="ess-actions" style="margin-top:14px"><button type="button" class="btn btn-primary" id="copyCredentials">Copy Credentials</button></div></div><div class="modalfoot"><button type="button" class="btn btn-primary" id="credentialDone">Done</button></div></div>`;
+    document.body.appendChild(m);
+    const close=()=>m.classList.remove("show");
+    m.querySelector("#credentialClose").onclick=close;m.querySelector("#credentialDone").onclick=close;
+    m.querySelector("#copyCredentials").onclick=async()=>{const txt=`Gurunanak Impex\nEmployee: ${m.querySelector("#credentialName").value}\nLogin: ${m.querySelector("#credentialEmail").value}\nPassword: ${m.querySelector("#credentialPassword").value}`;try{await navigator.clipboard.writeText(txt);toast("Credentials copied.")}catch(_e){toast("Select and copy the credentials manually.")}};
+  }
+  m.querySelector("#credentialName").value=name;m.querySelector("#credentialEmail").value=creds.email;m.querySelector("#credentialPassword").value=creds.password;m.classList.add("show");
+}
+function attendanceCorrectionMinDate(){const d=new Date(today+"T00:00:00");d.setDate(d.getDate()-29);return d.toLocaleDateString("en-CA");}
+
 function audit(action,entity,details){
   DB.auditLogs=DB.auditLogs||[];
   DB.auditLogs.push({id:"AUD-"+Date.now(),date:new Date().toISOString(),action,entity,details});
@@ -1010,6 +1073,7 @@ function emp(id){return DB.employees.find(e=>e.id===id)}
 function statusBadge(s){const c=s==="Active"?"green":s==="Pending"?"amber":s==="Approved"?"green":s==="Rejected"?"red":"gray";return `<span class="badge ${c}">${s}</span>`}
 
 window.go=(page)=>{
+  if(CURRENT_USER_DOC?.role==="employee" && page!=="employee-portal"){page="employee-portal";}
   currentPage=page;
   document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
   document.getElementById("page-"+page)?.classList.add("active");
@@ -1145,6 +1209,7 @@ document.getElementById("employeeForm").addEventListener("submit",async ev=>{
   ];
   const uploadStatus=document.getElementById("uploadStatus");
   try{
+    if(!isAdminUser() && !id) throw new Error("Only the Admin can add a new employee account.");
     uploadStatus.textContent="Saving employee record…";
     const data={
       name,mobile:g("f_mobile"),nickname:g("f_nickname"),fatherName:g("f_father"),department:g("f_department"),designation:g("f_designation"),
@@ -1161,17 +1226,19 @@ document.getElementById("employeeForm").addEventListener("submit",async ev=>{
 
     let targetId=id;
     let employee;
+    let newLoginCredentials=null;
     if(id){
       employee=emp(id); Object.assign(employee,data); employee.status=data.status||employee.status||"Active"; employee.lifecycle=employee.lifecycle||"Active";
       const p=currentPeriod(employee); Object.assign(p,{department:data.department,designation:data.designation});
       if(salary(employee)!==data.salary){p.salaryHistory=[...(p.salaryHistory||[]),{amount:data.salary,effective:today}];p.salary=data.salary;}
     }else{
       targetId=makeEmployeeId(data.joining);
-      employee={id:targetId,...data,address:data.address,docref:data.docref,lifecycle:"Onboarding",
-        periods:[{joining:data.joining,exit:null,exitReason:"",lastDay:"",remarks:"",salary:data.salary,salaryHistory:[{amount:data.salary,effective:data.joining}],department:data.department,designation:data.designation}]};
+      data.email=await generateUniqueEmployeeEmail(data.name);
+      newLoginCredentials=await provisionEmployeeAuth(data.name,data.email);
+      employee={id:targetId,...data,address:data.address,docref:data.docref,lifecycle:"Onboarding",authUid:newLoginCredentials.uid,authProvisionedAt:new Date().toISOString(),
+        periods:[{joining:data.joining,exit:null,exitReason:"",lastDay:"",remarks:"",salary:data.salary,salaryHistory:[{amount:data.salary,effective:data.joining}],department:data.department,designation:data.designation}]} ;
       DB.employees.push(employee);
     }
-
     employee.documents=employee.documents||{};
     for(const [key,inputId] of files){
       const file=document.getElementById(inputId)?.files?.[0];
@@ -1188,6 +1255,7 @@ document.getElementById("employeeForm").addEventListener("submit",async ev=>{
     await saveDB(); closeModals(); renderPeople(); renderDashboard(); renderAudit();
     if(window.currentDetailEmployeeId===targetId)renderEmployeeDetail();
     toast("Employee record saved successfully.");
+    if(newLoginCredentials) showEmployeeCredentials(newLoginCredentials,employee.name);
   }catch(err){
     console.error(err);
     uploadStatus.textContent="";
@@ -1924,9 +1992,7 @@ function essCurrentEmployee(){
   const email=(auth.currentUser?.email||'').toLowerCase();
   const linked=DB.employees.find(e=>(e.email||'').toLowerCase()===email && e.status!=='Left');
   if(linked) return linked;
-  // Owner/CEO login is allowed without an employee profile. In that case,
-  // use the first active employee only for read-only portal rendering.
-  return DB.employees.find(e=>e.status==='Active')||DB.employees[0]||null;
+  return null;
 }
 
 window.essGo=(section)=>{
@@ -2034,7 +2100,9 @@ window.renderEmployeePortal=()=>{
   const anns=(DB.announcements||[]).slice().reverse().slice(0,5);
   document.getElementById('essAnnouncements').innerHTML=anns.length?anns.map(a=>`<div class="ess-list-item"><div><b>${escv(a.title||a.name||'Announcement')}</b><div class="personmeta">${escv(a.message||a.description||'')}</div></div></div>`).join(''):'<div class="empty">No announcements yet.</div>';
   const pendingWork=(DB.approvals||[]).filter(x=>x.empId===e.id&&x.status==='Pending');
-  document.getElementById('essPendingWork').innerHTML=pendingWork.length?pendingWork.map(x=>`<div class="ess-list-item"><div><b>${escv(x.title||x.type||'Pending request')}</b><div class="personmeta">Awaiting action</div></div>${statusBadge('Pending')}</div>`).join(''):'<div class="empty">No pending work.</div>';
+  const pendingAttendance=(DB.attendanceRegularizations||[]).filter(x=>x.empId===e.id&&x.status==='Pending');
+  const workItems=[...pendingWork.map(x=>({title:x.title||x.type||'Pending request',meta:'Awaiting action'})),...pendingAttendance.map(x=>({title:'Attendance correction — '+fmt(x.date),meta:'Awaiting Admin approval'}))];
+  document.getElementById('essPendingWork').innerHTML=workItems.length?workItems.map(x=>`<div class="ess-list-item"><div><b>${escv(x.title)}</b><div class="personmeta">${escv(x.meta)}</div></div>${statusBadge('Pending')}</div>`).join(''):'<div class="empty">No pending work.</div>';
 
   document.getElementById('essLeaveCount').textContent=leaveRows.length;
   document.getElementById('essLeavePending').textContent=pending.length;
@@ -2119,16 +2187,49 @@ window.renderAudit=()=>{
 window.renderAttendance=()=>{
   const d=document.getElementById("attDate");if(!d.value)d.value=today;
   const date=d.value, active=DB.employees.filter(e=>e.status==="Active");
-  document.getElementById("attBody").innerHTML=active.map(e=>{const p=DB.punches?.[e.id+"|"+date],a=DB.attendance?.[e.id+"|"+date]||((p?.in)?"Present":"Not Marked");return `<tr><td><div class="person"><div class="avatar">${e.name[0]}</div><div><div class="personname">${e.name}</div><div class="personmeta">${e.id}</div></div></div></td><td>${e.shift||"—"}</td><td>${p?.in||"—"}</td><td>${p?.out||"—"}</td><td>${statusBadge(a)}</td><td><button class="btn btn-secondary" style="padding:7px 9px" onclick="manualAttendance('${e.id}','${date}')">Mark</button></td></tr>`}).join("")||`<tr><td colspan="6"><div class="empty">No active employees.</div></td></tr>`;
+  const adminKey="ADMIN|"+date; DB.attendance=DB.attendance||{}; DB.attendance[adminKey]="Present";
+  const adminRow=`<tr><td><div class="person"><div class="avatar">M</div><div><div class="personname">Mandeep Singh</div><div class="personmeta">Owner & CEO • ADMIN</div></div></div></td><td>Company Admin</td><td>—</td><td>—</td><td>${statusBadge("Present")}</td><td><span class="badge green">Always Present</span></td></tr>`;
+  const employeeRows=active.map(e=>{const p=DB.punches?.[e.id+"|"+date],a=DB.attendance?.[e.id+"|"+date]||((p?.in)?"Present":"Not Marked");return `<tr><td><div class="person"><div class="avatar">${esc((e.name||"?")[0])}</div><div><div class="personname">${esc(e.name)}</div><div class="personmeta">${esc(e.id)}</div></div></div></td><td>${esc(e.shift||"—")}</td><td>${esc(p?.in||"—")}</td><td>${esc(p?.out||"—")}</td><td>${statusBadge(a)}</td><td><button class="btn btn-secondary" style="padding:7px 9px" onclick="manualAttendance('${e.id}','${date}')">Mark</button></td></tr>`}).join("");
+  document.getElementById("attBody").innerHTML=adminRow+employeeRows;
 }
 window.manualAttendance=async(id,date)=>{const s=prompt("Attendance status: Present / Absent / Leave / Half Day","Present");if(!s)return;DB.attendance=DB.attendance||{};DB.attendance[id+"|"+date]=s;await saveDB();renderAttendance();renderDashboard();toast("Attendance updated.");}
 window.punch=async()=>{
-  const e=DB.employees.find(x=>x.status==="Active");if(!e){toast("No active employee found.");return}
+  if(isAdminUser()){toast("Admin attendance is automatically marked Present.");return;}
+  const e=essCurrentEmployee();if(!e){toast("No active employee found.");return}
   const key=e.id+"|"+today;DB.punches=DB.punches||{};const p=DB.punches[key];
   const now=new Date().toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit",timeZone:"Asia/Kolkata"});
   if(!p)DB.punches[key]={in:now,out:null};else if(!p.out)p.out=now;else return toast("Today's shift is already completed.");
   await saveDB();renderAttendance();renderDashboard();toast(p?"Punched out at "+now:"Punched in at "+now);
 }
+
+
+window.openAttendanceCorrection=()=>{
+  const e=essCurrentEmployee(); if(!e){toast("Employee account is not linked.");return;}
+  const min=attendanceCorrectionMinDate(); const el=document.getElementById("ac_date"); el.min=min; el.max=today; el.value=today;
+  document.getElementById("ac_status").value="Present";document.getElementById("ac_in").value="";document.getElementById("ac_out").value="";document.getElementById("ac_reason").value="";
+  document.getElementById("attendanceCorrectionModal").classList.add("show");
+};
+window.closeAttendanceCorrection=()=>document.getElementById("attendanceCorrectionModal")?.classList.remove("show");
+document.getElementById("attendanceCorrectionForm").addEventListener("submit",async ev=>{
+  ev.preventDefault(); const e=essCurrentEmployee(); if(!e)return;
+  const date=document.getElementById("ac_date").value, min=attendanceCorrectionMinDate();
+  if(!date||date<min||date>today)return toast("Choose a date within the last 30 days.");
+  DB.attendanceRegularizations=DB.attendanceRegularizations||[];
+  const existing=DB.attendanceRegularizations.find(x=>x.empId===e.id&&x.date===date&&x.status==="Pending");
+  if(existing)return toast("A correction request for this date is already pending.");
+  DB.attendanceRegularizations.push({id:"AR-"+Date.now(),empId:e.id,date,requestedStatus:document.getElementById("ac_status").value,status:"Pending",checkIn:document.getElementById("ac_in").value||null,checkOut:document.getElementById("ac_out").value||null,reason:document.getElementById("ac_reason").value.trim(),requestedOn:new Date().toISOString()});
+  audit("Attendance correction requested","Attendance",`${e.name} — ${date}`); await saveDB(); closeAttendanceCorrection(); renderEmployeePortal(); renderApprovals(); renderAudit(); toast("Attendance correction sent to Admin for approval.");
+});
+window.decideAttendanceCorrection=async(id,decision)=>{
+  const r=(DB.attendanceRegularizations||[]).find(x=>x.id===id); if(!r)return;
+  r.status=decision;r.decidedOn=today;r.decidedBy=auth.currentUser?.email||"Admin";
+  if(decision==="Approved"){
+    DB.attendance=DB.attendance||{};DB.punches=DB.punches||{};const key=r.empId+"|"+r.date;
+    DB.attendance[key]=r.requestedStatus||"Present";DB.punches[key]={in:r.checkIn||null,out:r.checkOut||null};
+    audit("Attendance correction approved","Attendance",`${r.empId} — ${r.date}`);
+  }else audit("Attendance correction rejected","Attendance",`${r.empId} — ${r.date}`);
+  await saveDB();renderApprovals();renderAttendance();renderDashboard();renderAudit();toast("Attendance correction "+decision.toLowerCase()+".");
+};
 
 window.openLeave=()=>{
   const active=DB.employees.filter(e=>e.status==="Active");document.getElementById("l_emp").innerHTML=active.map(e=>`<option value="${e.id}">${e.name} — ${e.id}</option>`).join("");
@@ -2145,7 +2246,12 @@ window.renderLeave=()=>{
   const r=DB.leaveRequests||[];document.getElementById("lTotal").textContent=r.length;document.getElementById("lPending").textContent=r.filter(x=>x.status==="Pending").length;document.getElementById("lApproved").textContent=r.filter(x=>x.status==="Approved").length;document.getElementById("lRejected").textContent=r.filter(x=>x.status==="Rejected").length;
   document.getElementById("leaveBody").innerHTML=r.length?[...r].reverse().map(x=>{const e=emp(x.empId),t=DB.leaveTypes.find(y=>y.id===x.typeId);return `<tr><td><b>${e?.name||x.empId}</b></td><td>${t?.name||x.typeId}</td><td>${fmt(x.from)} – ${fmt(x.to)}</td><td>${x.days}</td><td>${x.reason||"—"}</td><td>${statusBadge(x.status)}</td><td>${x.status==="Pending"?`<button class="btn btn-primary" style="padding:7px 9px" onclick="decide('${x.id}','Approved')">Approve</button> <button class="btn btn-danger" style="padding:7px 9px" onclick="decide('${x.id}','Rejected')">Reject</button>`:"—"}</td></tr>`}).join(""):`<tr><td colspan="7"><div class="empty">No leave requests yet.</div></td></tr>`;
 }
-window.renderApprovals=()=>{const r=(DB.leaveRequests||[]).filter(x=>x.status==="Pending");document.getElementById("approvalBody").innerHTML=r.length?r.map(x=>{const e=emp(x.empId);return `<tr><td><b>${e?.name||x.empId}</b><div class="personmeta">${x.empId}</div></td><td>${x.typeId}</td><td>${fmt(x.from)} – ${fmt(x.to)}</td><td>${fmt(x.appliedOn)}</td><td>${statusBadge(x.status)}</td><td><button class="btn btn-primary" style="padding:7px 9px" onclick="decide('${x.id}','Approved')">Approve</button> <button class="btn btn-danger" style="padding:7px 9px" onclick="decide('${x.id}','Rejected')">Reject</button></td></tr>`}).join(""):`<tr><td colspan="6"><div class="empty">No pending approvals.</div></td></tr>`}
+window.renderApprovals=()=>{
+  const r=(DB.leaveRequests||[]).filter(x=>x.status==="Pending");
+  document.getElementById("approvalBody").innerHTML=r.length?r.map(x=>{const e=emp(x.empId);return `<tr><td><b>${esc(e?.name||x.empId)}</b><div class="personmeta">${esc(x.empId)}</div></td><td>${esc(x.typeId)}</td><td>${fmt(x.from)} – ${fmt(x.to)}</td><td>${fmt(x.appliedOn)}</td><td>${statusBadge(x.status)}</td><td><button class="btn btn-primary" style="padding:7px 9px" onclick="decide('${x.id}','Approved')">Approve</button> <button class="btn btn-danger" style="padding:7px 9px" onclick="decide('${x.id}','Rejected')">Reject</button></td></tr>`}).join(""):`<tr><td colspan="6"><div class="empty">No pending leave approvals.</div></td></tr>`;
+  const a=(DB.attendanceRegularizations||[]).filter(x=>x.status==="Pending");
+  document.getElementById("attendanceApprovalBody").innerHTML=a.length?a.map(x=>{const e=emp(x.empId);return `<tr><td><b>${esc(e?.name||x.empId)}</b><div class="personmeta">${esc(x.empId)}</div></td><td>${fmt(x.date)}</td><td><b>${esc(x.requestedStatus||"Present")}</b><div class="personmeta">${esc(x.checkIn||"—")} → ${esc(x.checkOut||"—")}</div></td><td>${esc(x.reason||"—")}</td><td>${statusBadge(x.status)}</td><td><button class="btn btn-primary" style="padding:7px 9px" onclick="decideAttendanceCorrection('${x.id}','Approved')">Approve</button> <button class="btn btn-danger" style="padding:7px 9px" onclick="decideAttendanceCorrection('${x.id}','Rejected')">Reject</button></td></tr>`}).join(""):`<tr><td colspan="6"><div class="empty">No pending attendance corrections.</div></td></tr>`;
+}
 window.decide=async(id,status)=>{const r=DB.leaveRequests.find(x=>x.id===id);if(!r)return;r.status=status;r.decidedOn=today;audit("Leave request "+status.toLowerCase(),"Leave",`${r.empId} — ${r.typeId}`);await saveDB();renderLeave();renderApprovals();renderDashboard();renderAudit();toast("Request "+status.toLowerCase()+".")}
 window.renderFormer=()=>{
  const list=DB.employees.filter(e=>e.status==="Left");
@@ -2161,7 +2267,10 @@ document.getElementById("loginForm").addEventListener("submit",async e=>{e.preve
 
 onAuthStateChanged(auth,async user=>{
  if(!user){document.getElementById("loginScreen").classList.remove("hide");document.getElementById("app").classList.add("hide");return}
- try{DB=await loadDB();ensureModules();document.getElementById("loginScreen").classList.add("hide");document.getElementById("app").classList.remove("hide");document.getElementById("sideUser").textContent=user.email||"Authenticated user";document.getElementById("userAvatar").textContent=(user.email||"H")[0].toUpperCase();const linked=DB.employees.find(e=>(e.email||"").toLowerCase()===(user.email||"").toLowerCase());go(linked?"employee-portal":"dashboard");toast("Connected to GI People.");}
+ try{DB=await loadDB();ensureModules();
+  const linked=DB.employees.find(e=>(e.email||"").toLowerCase()===(user.email||"").toLowerCase() && e.status!=="Left");
+  CURRENT_USER_DOC={id:user.uid,email:user.email||"",name:linked?.name||user.displayName||"",role:linked?"employee":"owner_ceo",employeeId:linked?.id||null};
+  document.getElementById("loginScreen").classList.add("hide");document.getElementById("app").classList.remove("hide");document.getElementById("sideUser").textContent=user.email||"Authenticated user";document.getElementById("userAvatar").textContent=(user.email||"H")[0].toUpperCase();go(linked?"employee-portal":"dashboard");toast("Connected to GI People.");}
   catch(err){console.error("GI People Firestore load failed:",err);const code=err?.code?` [${err.code}]`:"";const msg="Firebase login worked, but GI People could not read hrms/state"+code+". "+(err?.message||err);document.getElementById("loginMsg").textContent=msg;document.getElementById("loginScreen").classList.remove("hide");document.getElementById("app").classList.add("hide");}
 })
 </script>
