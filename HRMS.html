@@ -226,6 +226,15 @@
   .employee-info-field{min-height:55px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:18px}
   .employee-info-field span{color:#64748b;font-size:12px}
   .employee-info-field b{text-align:right;color:#1e293b;font-size:12px;max-width:65%;word-break:break-word}
+  .employee-info-field .field-edit-btn{border:0;background:transparent;color:#94a3b8;width:28px;height:28px;border-radius:7px;display:inline-grid;place-items:center;cursor:pointer;font-size:13px;flex:none;transition:.15s ease}
+  .employee-info-field .field-edit-btn:hover{background:#eff6ff;color:#0f2942}
+  .employee-info-field .field-edit-btn:focus-visible{outline:2px solid #38bdf8;outline-offset:1px}
+  .employee-info-field .field-value-wrap{display:flex;align-items:center;justify-content:flex-end;gap:7px;min-width:0;flex:1}
+  .employee-info-field .field-value-wrap b{max-width:none}
+  .employee-section-edit{border:0;background:transparent;color:#64748b;width:30px;height:30px;border-radius:7px;display:inline-grid;place-items:center;cursor:pointer;font-size:13px;margin-left:6px}
+  .employee-section-edit:hover{background:#eff6ff;color:#0f2942}
+  .inline-edit-modal{width:min(520px,100%)}
+  .inline-edit-help{font-size:10px;color:#94a3b8;margin-top:5px}
   @media(max-width:700px){
     .employee-info-grid{grid-template-columns:1fr}
     .employee-info-field{min-height:52px}
@@ -780,6 +789,33 @@
   </div>
 </div>
 
+<div id="inlineFieldModal" class="modalback">
+  <div class="modal inline-edit-modal">
+    <div class="modalhead">
+      <div>
+        <div id="inlineFieldTitle" style="font-size:16px;font-weight:800">Edit Field</div>
+        <div id="inlineFieldSection" style="font-size:10px;color:#94a3b8">Employee Information</div>
+      </div>
+      <button class="btn btn-secondary" type="button" onclick="closeInlineFieldEditor()">✕</button>
+    </div>
+    <form id="inlineFieldForm">
+      <div class="modalbody">
+        <input type="hidden" id="inlineFieldKey">
+        <input type="hidden" id="inlineFieldEmployeeId">
+        <div class="field">
+          <label id="inlineFieldLabel">Field</label>
+          <div id="inlineFieldControl"></div>
+          <div id="inlineFieldHelp" class="inline-edit-help"></div>
+        </div>
+      </div>
+      <div class="modalfoot">
+        <button type="button" class="btn btn-secondary" onclick="closeInlineFieldEditor()">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save Field</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <div id="leaveModal" class="modalback">
   <div class="modal" style="width:min(560px,100%)">
     <div class="modalhead"><div><div style="font-size:16px;font-weight:800">Apply Leave</div><div style="font-size:10px;color:#94a3b8">Create a leave request</div></div><button class="btn btn-secondary" onclick="closeModals()">✕</button></div>
@@ -1242,6 +1278,120 @@ window.editCurrentEmployee=()=>{
   openEmployee(id);
 };
 
+function closeInlineFieldEditor(){
+  document.getElementById("inlineFieldModal")?.classList.remove("show");
+}
+
+function inlineFieldMeta(key){
+  const meta={
+    firstName:{type:"text",placeholder:"First name"},
+    lastName:{type:"text",placeholder:"Last name"},
+    nickname:{type:"text"}, fatherName:{type:"text"}, mobile:{type:"tel"}, email:{type:"email"},
+    emergency:{type:"text"}, address:{type:"textarea"},
+    department:{type:"text"}, designation:{type:"text"}, managerId:{type:"manager"}, secondaryManagerId:{type:"manager2"},
+    location:{type:"text"}, empType:{type:"select",options:["Full Time","Part Time","Contract","Intern","Permanent"]},
+    status:{type:"select",options:["Active","Left"]}, shift:{type:"text"}, joining:{type:"date"}, lastDay:{type:"date"}, exitReason:{type:"text"},
+    dob:{type:"date"}, gender:{type:"select",options:["Female","Male","Other"]}, maritalStatus:{type:"select",options:["Single","Married","Other"]},
+    citizenship:{type:"text"}, bloodGroup:{type:"text"}, aboutMe:{type:"textarea"}, currentExperience:{type:"text"}, totalExperience:{type:"text"},
+    uan:{type:"text"}, pan:{type:"text"}, aadhaar:{type:"text"}, paymentMode:{type:"select",options:["Bank Transfer","Cash","Cheque"]},
+    bankAccountNumber:{type:"text"}, accountType:{type:"select",options:["Savings","Current","Other"]}, bankName:{type:"text"}, bankHolderName:{type:"text"},
+    bankIFSC:{type:"text"}, pfAccountNumber:{type:"text"}, passport:{type:"text"}, passportValidUntil:{type:"date"},
+    workPhone:{type:"tel"}, extension:{type:"text"}, personalMobile:{type:"tel"}, personalEmail:{type:"email"}, presentAddress:{type:"textarea"},
+    permanentAddress:{type:"textarea"}, tags:{type:"text"},
+    annualCTC:{type:"number"}, annualBasic:{type:"number"}, annualHRA:{type:"number"}, annualConveyance:{type:"number"}, annualPFEmployer:{type:"number"},
+    annualGross:{type:"number"}, annualGrossCTC:{type:"number"}, annualPFEmployee:{type:"number"}, annualProfessionalTax:{type:"number"},
+    annualDeductions:{type:"number"}, annualNetPay:{type:"number"}, monthlyCTC:{type:"number"}, monthlyBasic:{type:"number"}, monthlyHRA:{type:"number"},
+    monthlyConveyance:{type:"number"}, monthlyPFEmployer:{type:"number"}, monthlyGross:{type:"number"}, monthlyPFEmployee:{type:"number"},
+    monthlyProfessionalTax:{type:"number"}, monthlyDeductions:{type:"number"}, monthlyNetPay:{type:"number"}, onboardingStatus:{type:"select",options:["Not Started","In Progress","Completed"]}
+  };
+  return meta[key]||{type:"text"};
+}
+
+function getInlineFieldValue(e,key){
+  const p=currentPeriod(e);
+  if(key==="firstName"){return String(e.name||"").trim().split(/\s+/)[0]||"";}
+  if(key==="lastName"){const a=String(e.name||"").trim().split(/\s+/);return a.length>1?a.slice(1).join(" "):"";}
+  const periodKeys=["department","designation","joining","lastDay","exitReason"];
+  if(periodKeys.includes(key)) return p[key]||"";
+  if(key==="joining") return p.joining||"";
+  if(key==="salary") return salary(e);
+  return e[key]??"";
+}
+
+function setInlineFieldValue(e,key,value){
+  const p=currentPeriod(e);
+  const periodKeys=["department","designation","joining","lastDay","exitReason"];
+  if(key==="firstName"||key==="lastName"){
+    const first=key==="firstName"?value:getInlineFieldValue(e,"firstName");
+    const last=key==="lastName"?value:getInlineFieldValue(e,"lastName");
+    e.name=[first,last].filter(Boolean).join(" ").trim();
+    return;
+  }
+  if(periodKeys.includes(key)){
+    p[key]=value;
+    if(key==="joining"&&!p.joining)p.joining=value;
+    return;
+  }
+  const numberFields=["annualCTC","annualBasic","annualHRA","annualConveyance","annualPFEmployer","annualGross","annualGrossCTC","annualPFEmployee","annualProfessionalTax","annualDeductions","annualNetPay","monthlyCTC","monthlyBasic","monthlyHRA","monthlyConveyance","monthlyPFEmployer","monthlyGross","monthlyPFEmployee","monthlyProfessionalTax","monthlyDeductions","monthlyNetPay"];
+  e[key]=numberFields.includes(key)?(value===""?0:Number(value)):value;
+}
+
+function openInlineFieldEditor(employeeId,key,label,section){
+  const e=(employeeId==="GI-CEO")?ownerCeoRecord():emp(employeeId);
+  if(!e)return toast("Employee record not found.");
+  const protectedKeys=["id","addedBy","addedTime","modifiedBy","modifiedTime"];
+  if(protectedKeys.includes(key))return toast("This system field cannot be edited here.");
+  const meta=inlineFieldMeta(key);
+  const value=getInlineFieldValue(e,key);
+  document.getElementById("inlineFieldTitle").textContent="Edit "+label;
+  document.getElementById("inlineFieldSection").textContent=section+" • "+(e.name||e.id);
+  document.getElementById("inlineFieldLabel").textContent=label;
+  document.getElementById("inlineFieldKey").value=key;
+  document.getElementById("inlineFieldEmployeeId").value=employeeId;
+  const host=document.getElementById("inlineFieldControl");
+  let html="";
+  if(meta.type==="textarea") html=`<textarea id="inlineFieldValue" class="textarea" rows="4">${esc(value)}</textarea>`;
+  else if(meta.type==="select") html=`<select id="inlineFieldValue" class="select">${meta.options.map(o=>`<option value="${esc(o)}" ${String(value)===o?"selected":""}>${esc(o)}</option>`).join("")}</select>`;
+  else if(meta.type==="manager"||meta.type==="manager2"){
+    const current=value||"";
+    const options=(DB.employees||[]).filter(x=>x.id!==e.id&&x.status==="Active");
+    html=`<select id="inlineFieldValue" class="select"><option value="">${meta.type==="manager"?"No manager / Direct to Owner":"None"}</option>${options.map(x=>`<option value="${esc(x.id)}" ${current===x.id?"selected":""}>${esc(x.name)} — ${esc(x.id)}</option>`).join("")}</select>`;
+  }else{
+    const inputType=meta.type||"text";
+    html=`<input id="inlineFieldValue" class="input${["pan","aadhaar","uan","bankAccountNumber","pfAccountNumber","passport"].includes(key)?" sensitive-input":""}" type="${inputType}" value="${esc(value)}" placeholder="${esc(meta.placeholder||"")}" ${inputType==="number"?'min="0" step="0.01"':''}>`;
+  }
+  host.innerHTML=html;
+  document.getElementById("inlineFieldHelp").textContent=(["pan","aadhaar","bankAccountNumber","pfAccountNumber","passport"].includes(key))?"Sensitive information is stored in the employee record. Keep access restricted to authorized HR users.":"Only this field will be changed; the rest of the employee record stays unchanged.";
+  document.getElementById("inlineFieldModal").classList.add("show");
+  setTimeout(()=>document.getElementById("inlineFieldValue")?.focus(),50);
+}
+
+document.getElementById("inlineFieldForm").addEventListener("submit",async ev=>{
+  ev.preventDefault();
+  const employeeId=document.getElementById("inlineFieldEmployeeId").value;
+  const key=document.getElementById("inlineFieldKey").value;
+  const control=document.getElementById("inlineFieldValue");
+  if(!employeeId||!key||!control)return;
+  if(employeeId==="GI-CEO")return toast("The Owner & CEO organization record is protected.");
+  const e=emp(employeeId);
+  if(!e)return toast("Employee record not found.");
+  const oldValue=getInlineFieldValue(e,key);
+  setInlineFieldValue(e,key,control.value.trim());
+  e.modifiedBy=auth.currentUser?.email||auth.currentUser?.uid||"HR Admin";
+  e.modifiedTime=new Date().toISOString();
+  audit("Employee field updated","Employee",`${e.name} (${employeeId}) — ${document.getElementById("inlineFieldLabel").textContent}`);
+  try{
+    await saveDB();
+    closeInlineFieldEditor();
+    renderPeople(); renderDashboard(); renderAudit(); renderEmployeeDetail();
+    toast("Field updated successfully.");
+  }catch(err){
+    setInlineFieldValue(e,key,oldValue);
+    console.error(err);
+    toast(err?.message||"Could not save field.");
+  }
+});
+
 function maskSensitive(v){
   const x=String(v||"");
   if(!x)return "—";
@@ -1285,7 +1435,11 @@ window.renderEmployeeDetail=()=>{
   const history=[...(e.periods||[])].sort((a,b)=>String(b.joining||"").localeCompare(String(a.joining||"")));
 
   const escv=v=>esc(v||"—");
-  const info=(label,value)=>`<div class="employee-info-field"><span>${escv(label)}</span><b>${escv(value)}</b></div>`;
+  const info=(label,value,key,section="Employee Information")=>{
+    const canEdit=!!key && !["id","addedBy","addedTime","modifiedBy","modifiedTime"].includes(key) && !ceo;
+    return `<div class="employee-info-field"><span>${escv(label)}</span><div class="field-value-wrap"><b>${escv(value)}</b>${canEdit?`<button type="button" class="field-edit-btn" title="Edit ${escv(label)}" aria-label="Edit ${escv(label)}" onclick="event.stopPropagation();openInlineFieldEditor('${esc(e.id)}','${esc(key)}','${esc(label)}','${esc(section)}')">✎</button>`:""}</div></div>`;
+  };
+  const sectionHead=(title,section)=>`<div class="cardhead"><div class="cardtitle">${esc(title)}</div>${!ceo?`<button type="button" class="employee-section-edit" title="Edit ${esc(title)}" aria-label="Edit ${esc(title)}" onclick="openEmployee('${esc(e.id)}')">✎</button>`:""}</div>`;
 
   host.innerHTML=`
     <div class="employee-detail-head">
@@ -1301,7 +1455,7 @@ window.renderEmployeeDetail=()=>{
     </div>
 
     <div class="card employee-info-card">
-      <div class="cardhead"><div class="cardtitle">Basic Information</div></div>
+      ${sectionHead("Basic Information","Basic Information")}
       <div class="cardbody employee-info-grid">
         ${info("Employee ID",e.id)}
         ${info("First Name",first)}
@@ -1315,7 +1469,7 @@ window.renderEmployeeDetail=()=>{
     </div>
 
     <div class="card employee-info-card">
-      <div class="cardhead"><div class="cardtitle">Work Information</div></div>
+      ${sectionHead("Work Information","Work Information")}
       <div class="cardbody employee-info-grid">
         ${info("Department",p.department||e.department)}
         ${info("Designation",p.designation||e.designation)}
@@ -1331,7 +1485,7 @@ window.renderEmployeeDetail=()=>{
     </div>
 
     <div class="card employee-info-card">
-      <div class="cardhead"><div class="cardtitle">Personal Details</div></div>
+      ${sectionHead("Personal Details","Personal Details")}
       <div class="cardbody employee-info-grid">
         ${info("Date of Birth",e.dob?fmt(e.dob):"—")}
         ${info("Gender",e.gender)}
@@ -1345,7 +1499,7 @@ window.renderEmployeeDetail=()=>{
     </div>
 
     <div class="card employee-info-card">
-      <div class="cardhead"><div class="cardtitle">Identity & Payment Information</div></div>
+      ${sectionHead("Identity & Payment Information","Identity & Payment Information")}
       <div class="cardbody employee-info-grid">
         ${info("UAN",e.uan||"—")}
         ${info("PAN",maskSensitive(e.pan))}
@@ -1363,7 +1517,7 @@ window.renderEmployeeDetail=()=>{
     </div>
 
     <div class="card employee-info-card">
-      <div class="cardhead"><div class="cardtitle">Contact Details</div></div>
+      ${sectionHead("Contact Details","Contact Details")}
       <div class="cardbody employee-info-grid">
         ${info("Work Phone Number",e.workPhone)}
         ${info("Extension",e.extension)}
@@ -1404,7 +1558,7 @@ window.renderEmployeeDetail=()=>{
     </div>
 
     <div class="card employee-info-card">
-      <div class="cardhead"><div class="cardtitle">Salary Details</div></div>
+      ${sectionHead("Salary Details","Salary Details")}
       <div class="cardbody employee-info-grid">
         ${info("CTC (Annual)",money(e.annualCTC))}
         ${info("Basic (Annual)",money(e.annualBasic))}
