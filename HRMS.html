@@ -981,6 +981,13 @@ function esc(v){return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&l
 function toast(m){const t=document.getElementById("toast");t.textContent=m;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2800)}
 function fmt(d){return d?new Date(d+"T00:00:00").toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric"}):"—"}
 function currentPeriod(e){return e.periods?.[e.periods.length-1]||{}}
+function ensureCurrentPeriod(e){
+  if(!Array.isArray(e.periods)) e.periods=[];
+  if(!e.periods.length){
+    e.periods.push({joining:e.joining||today,department:e.department||"",designation:e.designation||"",salary:Number(e.salary||0),salaryHistory:[]});
+  }
+  return e.periods[e.periods.length-1];
+}
 function salary(e){const p=currentPeriod(e);return p.salaryHistory?.[p.salaryHistory.length-1]?.amount||p.salary||0}
 function days(a,b){if(!a||!b)return 0;return Math.max(1,Math.floor((new Date(b)-new Date(a))/86400000)+1)}
 function emp(id){return DB.employees.find(e=>e.id===id)}
@@ -1319,7 +1326,7 @@ function getInlineFieldValue(e,key){
 }
 
 function setInlineFieldValue(e,key,value){
-  const p=currentPeriod(e);
+  const p=ensureCurrentPeriod(e);
   const periodKeys=["department","designation","joining","lastDay","exitReason"];
   if(key==="firstName"||key==="lastName"){
     const first=key==="firstName"?value:getInlineFieldValue(e,"firstName");
@@ -1336,7 +1343,7 @@ function setInlineFieldValue(e,key,value){
   e[key]=numberFields.includes(key)?(value===""?0:Number(value)):value;
 }
 
-function openInlineFieldEditor(employeeId,key,label,section){
+window.openInlineFieldEditor=function(employeeId,key,label,section){
   const e=(employeeId==="GI-CEO")?ownerCeoRecord():emp(employeeId);
   if(!e)return toast("Employee record not found.");
   const protectedKeys=["id","addedBy","addedTime","modifiedBy","modifiedTime"];
@@ -1365,6 +1372,19 @@ function openInlineFieldEditor(employeeId,key,label,section){
   document.getElementById("inlineFieldModal").classList.add("show");
   setTimeout(()=>document.getElementById("inlineFieldValue")?.focus(),50);
 }
+
+document.addEventListener("click",function(ev){
+  const btn=ev.target.closest?.("[data-inline-edit=\"1\"]");
+  if(!btn)return;
+  ev.preventDefault();
+  ev.stopPropagation();
+  window.openInlineFieldEditor(
+    btn.dataset.employeeId,
+    btn.dataset.fieldKey,
+    btn.dataset.fieldLabel,
+    btn.dataset.fieldSection
+  );
+});
 
 document.getElementById("inlineFieldForm").addEventListener("submit",async ev=>{
   ev.preventDefault();
@@ -1462,7 +1482,7 @@ window.renderEmployeeDetail=()=>{
     key=key||fieldKeyMap[label]||null;
     const protectedKey=["id","addedBy","addedTime","modifiedBy","modifiedTime"].includes(key);
     const canEdit=!!key && !protectedKey && !ceo;
-    const pencil=canEdit?`<button type="button" class="field-edit-btn" title="Edit ${escv(label)}" aria-label="Edit ${escv(label)}" onclick="event.stopPropagation();openInlineFieldEditor('${esc(e.id)}','${esc(key)}','${esc(label)}','${esc(section)}')">✎</button>`:"";
+    const pencil=canEdit?`<button type="button" class="field-edit-btn" title="Edit ${escv(label)}" aria-label="Edit ${escv(label)}" data-inline-edit="1" data-employee-id="${esc(e.id)}" data-field-key="${esc(key)}" data-field-label="${esc(label)}" data-field-section="${esc(section)}">✎</button>`:"";
     return `<div class="employee-info-field"><span>${escv(label)}</span><div class="field-value-wrap"><b>${escv(value)}</b>${pencil}</div></div>`;
   };
   const sectionHead=(title,section)=>`<div class="cardhead"><div class="cardtitle">${esc(title)}</div>${!ceo?`<button type="button" class="employee-section-edit" title="Edit entire ${esc(title)} section" aria-label="Edit entire ${esc(title)} section" onclick="openEmployee('${esc(e.id)}')">✎</button>`:""}</div>`;
