@@ -164,6 +164,22 @@
     .content{padding:0}
     .card{box-shadow:none}
   }
+
+.secure-documents-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+.secure-doc-card{border:1px solid #dbe4ef;border-radius:12px;padding:14px;background:#fbfdff;display:flex;flex-direction:column;gap:12px;min-width:0}
+.secure-doc-main{display:flex;align-items:flex-start;gap:10px;min-width:0}
+.secure-doc-icon{width:34px;height:34px;border-radius:9px;background:#eaf2fb;color:#0f2f50;display:flex;align-items:center;justify-content:center;font-weight:900;flex:none}
+.secure-doc-main b{display:block;color:#17324f;font-size:13px;line-height:1.35}
+.secure-doc-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.doc-uploaded{font-size:11px;font-weight:800;color:#16834b;background:#e8f8ef;border-radius:999px;padding:5px 9px}
+.doc-not-uploaded{font-size:11px;color:#64748b;background:#f1f5f9;border-radius:999px;padding:5px 9px}
+.doc-view-link{font-size:11px;font-weight:800;color:#0f5ea8;text-decoration:none}
+.doc-view-link:hover{text-decoration:underline}
+.doc-upload-btn{font-size:11px!important;padding:7px 10px!important;margin-left:auto}
+.secure-doc-note{margin-top:12px;font-size:11px;color:#64748b;line-height:1.5}
+.identity-upload-heading{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-top:22px;padding-top:18px;border-top:1px solid #e2e8f0;color:#17324f}
+.identity-upload-heading span{font-size:11px;font-weight:500;color:#64748b}
+@media(max-width:800px){.secure-documents-grid{grid-template-columns:1fr}.identity-upload-heading{flex-direction:column;gap:4px}}
 </style>
 <style>
   /* Employee organization chart */
@@ -1424,13 +1440,61 @@ function money(v){
 }
 function renderEmployeeDocuments(e){
   const docs=e.documents||{};
-  const labels={aadhaar:"Aadhaar Card",pan:"PAN Card",bankPassbook:"Cancelled Cheque / Bank Passbook",employmentAgreement:"Employment Agreement",photo:"Employee Photo",other:"Other Document"};
-  const rows=Object.entries(labels).map(([k,label])=>{
-    const d=docs[k];
-    return `<div class="document-row"><div><b>${label}</b><div class="personmeta">${d?.name||"Not uploaded"}</div></div>${d?.url?`<a class="btn btn-secondary" href="${esc(d.url)}" target="_blank" rel="noopener">View</a>`:`<span class="badge">Not uploaded</span>`}</div>`;
-  }).join("");
-  return `<div class="document-list">${rows}</div>`;
+  const getDoc=(...keys)=>{
+    for(const k of keys){ if(docs[k]) return docs[k]; }
+    return null;
+  };
+  const rows=[
+    {key:"aadhaar",label:"Aadhaar Card",type:"Aadhaar",accept:".pdf,.jpg,.jpeg,.png"},
+    {key:"pan",label:"PAN Card",type:"PAN",accept:".pdf,.jpg,.jpeg,.png"},
+    {key:"bank_proof",label:"Bank Proof — Cancelled Cheque / Bank Statement / Passbook",type:"Bank Passbook",accept:".pdf,.jpg,.jpeg,.png"},
+    {key:"employment_agreement",label:"Employment Agreement",type:"Employment Agreement",accept:".pdf,.jpg,.jpeg,.png,.doc,.docx"},
+    {key:"passport",label:"Passport",type:"Other",accept:".pdf,.jpg,.jpeg,.png"},
+    {key:"uan_pf",label:"UAN / PF Document",type:"Other",accept:".pdf,.jpg,.jpeg,.png"},
+    {key:"photo",label:"Employee Photo",type:"Employee Photo",accept:".jpg,.jpeg,.png"},
+    {key:"other",label:"Other HR Document",type:"Other",accept:".pdf,.jpg,.jpeg,.png,.doc,.docx"}
+  ];
+  return `<div class="secure-documents-grid">${rows.map(r=>{
+    const d=getDoc(r.key, r.key.replace("_",""), r.key==="bank_proof"?"bank_passbook":r.key);
+    const inputId=`doc_${r.key}_${e.id.replace(/[^a-zA-Z0-9_-]/g,"_")}`;
+    const status=d?`<span class="doc-uploaded">✓ Uploaded</span>${d.driveUrl||d.url?`<a class="doc-view-link" href="${esc(d.driveUrl||d.url)}" target="_blank" rel="noopener">View</a>`:""}`:`<span class="doc-not-uploaded">Not uploaded</span>`;
+    return `<div class="secure-doc-card">
+      <div class="secure-doc-main"><div class="secure-doc-icon">↥</div><div><b>${esc(r.label)}</b><div class="personmeta">${d?.fileName||d?.name||"Private HR document"}</div></div></div>
+      <div class="secure-doc-actions">${status}<input id="${inputId}" type="file" accept="${r.accept}" style="display:none" onchange="uploadProfileDocument('${esc(e.id)}','${inputId}','${esc(r.type)}','${esc(r.key)}')"><button type="button" class="btn btn-secondary doc-upload-btn" onclick="document.getElementById('${inputId}').click()">Upload / Replace</button></div>
+    </div>`;
+  }).join("")}</div>
+  <div class="secure-doc-note">Sensitive documents are sent to the configured private Google Drive through Google Apps Script. Do not make the Drive folder public.</div>`;
 }
+
+window.uploadProfileDocument=async function(employeeId,inputId,documentType,storageKey){
+  const input=document.getElementById(inputId);
+  const file=input?.files?.[0];
+  if(!file)return;
+  const e=emp(employeeId);
+  if(!e)return toast("Employee record not found.");
+  if(e.id==="GI-CEO")return toast("The Owner & CEO organization record is protected.");
+  const btn=input?.parentElement?.querySelector('.doc-upload-btn');
+  const oldText=btn?.textContent;
+  try{
+    if(btn){btn.disabled=true;btn.textContent="Uploading…";}
+    toast("Uploading "+file.name+"…");
+    const uploaded=await uploadEmployeeDocument(employeeId,file,documentType);
+    e.documents=e.documents||{};
+    e.documents[storageKey]=uploaded;
+    e.modifiedBy=auth.currentUser?.email||auth.currentUser?.uid||"HR Admin";
+    e.modifiedTime=new Date().toISOString();
+    audit("Employee document uploaded","Employee",`${e.name} (${employeeId}) — ${documentType}`);
+    await saveDB();
+    renderEmployeeDetail();
+    renderPeople();
+    renderAudit();
+    toast("Document uploaded successfully.");
+  }catch(err){
+    console.error(err);
+    toast(err?.message||"Document upload failed.");
+    if(btn){btn.disabled=false;btn.textContent=oldText||"Upload / Replace";}
+  }
+};
 function renderSimpleRows(rows,fields){
   if(!Array.isArray(rows)||!rows.length)return '<div class="empty">No rows found.</div>';
   return `<div class="tablewrap"><table class="table"><thead><tr>${fields.map(x=>`<th>${x[0]}</th>`).join("")}</tr></thead><tbody>${rows.map(r=>`<tr>${fields.map(x=>`<td>${esc(r?.[x[1]]||"—")}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
@@ -1548,19 +1612,23 @@ window.renderEmployeeDetail=()=>{
 
     <div class="card employee-info-card">
       ${sectionHead("Identity & Payment Information","Identity & Payment Information")}
-      <div class="cardbody employee-info-grid">
-        ${info("UAN",e.uan||"—")}
-        ${info("PAN",maskSensitive(e.pan))}
-        ${info("Aadhaar",maskSensitive(e.aadhaar))}
-        ${info("Payment Mode",e.paymentMode)}
-        ${info("Bank Account Number",maskSensitive(e.bankAccountNumber))}
-        ${info("Account Type",e.accountType)}
-        ${info("Bank Name",e.bankName)}
-        ${info("Bank Holder Name",e.bankHolderName)}
-        ${info("Bank IFSC",e.bankIFSC)}
-        ${info("PF Account Number",maskSensitive(e.pfAccountNumber))}
-        ${info("Passport",maskSensitive(e.passport))}
-        ${info("Passport Valid Until",e.passportValidUntil?fmt(e.passportValidUntil):"—")}
+      <div class="cardbody">
+        <div class="employee-info-grid">
+          ${info("UAN",e.uan||"—")}
+          ${info("PAN",maskSensitive(e.pan))}
+          ${info("Aadhaar",maskSensitive(e.aadhaar))}
+          ${info("Payment Mode",e.paymentMode)}
+          ${info("Bank Account Number",maskSensitive(e.bankAccountNumber))}
+          ${info("Account Type",e.accountType)}
+          ${info("Bank Name",e.bankName)}
+          ${info("Bank Holder Name",e.bankHolderName)}
+          ${info("Bank IFSC",e.bankIFSC)}
+          ${info("PF Account Number",maskSensitive(e.pfAccountNumber))}
+          ${info("Passport",maskSensitive(e.passport))}
+          ${info("Passport Valid Until",e.passportValidUntil?fmt(e.passportValidUntil):"—")}
+        </div>
+        <div class="identity-upload-heading"><b>Identity & Banking Documents</b><span>Upload or replace documents individually</span></div>
+        ${renderEmployeeDocuments(e)}
       </div>
     </div>
 
@@ -1578,10 +1646,8 @@ window.renderEmployeeDetail=()=>{
     </div>
 
     <div class="card employee-info-card">
-      <div class="cardhead"><div class="cardtitle">Documents</div></div>
-      <div class="cardbody">
-        ${renderEmployeeDocuments(e)}
-      </div>
+      <div class="cardhead"><div class="cardtitle">Related HR Documents</div></div>
+      <div class="cardbody"><div class="personmeta">All employee identity and banking uploads are managed in the Identity & Payment Information section above.</div></div>
     </div>
 
     <div class="card employee-info-card">
