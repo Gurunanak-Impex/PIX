@@ -1285,9 +1285,10 @@ window.editCurrentEmployee=()=>{
   openEmployee(id);
 };
 
-function closeInlineFieldEditor(){
-  document.getElementById("inlineFieldModal")?.classList.remove("show");
-}
+window.closeInlineFieldEditor=function(){
+  const modal=document.getElementById("inlineFieldModal");
+  if(modal) modal.classList.remove("show");
+};
 
 function inlineFieldMeta(key){
   const meta={
