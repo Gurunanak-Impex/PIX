@@ -226,10 +226,10 @@
   .employee-info-field{min-height:55px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:18px}
   .employee-info-field span{color:#64748b;font-size:12px}
   .employee-info-field b{text-align:right;color:#1e293b;font-size:12px;max-width:65%;word-break:break-word}
-  .employee-info-field .field-edit-btn{border:1px solid #cbd5e1;background:#f8fafc;color:#0f2942;width:30px;height:30px;border-radius:8px;display:inline-grid;place-items:center;cursor:pointer;font-size:15px;font-weight:900;line-height:1;flex:none;transition:.15s ease;box-shadow:0 1px 2px rgba(15,41,66,.08)}
+  .employee-info-field .field-edit-btn{border:1px solid #cbd5e1;background:#ffffff;color:#0f2942;width:30px;height:30px;border-radius:8px;display:inline-grid;place-items:center;cursor:pointer;font-size:15px;font-weight:900;line-height:1;flex:none;transition:.15s ease;box-shadow:0 1px 3px rgba(15,41,66,.12);visibility:visible;opacity:1}
   .employee-info-field .field-edit-btn:hover{background:#e0f2fe;border-color:#38bdf8;color:#0f2942;transform:translateY(-1px)}
-  .employee-info-field .field-edit-btn:focus-visible{outline:2px solid #38bdf8;outline-offset:1px}
-  .employee-info-field .field-value-wrap{display:flex;align-items:center;justify-content:flex-end;gap:7px;min-width:0;flex:1}
+  .employee-info-field .field-edit-btn:focus-visible{outline:2px solid #38bdf8;outline-offset:1px}.employee-info-field:hover .field-edit-btn{background:#eff6ff;border-color:#93c5fd}
+  .employee-info-field .field-value-wrap{display:flex;align-items:center;justify-content:flex-end;gap:10px;min-width:0;flex:1}
   .employee-info-field .field-value-wrap b{max-width:none}
   .employee-section-edit{border:1px solid #cbd5e1;background:#f8fafc;color:#0f2942;width:32px;height:32px;border-radius:8px;display:inline-grid;place-items:center;cursor:pointer;font-size:15px;font-weight:900;line-height:1;margin-left:6px;box-shadow:0 1px 2px rgba(15,41,66,.08)}
   .employee-section-edit:hover{background:#e0f2fe;border-color:#38bdf8;color:#0f2942;transform:translateY(-1px)}
@@ -1435,8 +1435,33 @@ window.renderEmployeeDetail=()=>{
   const history=[...(e.periods||[])].sort((a,b)=>String(b.joining||"").localeCompare(String(a.joining||"")));
 
   const escv=v=>esc(v||"—");
+  // Zoho-style field mapping: every visible employee sub-field gets its own pencil.
+  const fieldKeyMap={
+    "Employee ID":"id", "First Name":"firstName", "Last Name":"lastName", "Nickname":"nickname",
+    "Email Address":"email", "Mobile":"mobile", "Emergency Contact":"emergency", "Address":"address",
+    "Department":"department", "Designation":"designation", "Reporting Manager":"managerId", "Secondary Reporting Manager":"secondaryManagerId",
+    "Head Office":"location", "Seating Location":"seatingLocation", "Employment Type":"empType", "Employee Status":"status", "Shift":"shift",
+    "Joining Date":"joining", "Last Working Day":"lastDay", "Exit Reason":"exitReason",
+    "Date of Birth":"dob", "Gender":"gender", "Marital Status":"maritalStatus", "Citizenship":"citizenship",
+    "Blood Group":"bloodGroup", "About Me / Expertise":"aboutMe", "Current Experience":"currentExperience", "Total Experience":"totalExperience",
+    "UAN":"uan", "PAN":"pan", "Aadhaar":"aadhaar", "Payment Mode":"paymentMode", "Bank Account Number":"bankAccountNumber",
+    "Account Type":"accountType", "Bank Name":"bankName", "Bank Holder Name":"bankHolderName", "Bank IFSC":"bankIFSC",
+    "PF Account Number":"pfAccountNumber", "Passport":"passport", "Passport Valid Until":"passportValidUntil",
+    "Work Phone Number":"workPhone", "Extension":"extension", "Personal Mobile Number":"personalMobile",
+    "Personal Email Address":"personalEmail", "Present Address":"presentAddress", "Permanent Address":"permanentAddress", "Tags":"tags",
+    "CTC (Annual)":"annualCTC", "Basic (Annual)":"annualBasic", "House Rent Allowance (Annual)":"annualHRA",
+    "Conveyance (Annual)":"annualConveyance", "PF Employer Contribution (Annual)":"annualPFEmployer", "Gross Salary (Annual)":"annualGross",
+    "Gross CTC (Annual)":"annualGrossCTC", "PF Employee Contribution (Annual)":"annualPFEmployee", "Professional Tax (Annual)":"annualProfessionalTax",
+    "Total Deductions (Annual)":"annualDeductions", "Fixed Net Pay / In Hand (Annual)":"annualNetPay", "CTC (Monthly)":"monthlyCTC",
+    "Basic (Monthly)":"monthlyBasic", "House Rent Allowance (Monthly)":"monthlyHRA", "Conveyance (Monthly)":"monthlyConveyance",
+    "PF Employer Contribution (Monthly)":"monthlyPFEmployer", "Gross Salary (Monthly)":"monthlyGross", "PF Employee Contribution (Monthly)":"monthlyPFEmployee",
+    "Professional Tax (Monthly)":"monthlyProfessionalTax", "Total Deductions (Monthly)":"monthlyDeductions", "Fixed Net Pay / In Hand (Monthly)":"monthlyNetPay",
+    "Added By":"addedBy", "Added Time":"addedTime", "Modified By":"modifiedBy", "Modified Time":"modifiedTime", "Onboarding Status":"onboardingStatus"
+  };
   const info=(label,value,key,section="Employee Information")=>{
-    const canEdit=!!key && !["id","addedBy","addedTime","modifiedBy","modifiedTime"].includes(key) && !ceo;
+    key=key||fieldKeyMap[label]||null;
+    const protectedKey=["id","addedBy","addedTime","modifiedBy","modifiedTime"].includes(key);
+    const canEdit=!!key && !protectedKey && !ceo;
     const pencil=canEdit?`<button type="button" class="field-edit-btn" title="Edit ${escv(label)}" aria-label="Edit ${escv(label)}" onclick="event.stopPropagation();openInlineFieldEditor('${esc(e.id)}','${esc(key)}','${esc(label)}','${esc(section)}')">✎</button>`:"";
     return `<div class="employee-info-field"><span>${escv(label)}</span><div class="field-value-wrap"><b>${escv(value)}</b>${pencil}</div></div>`;
   };
@@ -1475,6 +1500,7 @@ window.renderEmployeeDetail=()=>{
         ${info("Department",p.department||e.department)}
         ${info("Designation",p.designation||e.designation)}
         ${info("Reporting Manager",ceo?"—":(manager?.name||"Direct to Owner / Not Assigned"))}
+        ${info("Secondary Reporting Manager",e.secondaryManagerId?(emp(e.secondaryManagerId)?.name||e.secondaryManagerId):"—")}
         ${info("Head Office",e.location||"Head Office")}
         ${info("Employment Type",e.empType)}
         ${info("Employee Status",e.status)}
