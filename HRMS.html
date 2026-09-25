@@ -226,13 +226,13 @@
   .employee-info-field{min-height:55px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:18px}
   .employee-info-field span{color:#64748b;font-size:12px}
   .employee-info-field b{text-align:right;color:#1e293b;font-size:12px;max-width:65%;word-break:break-word}
-  .employee-info-field .field-edit-btn{border:0;background:transparent;color:#94a3b8;width:28px;height:28px;border-radius:7px;display:inline-grid;place-items:center;cursor:pointer;font-size:13px;flex:none;transition:.15s ease}
-  .employee-info-field .field-edit-btn:hover{background:#eff6ff;color:#0f2942}
+  .employee-info-field .field-edit-btn{border:1px solid #cbd5e1;background:#f8fafc;color:#0f2942;width:30px;height:30px;border-radius:8px;display:inline-grid;place-items:center;cursor:pointer;font-size:15px;font-weight:900;line-height:1;flex:none;transition:.15s ease;box-shadow:0 1px 2px rgba(15,41,66,.08)}
+  .employee-info-field .field-edit-btn:hover{background:#e0f2fe;border-color:#38bdf8;color:#0f2942;transform:translateY(-1px)}
   .employee-info-field .field-edit-btn:focus-visible{outline:2px solid #38bdf8;outline-offset:1px}
   .employee-info-field .field-value-wrap{display:flex;align-items:center;justify-content:flex-end;gap:7px;min-width:0;flex:1}
   .employee-info-field .field-value-wrap b{max-width:none}
-  .employee-section-edit{border:0;background:transparent;color:#64748b;width:30px;height:30px;border-radius:7px;display:inline-grid;place-items:center;cursor:pointer;font-size:13px;margin-left:6px}
-  .employee-section-edit:hover{background:#eff6ff;color:#0f2942}
+  .employee-section-edit{border:1px solid #cbd5e1;background:#f8fafc;color:#0f2942;width:32px;height:32px;border-radius:8px;display:inline-grid;place-items:center;cursor:pointer;font-size:15px;font-weight:900;line-height:1;margin-left:6px;box-shadow:0 1px 2px rgba(15,41,66,.08)}
+  .employee-section-edit:hover{background:#e0f2fe;border-color:#38bdf8;color:#0f2942;transform:translateY(-1px)}
   .inline-edit-modal{width:min(520px,100%)}
   .inline-edit-help{font-size:10px;color:#94a3b8;margin-top:5px}
   @media(max-width:700px){
@@ -539,7 +539,7 @@
             <div class="title">Employee Information</div>
             <div class="subtitle">Complete employee record, work information and employment history.</div>
           </div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
             <button class="btn btn-secondary" onclick="go('people')">← Employee Database</button>
             <button class="btn btn-primary" id="employeeDetailEditBtn" onclick="editCurrentEmployee()">✎ Edit</button>
           </div>
@@ -1437,9 +1437,10 @@ window.renderEmployeeDetail=()=>{
   const escv=v=>esc(v||"—");
   const info=(label,value,key,section="Employee Information")=>{
     const canEdit=!!key && !["id","addedBy","addedTime","modifiedBy","modifiedTime"].includes(key) && !ceo;
-    return `<div class="employee-info-field"><span>${escv(label)}</span><div class="field-value-wrap"><b>${escv(value)}</b>${canEdit?`<button type="button" class="field-edit-btn" title="Edit ${escv(label)}" aria-label="Edit ${escv(label)}" onclick="event.stopPropagation();openInlineFieldEditor('${esc(e.id)}','${esc(key)}','${esc(label)}','${esc(section)}')">✎</button>`:""}</div></div>`;
+    const pencil=canEdit?`<button type="button" class="field-edit-btn" title="Edit ${escv(label)}" aria-label="Edit ${escv(label)}" onclick="event.stopPropagation();openInlineFieldEditor('${esc(e.id)}','${esc(key)}','${esc(label)}','${esc(section)}')">✎</button>`:"";
+    return `<div class="employee-info-field"><span>${escv(label)}</span><div class="field-value-wrap"><b>${escv(value)}</b>${pencil}</div></div>`;
   };
-  const sectionHead=(title,section)=>`<div class="cardhead"><div class="cardtitle">${esc(title)}</div>${!ceo?`<button type="button" class="employee-section-edit" title="Edit ${esc(title)}" aria-label="Edit ${esc(title)}" onclick="openEmployee('${esc(e.id)}')">✎</button>`:""}</div>`;
+  const sectionHead=(title,section)=>`<div class="cardhead"><div class="cardtitle">${esc(title)}</div>${!ceo?`<button type="button" class="employee-section-edit" title="Edit entire ${esc(title)} section" aria-label="Edit entire ${esc(title)} section" onclick="openEmployee('${esc(e.id)}')">✎</button>`:""}</div>`;
 
   host.innerHTML=`
     <div class="employee-detail-head">
