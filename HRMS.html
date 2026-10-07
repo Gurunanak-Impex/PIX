@@ -1030,8 +1030,6 @@
         <div class="field"><label>ESI</label><select class="select" id="ss_esion"><option value="0">Off</option><option value="1">On</option></select></div>
         <div class="field"><label>ESI % of gross</label><input class="input" type="number" id="ss_esipct" step="0.01"></div>
         <div class="field"><label>ESI applies up to gross (₹)</label><input class="input" type="number" id="ss_esilimit"></div>
-        <div class="field"><label>Signatory Name</label><input class="input" id="ss_signname"></div>
-        <div class="field"><label>Signatory Title</label><input class="input" id="ss_signtitle"></div>
         <div class="field full"><label>Footer Text</label><input class="input" id="ss_footer"></div>
       </div>
       <div class="notice" style="margin-top:14px">Settings apply to newly generated pay slips. Existing pay slips keep their saved values unless you re-fetch them. Verify statutory rates (PF, ESI, PT) before relying on them.</div>
@@ -2450,7 +2448,7 @@ document.getElementById("loginForm").addEventListener("submit",async e=>{e.preve
    Data comes from DB.employees (salary, bank, PAN/UAN/PF), DB.attendance,
    DB.punches and DB.holidays. Pay slips are saved in DB.payslips.
    ===================================================================== */
-const SLIP_DEFAULTS={companyName:"Gurunanak Impex",address:"",contact:"",basicPct:50,hraPct:20,pfOn:false,pfPct:12,pfCap:true,esiOn:false,esiPct:0.75,esiLimit:21000,ptAmount:0,unmarked:"paid",signName:"Mandeep Singh",signTitle:"Owner & CEO",footer:"This is a computer-generated pay slip."};
+const SLIP_DEFAULTS={companyName:"Gurunanak Impex",address:"",contact:"",basicPct:50,hraPct:20,pfOn:false,pfPct:12,pfCap:true,esiOn:false,esiPct:0.75,esiLimit:21000,ptAmount:0,unmarked:"paid",footer:"This is a computer-generated pay slip."};
 const SLIP_MONTHS=["January","February","March","April","May","June","July","August","September","October","November","December"];
 let slipDraft=null, slipIsNew=true, slipPreviewId=null;
 
@@ -2717,7 +2715,6 @@ function slipHTML(ps){
         <tfoot><tr><td>Gross Earnings</td><td></td><td class="r">${slipInr(t.gross)}</td><td>Total Deductions</td><td class="r">${slipInr(t.ded)}</td></tr></tfoot></table>
       <div class="slip-net"><div><div style="font-size:10px;font-weight:700;color:#475569;letter-spacing:.06em">NET PAY</div><small>${esc(slipWords(t.net))}</small></div><div class="amt">${slipInr(t.net)}</div></div>
       ${ps.notes?`<div class="slip-notes"><b>Remarks:</b> ${esc(ps.notes)}</div>`:""}
-      <div class="slip-sign"><div></div><div class="line"><b>${esc(c.signName)}</b><br>${esc(c.signTitle)}</div></div>
       <div class="slip-foot">${esc(c.footer)}</div>
     </div></div>`;
 }
@@ -2744,7 +2741,7 @@ window.openSlipSettings=()=>{
   const set=(id,v)=>$se(id).value=v;
   set("ss_company",c.companyName);set("ss_contact",c.contact);set("ss_address",c.address);set("ss_basic",c.basicPct);set("ss_hra",c.hraPct);
   set("ss_unmarked",c.unmarked);set("ss_pt",c.ptAmount);set("ss_pfon",c.pfOn?"1":"0");set("ss_pfpct",c.pfPct);set("ss_pfcap",c.pfCap?"1":"0");
-  set("ss_esion",c.esiOn?"1":"0");set("ss_esipct",c.esiPct);set("ss_esilimit",c.esiLimit);set("ss_signname",c.signName);set("ss_signtitle",c.signTitle);set("ss_footer",c.footer);
+  set("ss_esion",c.esiOn?"1":"0");set("ss_esipct",c.esiPct);set("ss_esilimit",c.esiLimit);set("ss_footer",c.footer);
   $se("slipSettingsModal").classList.add("show");
 };
 window.saveSlipSettings=async()=>{
@@ -2753,7 +2750,7 @@ window.saveSlipSettings=async()=>{
   if(basic+hra>100){toast("Basic % + HRA % cannot exceed 100.");return}
   DB.payslipSettings={...slipCfg(),companyName:g("ss_company").trim()||"Gurunanak Impex",contact:g("ss_contact").trim(),address:g("ss_address").trim(),basicPct:basic,hraPct:hra,
     unmarked:g("ss_unmarked"),ptAmount:Number(g("ss_pt"))||0,pfOn:g("ss_pfon")==="1",pfPct:Number(g("ss_pfpct"))||0,pfCap:g("ss_pfcap")==="1",
-    esiOn:g("ss_esion")==="1",esiPct:Number(g("ss_esipct"))||0,esiLimit:Number(g("ss_esilimit"))||0,signName:g("ss_signname").trim(),signTitle:g("ss_signtitle").trim(),footer:g("ss_footer").trim()};
+    esiOn:g("ss_esion")==="1",esiPct:Number(g("ss_esipct"))||0,esiLimit:Number(g("ss_esilimit"))||0,footer:g("ss_footer").trim()};
   audit("Pay slip settings updated","Pay Slips","");
   try{await saveDB()}catch(err){toast("Could not save: "+(err?.message||err));return}
   closeModals();toast("Pay slip settings saved.");
