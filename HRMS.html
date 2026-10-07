@@ -262,6 +262,47 @@
   .tablewrap{-webkit-overflow-scrolling:touch;scrollbar-width:thin}
   button,input,select,textarea{touch-action:manipulation}
   @media(max-width:900px){.navbtn{min-height:44px}.btn{min-height:40px}}
+
+  /* ===== Pay Slip Generator ===== */
+  #slipPrintRoot{display:none}
+  .slip{background:#fff;color:#0f172a;border:1px solid #cbd5e1;border-radius:6px;padding:0;font-size:12px;max-width:820px;margin:0 auto;overflow:hidden;font-family:Inter,system-ui,sans-serif}
+  .slip-head{background:var(--navy);color:#fff;padding:20px 26px;display:flex;justify-content:space-between;align-items:center;gap:16px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .slip-co{font-size:20px;font-weight:800;letter-spacing:-.01em}.slip-addr{font-size:10.5px;opacity:.75;margin-top:3px;max-width:420px;line-height:1.5}
+  .slip-title{text-align:right}.slip-title b{display:block;font-size:11px;letter-spacing:.14em;color:#fbbf24}.slip-title span{font-size:17px;font-weight:800}
+  .slip-body{padding:20px 26px 22px}
+  .slip-info{display:grid;grid-template-columns:1fr 1fr;gap:0 28px;border:1px solid #e2e8f0;border-radius:8px;padding:6px 14px;margin-bottom:14px}
+  .slip-info div{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px dashed #e2e8f0;font-size:11.5px}
+  .slip-info span{color:#64748b}.slip-info b{text-align:right;word-break:break-word}
+  .slip-att{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+  .slip-att div{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:8px 10px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .slip-att span{display:block;font-size:9.5px;color:#64748b;text-transform:uppercase;letter-spacing:.05em;font-weight:700}.slip-att b{font-size:15px}
+  .slip-pay{width:100%;border-collapse:collapse;font-size:11.5px;margin-bottom:14px}
+  .slip-pay th{background:#eef2f7;text-align:left;padding:8px 10px;font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:#475569;border:1px solid #dbe3ee;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .slip-pay td{padding:7px 10px;border:1px solid #e5e9f0}.slip-pay .r{text-align:right;font-variant-numeric:tabular-nums}.slip-pay th.r{text-align:right}
+  .slip-pay tfoot td{font-weight:800;background:#f8fafc;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .slip-net{display:flex;justify-content:space-between;align-items:center;gap:14px;background:#eaf2ff;border:1px solid #bfd6fb;border-radius:10px;padding:13px 16px;margin-bottom:12px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .slip-net small{display:block;color:#475569;font-size:10px;margin-top:3px}.slip-net .amt{font-size:23px;font-weight:800;color:#0f2942}
+  .slip-notes{font-size:11px;color:#475569;margin-bottom:14px;white-space:pre-wrap}
+  .slip-sign{display:flex;justify-content:space-between;align-items:flex-end;margin-top:26px;font-size:11px}.slip-sign .line{border-top:1px solid #94a3b8;padding-top:5px;min-width:190px;text-align:center}
+  .slip-foot{text-align:center;color:#94a3b8;font-size:10px;margin-top:16px;border-top:1px solid #eef2f7;padding-top:9px}
+  .slip-row{display:grid;grid-template-columns:1.6fr 1fr 1fr 34px;gap:8px;margin-bottom:8px;align-items:center}
+  .slip-row.ded{grid-template-columns:1.6fr 1fr 34px}
+  .slip-colhead{display:grid;grid-template-columns:1.6fr 1fr 1fr 34px;gap:8px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:#64748b;margin-bottom:6px}
+  .slip-colhead.ded{grid-template-columns:1.6fr 1fr 34px}
+  .slip-sec{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#1d4ed8;margin:20px 0 10px;padding-bottom:6px;border-bottom:1px solid #e5e7eb;display:flex;justify-content:space-between;align-items:center}
+  .slip-totals{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px}
+  .slip-totals div{background:#f8fafc;border:1px solid var(--line);border-radius:9px;padding:11px 13px}.slip-totals span{display:block;font-size:10px;color:#64748b;font-weight:700;text-transform:uppercase}.slip-totals b{font-size:18px}
+  .slip-totals div.net{background:#eaf2ff;border-color:#bfd6fb}
+  .slip-hint{font-size:10.5px;color:#94a3b8;margin-top:5px}
+  @media(max-width:700px){.slip-info{grid-template-columns:1fr}.slip-att{grid-template-columns:repeat(2,1fr)}.slip-head{flex-direction:column;align-items:flex-start}.slip-title{text-align:left}.slip-totals{grid-template-columns:1fr}}
+  @media print{
+    @page{size:A4;margin:12mm}
+    body.slip-printing #app,body.slip-printing #loginScreen,body.slip-printing .toast,body.slip-printing .modalback{display:none!important}
+    body.slip-printing #slipPrintRoot{display:block!important}
+    body.slip-printing{background:#fff}
+    #slipPrintRoot .slip{border:0;border-radius:0;max-width:none;page-break-after:always;break-after:page}
+    #slipPrintRoot .slip:last-child{page-break-after:auto;break-after:auto}
+  }
 </style>
 
 </head>
@@ -299,6 +340,7 @@
       <button class="navbtn" data-page="performance" onclick="go('performance')">★ <span>Performance</span></button>
       <button class="navbtn" data-page="compensation" onclick="go('compensation')">₹ <span>Compensation</span></button>
       <button class="navbtn" data-page="payroll" onclick="go('payroll')">▤ <span>Payroll</span></button>
+      <button class="navbtn" data-page="payslips" onclick="go('payslips')">🧾 <span>Pay Slips</span></button>
       <div class="nav-section">Employee Lifecycle</div>
       <button class="navbtn" data-page="onboarding" onclick="go('onboarding')">＋ <span>Onboarding</span></button>
       <button class="navbtn" data-page="former" onclick="go('former')">↺ <span>Offboarding & Rejoined</span></button>
@@ -391,6 +433,7 @@
             <button onclick="essGo('performance')">Performance</button>
             <button onclick="essGo('files')">Files</button>
             <button onclick="essGo('reports')">My Reports</button>
+            <button onclick="essGo('payslips')">Pay Slips</button>
           </div>
 
           <div class="ess-grid">
@@ -405,6 +448,7 @@
               <button data-ess="performance" onclick="essGo('performance')">★ &nbsp; Performance</button>
               <button data-ess="files" onclick="essGo('files')">□ &nbsp; Files & Policies</button>
               <button data-ess="reports" onclick="essGo('reports')">▥ &nbsp; My Reports</button>
+              <button data-ess="payslips" onclick="essGo('payslips')">₹ &nbsp; Pay Slips</button>
             </aside>
 
             <section class="ess-main">
@@ -486,6 +530,10 @@
 
               <div id="ess-files" class="ess-section">
                 <div class="ess-card"><div class="cardtitle" style="margin-bottom:12px">Files & Policies</div><div id="essFiles" class="ess-list"></div></div>
+              </div>
+
+              <div id="ess-payslips" class="ess-section">
+                <div class="ess-card"><div class="cardtitle" style="margin-bottom:12px">My Pay Slips</div><div id="essPayslips" class="ess-list"></div></div>
               </div>
 
               <div id="ess-reports" class="ess-section">
@@ -686,6 +734,36 @@
         <div class="card"><div class="cardhead"><div class="cardtitle">Payroll Periods</div></div><div class="tablewrap"><table class="table"><thead><tr><th>Period</th><th>Employees</th><th>Gross</th><th>Status</th><th>Action</th></tr></thead><tbody id="payrollBody"></tbody></table></div></div>
       </div>
 
+      <div id="page-payslips" class="page">
+        <div class="pagehead">
+          <div><div class="title">Pay Slips</div><div class="subtitle">Generated from employee, salary and attendance records. Admins can edit every pay slip before finalizing.</div></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-secondary" onclick="openSlipSettings()">⚙ Pay Slip Settings</button>
+            <button class="btn btn-secondary" onclick="generateAllSlips()">⚡ Generate for All Active</button>
+            <button class="btn btn-primary" onclick="openSlipEditor()">＋ New Pay Slip</button>
+          </div>
+        </div>
+        <div class="grid stats" style="margin-bottom:16px">
+          <div class="card stat"><div class="stat-label">Pay Slips Shown</div><div class="stat-value" id="slipStatCount">0</div><div class="stat-foot" id="slipStatMonth">—</div></div>
+          <div class="card stat"><div class="stat-label">Total Gross</div><div class="stat-value" id="slipStatGross">₹0</div><div class="stat-foot">Earnings in view</div></div>
+          <div class="card stat"><div class="stat-label">Total Net Pay</div><div class="stat-value" id="slipStatNet">₹0</div><div class="stat-foot">After deductions</div></div>
+          <div class="card stat"><div class="stat-label">Drafts / Finalized</div><div class="stat-value" id="slipStatStatus">0 / 0</div><div class="stat-foot">Employees see finalized only</div></div>
+        </div>
+        <div class="card">
+          <div class="cardhead"><div class="cardtitle">Pay Slip Register</div><button class="btn btn-secondary" onclick="printShownSlips()">🖨 Print All Shown</button></div>
+          <div class="cardbody" style="padding-bottom:0">
+            <div class="toolbar">
+              <input class="input" type="month" id="slipMonth" style="width:170px" onchange="renderPayslips()">
+              <select class="select" id="slipEmpFilter" style="width:220px" onchange="renderPayslips()"></select>
+              <select class="select" id="slipStatusFilter" style="width:150px" onchange="renderPayslips()"><option value="">All statuses</option><option>Draft</option><option>Finalized</option></select>
+              <input class="input" id="slipSearch" placeholder="Search name or employee ID" oninput="renderPayslips()" style="width:240px">
+              <button class="btn btn-secondary" onclick="document.getElementById('slipMonth').value='';renderPayslips()">All months</button>
+            </div>
+          </div>
+          <div class="tablewrap"><table class="table"><thead><tr><th>Employee</th><th>Month</th><th>Paid Days</th><th>Gross</th><th>Deductions</th><th>Net Pay</th><th>Status</th><th>Actions</th></tr></thead><tbody id="slipBody"></tbody></table></div>
+        </div>
+      </div>
+
       <div id="page-onboarding" class="page">
         <div class="pagehead"><div><div class="title">Onboarding</div><div class="subtitle">Manage new joiners, tasks and confirmation milestones.</div></div><button class="btn btn-primary" onclick="openEmployee()">＋ Add Joiner</button></div>
         <div class="grid three"><div class="card stat"><div class="stat-label">New Joiners</div><div class="stat-value" id="onboardNew">0</div></div><div class="card stat"><div class="stat-label">Probation</div><div class="stat-value" id="onboardProb">0</div></div><div class="card stat"><div class="stat-label">Confirmation Due</div><div class="stat-value" id="onboardDue">0</div></div></div>
@@ -863,6 +941,107 @@
   </div>
 </div>
 
+
+<div id="slipEditModal" class="modalback">
+  <div class="modal" style="width:min(1020px,100%)">
+    <div class="modalhead"><div><div style="font-size:16px;font-weight:800" id="seTitle">New Pay Slip</div><div style="font-size:10px;color:#94a3b8">Values are pulled from the database and can be edited freely.</div></div><button class="btn btn-secondary" onclick="closeModals()">✕</button></div>
+    <div class="modalbody">
+      <div class="formgrid" style="grid-template-columns:repeat(4,1fr)">
+        <div class="field"><label>Employee</label><select class="select" id="se_emp" onchange="slipSelectionChange()"></select></div>
+        <div class="field"><label>Pay Month</label><input class="input" type="month" id="se_month" onchange="slipSelectionChange()"></div>
+        <div class="field"><label>Pay Date</label><input class="input" type="date" id="se_paydate" onchange="slipReadFields()"></div>
+        <div class="field"><label>Status</label><select class="select" id="se_status" onchange="slipReadFields()"><option>Draft</option><option>Finalized</option></select></div>
+      </div>
+
+      <div class="slip-sec"><span>Employee Details</span><button type="button" class="btn btn-secondary" style="padding:6px 10px" onclick="slipRecalc()">↻ Re-fetch from database</button></div>
+      <div class="formgrid" style="grid-template-columns:repeat(4,1fr)">
+        <div class="field"><label>Name</label><input class="input" id="se_name" oninput="slipReadFields()"></div>
+        <div class="field"><label>Designation</label><input class="input" id="se_desig" oninput="slipReadFields()"></div>
+        <div class="field"><label>Department</label><input class="input" id="se_dept" oninput="slipReadFields()"></div>
+        <div class="field"><label>Date of Joining</label><input class="input" type="date" id="se_doj" onchange="slipReadFields()"></div>
+        <div class="field"><label>Work Location</label><input class="input" id="se_loc" oninput="slipReadFields()"></div>
+        <div class="field"><label>PAN</label><input class="input" id="se_pan" oninput="slipReadFields()"></div>
+        <div class="field"><label>UAN</label><input class="input" id="se_uan" oninput="slipReadFields()"></div>
+        <div class="field"><label>PF Account No.</label><input class="input" id="se_pf" oninput="slipReadFields()"></div>
+        <div class="field"><label>Payment Mode</label><input class="input" id="se_mode" oninput="slipReadFields()"></div>
+        <div class="field"><label>Bank Name</label><input class="input" id="se_bank" oninput="slipReadFields()"></div>
+        <div class="field"><label>Account No.</label><input class="input" id="se_acc" oninput="slipReadFields()"></div>
+        <div class="field"><label>IFSC</label><input class="input" id="se_ifsc" oninput="slipReadFields()"></div>
+      </div>
+
+      <div class="slip-sec"><span>Attendance & Paid Days</span><span id="se_attsum" style="text-transform:none;letter-spacing:0;font-weight:600;color:#64748b"></span></div>
+      <div class="formgrid" style="grid-template-columns:repeat(4,1fr)">
+        <div class="field"><label>Days in Month</label><input class="input" id="se_dim" readonly></div>
+        <div class="field"><label>Days Outside Employment</label><input class="input" id="se_outside" readonly></div>
+        <div class="field"><label>Loss of Pay (LOP) Days</label><input class="input" type="number" min="0" step="0.5" id="se_lop" oninput="slipDaysChange('lop')"></div>
+        <div class="field"><label>Paid Days</label><input class="input" type="number" min="0" step="0.5" id="se_paid" oninput="slipDaysChange('paid')"></div>
+      </div>
+
+      <div class="slip-sec"><span>Earnings</span><button type="button" class="btn btn-secondary" style="padding:6px 10px" onclick="slipAddRow('earnings')">＋ Add Earning</button></div>
+      <div class="slip-colhead"><span>Component</span><span>Full Monthly</span><span>Earned</span><span></span></div>
+      <div id="se_earn"></div>
+      <div class="slip-hint">Earned amount auto-prorates by paid days. Typing in the Earned box overrides it for that row.</div>
+
+      <div class="slip-sec"><span>Deductions</span><button type="button" class="btn btn-secondary" style="padding:6px 10px" onclick="slipAddRow('deductions')">＋ Add Deduction</button></div>
+      <div class="slip-colhead ded"><span>Component</span><span>Amount</span><span></span></div>
+      <div id="se_ded"></div>
+
+      <div class="field full" style="margin-top:16px"><label>Notes / Remarks (printed on the pay slip)</label><textarea class="textarea" id="se_notes" rows="2" oninput="slipReadFields()"></textarea></div>
+
+      <div class="slip-totals">
+        <div><span>Gross Earnings</span><b id="se_gross">₹0</b></div>
+        <div><span>Total Deductions</span><b id="se_totded">₹0</b></div>
+        <div class="net"><span>Net Pay</span><b id="se_net">₹0</b></div>
+      </div>
+      <div class="slip-hint" id="se_words"></div>
+    </div>
+    <div class="modalfoot">
+      <button class="btn btn-secondary" onclick="closeModals()">Cancel</button>
+      <button class="btn btn-secondary" onclick="saveSlip(true)">Save & Preview</button>
+      <button class="btn btn-primary" onclick="saveSlip(false)">Save Pay Slip</button>
+    </div>
+  </div>
+</div>
+
+<div id="slipViewModal" class="modalback">
+  <div class="modal" style="width:min(900px,100%)">
+    <div class="modalhead"><div><div style="font-size:16px;font-weight:800">Pay Slip Preview</div><div style="font-size:10px;color:#94a3b8">Use Print → Save as PDF to download.</div></div>
+      <div style="display:flex;gap:8px"><button class="btn btn-secondary" id="svEditBtn" onclick="editFromPreview()">✎ Edit</button><button class="btn btn-primary" onclick="printSlip(slipPreviewId)">🖨 Print / PDF</button><button class="btn btn-secondary" onclick="closeModals()">✕</button></div></div>
+    <div class="modalbody" style="background:#f1f5f9" id="svBody"></div>
+  </div>
+</div>
+
+<div id="slipSettingsModal" class="modalback">
+  <div class="modal" style="width:min(720px,100%)">
+    <div class="modalhead"><div><div style="font-size:16px;font-weight:800">Pay Slip Settings</div><div style="font-size:10px;color:#94a3b8">Company header, salary structure and automatic deductions.</div></div><button class="btn btn-secondary" onclick="closeModals()">✕</button></div>
+    <div class="modalbody">
+      <div class="formgrid">
+        <div class="field"><label>Company Name</label><input class="input" id="ss_company"></div>
+        <div class="field"><label>Contact (phone / email)</label><input class="input" id="ss_contact"></div>
+        <div class="field full"><label>Company Address (shown in header)</label><textarea class="textarea" id="ss_address" rows="2"></textarea></div>
+        <div class="field"><label>Basic Salary (% of gross)</label><input class="input" type="number" id="ss_basic" min="0" max="100"></div>
+        <div class="field"><label>HRA (% of gross)</label><input class="input" type="number" id="ss_hra" min="0" max="100"></div>
+        <div class="field full"><div class="slip-hint" style="margin:0">Remaining amount goes to “Other Allowance”. Gross comes from the employee’s current monthly salary.</div></div>
+        <div class="field"><label>Unmarked attendance days</label><select class="select" id="ss_unmarked"><option value="paid">Treat as paid</option><option value="lop">Treat as LOP (excl. Sundays & holidays)</option></select></div>
+        <div class="field"><label>Professional Tax (₹ / month)</label><input class="input" type="number" id="ss_pt" min="0"></div>
+        <div class="field"><label>Provident Fund</label><select class="select" id="ss_pfon"><option value="0">Off</option><option value="1">On</option></select></div>
+        <div class="field"><label>PF % of Basic</label><input class="input" type="number" id="ss_pfpct" step="0.01"></div>
+        <div class="field"><label>Cap PF wage at ₹15,000</label><select class="select" id="ss_pfcap"><option value="1">Yes</option><option value="0">No</option></select></div>
+        <div class="field"><label>ESI</label><select class="select" id="ss_esion"><option value="0">Off</option><option value="1">On</option></select></div>
+        <div class="field"><label>ESI % of gross</label><input class="input" type="number" id="ss_esipct" step="0.01"></div>
+        <div class="field"><label>ESI applies up to gross (₹)</label><input class="input" type="number" id="ss_esilimit"></div>
+        <div class="field"><label>Signatory Name</label><input class="input" id="ss_signname"></div>
+        <div class="field"><label>Signatory Title</label><input class="input" id="ss_signtitle"></div>
+        <div class="field full"><label>Footer Text</label><input class="input" id="ss_footer"></div>
+      </div>
+      <div class="notice" style="margin-top:14px">Settings apply to newly generated pay slips. Existing pay slips keep their saved values unless you re-fetch them. Verify statutory rates (PF, ESI, PT) before relying on them.</div>
+    </div>
+    <div class="modalfoot"><button class="btn btn-secondary" onclick="closeModals()">Cancel</button><button class="btn btn-primary" onclick="saveSlipSettings()">Save Settings</button></div>
+  </div>
+</div>
+
+<div id="slipPrintRoot"></div>
+
 <div id="toast" class="toast"></div>
 
 <script type="module">
@@ -971,7 +1150,7 @@ function ensureModules(){
   DB.goals=DB.goals||[];
   DB.performanceCycles=DB.performanceCycles||[{id:"PC-2026",name:"FY 2026-27 Annual Review",status:"Open"}];
   DB.performanceReviews=DB.performanceReviews||[];
-  DB.payrollPeriods=DB.payrollPeriods||[];
+  DB.payrollPeriods=DB.payrollPeriods||[];DB.payslips=DB.payslips||[];DB.payslipSettings={...SLIP_DEFAULTS,...(DB.payslipSettings||{})};
   DB.auditLogs=DB.auditLogs||[];
   DB.notifications=DB.notifications||[];
   DB.approvals=DB.approvals||[];
@@ -1084,10 +1263,10 @@ window.go=(page)=>{
     side.style.display="none";
     side.dataset.mobileOpen="0";
   }
-  const names={dashboard:"Dashboard","employee-portal":"Employee Portal",people:"Employee Database","employee-detail":"Employee Information","employee-chart":"Employee Chart",attendance:"Attendance",leave:"Leave",timesheets:"Timesheets",approvals:"Approval Center",performance:"Performance",compensation:"Compensation",payroll:"Payroll",onboarding:"Onboarding",former:"Offboarding & Rejoined",documents:"Documents",reports:"Reports & Analytics",audit:"Audit Log",settings:"Settings"};
+  const names={dashboard:"Dashboard","employee-portal":"Employee Portal",people:"Employee Database","employee-detail":"Employee Information","employee-chart":"Employee Chart",attendance:"Attendance",leave:"Leave",timesheets:"Timesheets",approvals:"Approval Center",performance:"Performance",compensation:"Compensation",payroll:"Payroll",payslips:"Pay Slips",onboarding:"Onboarding",former:"Offboarding & Rejoined",documents:"Documents",reports:"Reports & Analytics",audit:"Audit Log",settings:"Settings"};
   document.getElementById("pageTitle").textContent=names[page]||page;
   document.getElementById("breadcrumb").textContent="Home / "+(names[page]||page);
-  ({dashboard:renderDashboard,"employee-portal":renderEmployeePortal,people:renderPeople,"employee-detail":renderEmployeeDetail,"employee-chart":renderEmployeeChart,attendance:renderAttendance,leave:renderLeave,timesheets:renderTimesheets,approvals:renderApprovals,performance:renderPerformance,compensation:renderCompensation,payroll:renderPayroll,onboarding:renderOnboarding,former:renderFormer,documents:renderDocuments,reports:renderReports,audit:renderAudit}[page]||(()=>{}))();
+  ({dashboard:renderDashboard,"employee-portal":renderEmployeePortal,people:renderPeople,"employee-detail":renderEmployeeDetail,"employee-chart":renderEmployeeChart,attendance:renderAttendance,leave:renderLeave,timesheets:renderTimesheets,approvals:renderApprovals,performance:renderPerformance,compensation:renderCompensation,payroll:renderPayroll,payslips:renderPayslips,onboarding:renderOnboarding,former:renderFormer,documents:renderDocuments,reports:renderReports,audit:renderAudit}[page]||(()=>{}))();
 }
 window.mobileNav=()=>{
   const s=document.querySelector(".sidebar");
@@ -1998,6 +2177,7 @@ function essCurrentEmployee(){
 window.essGo=(section)=>{
   document.querySelectorAll('.ess-section').forEach(x=>x.classList.remove('active'));
   document.getElementById('ess-'+section)?.classList.add('active');
+  if(section==='payslips') renderMyPayslips();
   document.querySelectorAll('[data-ess]').forEach(x=>x.classList.toggle('active',x.dataset.ess===section));
   if(section==='home'||section==='profile'||section==='team'||section==='calendar'||section==='leave'||section==='attendance'||section==='timesheet'||section==='performance'||section==='files'||section==='reports') renderEmployeePortal();
 };
@@ -2166,7 +2346,7 @@ window.renderCompensation=()=>{
   const list=DB.employees.filter(e=>e.status==="Active");document.getElementById("compBody").innerHTML=list.length?list.map(e=>{const p=currentPeriod(e),hist=p.salaryHistory||[];return `<tr><td><b>${esc(e.name)}</b><div class="personmeta">${e.id}</div></td><td>${esc(p.department||e.department||"—")}</td><td>₹${salary(e).toLocaleString("en-IN")}</td><td>₹${(salary(e)*12).toLocaleString("en-IN")}</td><td>${fmt(hist[hist.length-1]?.effective)}</td><td>${hist.length} revision(s)</td></tr>`}).join(""):`<tr><td colspan="6"><div class="empty">No active employees.</div></td></tr>`;
 }
 window.renderPayroll=()=>{
-  ensureModules();const rows=DB.payrollPeriods||[];document.getElementById("payrollBody").innerHTML=rows.length?rows.slice().reverse().map(x=>`<tr><td>${esc(x.period)}</td><td>${x.employeeCount}</td><td>₹${Number(x.gross||0).toLocaleString("en-IN")}</td><td>${statusBadge(x.status||"Draft")}</td><td><button class="btn btn-secondary" style="padding:7px 9px" onclick="toast('Payroll preparation is available; statutory rules must be configured before finalization.')">Review</button></td></tr>`).join(""):`<tr><td colspan="5"><div class="empty">No payroll periods created.</div></td></tr>`;
+  ensureModules();const rows=DB.payrollPeriods||[];document.getElementById("payrollBody").innerHTML=rows.length?rows.slice().reverse().map(x=>`<tr><td>${esc(x.period)}</td><td>${x.employeeCount}</td><td>₹${Number(x.gross||0).toLocaleString("en-IN")}</td><td>${statusBadge(x.status||"Draft")}</td><td><button class="btn btn-secondary" style="padding:7px 9px" onclick="toast('Payroll preparation is available; statutory rules must be configured before finalization.')">Review</button> <button class="btn btn-primary" style="padding:7px 9px" onclick="slipsForPeriod('${esc(x.period)}')">Pay Slips</button></td></tr>`).join(""):`<tr><td colspan="5"><div class="empty">No payroll periods created.</div></td></tr>`;
 }
 window.preparePayroll=async()=>{
   ensureModules();const gross=DB.employees.filter(e=>e.status==="Active").reduce((a,e)=>a+salary(e),0);
@@ -2264,6 +2444,330 @@ window.exportEmployees=()=>{
 window.logout=async()=>{await signOut(auth)}
 document.getElementById("globalSearch").addEventListener("keydown",e=>{if(e.key==="Enter"){document.getElementById("peopleSearch").value=e.target.value;go("people");renderPeople()}})
 document.getElementById("loginForm").addEventListener("submit",async e=>{e.preventDefault();const b=document.getElementById("loginBtn"),m=document.getElementById("loginMsg");b.disabled=true;b.textContent="Signing in…";m.textContent="";try{await signInWithEmailAndPassword(auth,document.getElementById("loginEmail").value,document.getElementById("loginPassword").value)}catch(err){m.textContent="Login failed. Check your Firebase Authentication account and password.";b.disabled=false;b.textContent="Sign In"}})
+
+/* =====================================================================
+   GI People · Pay Slip Generator
+   Data comes from DB.employees (salary, bank, PAN/UAN/PF), DB.attendance,
+   DB.punches and DB.holidays. Pay slips are saved in DB.payslips.
+   ===================================================================== */
+const SLIP_DEFAULTS={companyName:"Gurunanak Impex",address:"",contact:"",basicPct:50,hraPct:20,pfOn:false,pfPct:12,pfCap:true,esiOn:false,esiPct:0.75,esiLimit:21000,ptAmount:0,unmarked:"paid",signName:"Mandeep Singh",signTitle:"Owner & CEO",footer:"This is a computer-generated pay slip."};
+const SLIP_MONTHS=["January","February","March","April","May","June","July","August","September","October","November","December"];
+let slipDraft=null, slipIsNew=true, slipPreviewId=null;
+
+const slipCfg=()=>{DB.payslipSettings={...SLIP_DEFAULTS,...(DB.payslipSettings||{})};return DB.payslipSettings};
+const slipIsAdmin=()=>CURRENT_USER_DOC?.role!=="employee";
+const slipInr=n=>"₹"+Number(n||0).toLocaleString("en-IN");
+const slipMonthLabel=ym=>{const [y,m]=String(ym||"").split("-");return (SLIP_MONTHS[(+m)-1]||"")+" "+(y||"")};
+const slipDim=ym=>{const [y,m]=ym.split("-").map(Number);return new Date(y,m,0).getDate()};
+const slipSum=(arr)=>(arr||[]).reduce((a,r)=>a+(Number(r.amount)||0),0);
+const slipTotals=ps=>{const gross=slipSum(ps.earnings),ded=slipSum(ps.deductions);return {gross,ded,net:gross-ded}};
+const slipMask=v=>{const x=String(v||"");return x.length>4?"•".repeat(Math.max(4,x.length-4))+x.slice(-4):x};
+
+function slipWords(n){
+  n=Math.max(0,Math.round(n||0)); if(!n) return "Zero Rupees Only";
+  const a=["","One","Two","Three","Four","Five","Six","Seven","Eight","Nine","Ten","Eleven","Twelve","Thirteen","Fourteen","Fifteen","Sixteen","Seventeen","Eighteen","Nineteen"];
+  const b=["","","Twenty","Thirty","Forty","Fifty","Sixty","Seventy","Eighty","Ninety"];
+  const two=x=>x<20?a[x]:b[Math.floor(x/10)]+(x%10?" "+a[x%10]:"");
+  const part=(x,w)=>x?two(x)+" "+w+" ":"";
+  const cr=Math.floor(n/1e7),lk=Math.floor(n%1e7/1e5),th=Math.floor(n%1e5/1e3),hu=Math.floor(n%1e3/100),r=n%100;
+  let out=part(cr,"Crore")+part(lk,"Lakh")+part(th,"Thousand")+(hu?a[hu]+" Hundred ":"")+(r?((hu||cr||lk||th)?"and ":"")+two(r):"");
+  return out.trim()+" Rupees Only";
+}
+
+/* ---------- Attendance → LOP / paid days (from the database) ---------- */
+function slipAttendance(e,ym){
+  const cfg=slipCfg(),dim=slipDim(ym),p=currentPeriod(e);
+  const join=p.joining||"", exit=p.exit||p.lastDay||"";
+  const holidays=new Set((DB.holidays||[]).map(h=>typeof h==="string"?h:(h.date||h.day||"")));
+  const r={dim,outside:0,lop:0,present:0,half:0,leave:0,absent:0,unmarked:0};
+  for(let d=1;d<=dim;d++){
+    const date=`${ym}-${String(d).padStart(2,"0")}`;
+    if((join&&date<join)||(exit&&date>exit)){r.outside++;continue}
+    const key=e.id+"|"+date;
+    const st=DB.attendance?.[key]||(DB.punches?.[key]?.in?"Present":"");
+    if(st==="Absent"){r.lop+=1;r.absent++}
+    else if(st==="Half Day"){r.lop+=0.5;r.half++}
+    else if(st==="Leave"){r.leave++}
+    else if(st==="Present"){r.present++}
+    else{
+      const dow=new Date(date+"T00:00:00").getDay();
+      if(cfg.unmarked==="lop"&&date<=today&&dow!==0&&!holidays.has(date)){r.lop+=1;r.unmarked++}
+      else r.unmarked++;
+    }
+  }
+  return r;
+}
+
+/* ---------- Build a pay slip from employee + attendance data ---------- */
+function slipBuild(e,ym){
+  const cfg=slipCfg(),p=currentPeriod(e),gross=salary(e),att=slipAttendance(e,ym);
+  const basic=Math.round(gross*cfg.basicPct/100),hra=Math.round(gross*cfg.hraPct/100),other=Math.max(0,gross-basic-hra);
+  const ps={
+    id:`PS-${ym}-${e.id}`,empId:e.id,month:ym,payDate:"",status:"Draft",
+    dim:att.dim,outside:att.outside,lop:att.lop,paidDays:att.dim-att.outside-att.lop,
+    att:{present:att.present,half:att.half,leave:att.leave,absent:att.absent,unmarked:att.unmarked},
+    emp:{name:e.name||"",designation:p.designation||e.designation||"",department:p.department||e.department||"",doj:p.joining||"",location:e.location||"",
+      pan:e.pan||"",uan:e.uan||"",pf:e.pfAccountNumber||"",payMode:e.paymentMode||"Bank Transfer",bankName:e.bankName||"",account:e.bankAccountNumber||"",ifsc:e.bankIFSC||""},
+    earnings:[{label:"Basic Salary",full:basic,amount:0},{label:"House Rent Allowance",full:hra,amount:0},{label:"Other Allowance",full:other,amount:0}].filter(r=>r.full>0||r.label==="Basic Salary"),
+    deductions:[],notes:"",createdOn:today
+  };
+  slipAutoCalc(ps,true);
+  return ps;
+}
+
+function slipAutoCalc(ps,reset){
+  const cfg=slipCfg(),ratio=ps.dim?Math.max(0,ps.paidDays)/ps.dim:0;
+  ps.earnings.forEach(r=>{if(!r.manual)r.amount=Math.round(Number(r.full||0)*ratio)});
+  const basicRow=ps.earnings.find(r=>/basic/i.test(r.label))||ps.earnings[0];
+  const basicEarned=basicRow?basicRow.amount:0, grossEarned=slipSum(ps.earnings), grossFull=ps.earnings.reduce((a,r)=>a+(Number(r.full)||0),0);
+  const want=[];
+  if(cfg.pfOn) want.push({auto:"pf",label:"Provident Fund (Employee)",amount:Math.round(Math.min(basicEarned,cfg.pfCap?15000:Infinity)*Number(cfg.pfPct)/100)});
+  if(cfg.esiOn&&grossFull<=Number(cfg.esiLimit)) want.push({auto:"esi",label:"ESI (Employee)",amount:Math.ceil(grossEarned*Number(cfg.esiPct)/100)});
+  if(Number(cfg.ptAmount)>0) want.push({auto:"pt",label:"Professional Tax",amount:Number(cfg.ptAmount)});
+  if(reset) ps.deductions=[...want,...ps.deductions.filter(d=>!d.auto)];
+  else ps.deductions.forEach(d=>{if(d.auto&&!d.manual){const w=want.find(x=>x.auto===d.auto);d.amount=w?w.amount:0}});
+}
+
+/* ---------- Pay Slip register page ---------- */
+window.renderPayslips=()=>{
+  ensureModules();
+  const mEl=document.getElementById("slipMonth");
+  if(mEl.dataset.init!=="1"){mEl.value=today.slice(0,7);mEl.dataset.init="1"}
+  const ef=document.getElementById("slipEmpFilter"),keep=ef.value;
+  ef.innerHTML='<option value="">All employees</option>'+DB.employees.map(e=>`<option value="${esc(e.id)}">${esc(e.name)} — ${esc(e.id)}</option>`).join("");
+  ef.value=keep;
+  const month=mEl.value,emp_=ef.value,st=document.getElementById("slipStatusFilter").value,q=document.getElementById("slipSearch").value.trim().toLowerCase();
+  const rows=slipFiltered();
+  const gross=rows.reduce((a,x)=>a+slipTotals(x).gross,0),net=rows.reduce((a,x)=>a+slipTotals(x).net,0);
+  document.getElementById("slipStatCount").textContent=rows.length;
+  document.getElementById("slipStatMonth").textContent=month?slipMonthLabel(month):"All months";
+  document.getElementById("slipStatGross").textContent=slipInr(gross);
+  document.getElementById("slipStatNet").textContent=slipInr(net);
+  document.getElementById("slipStatStatus").textContent=rows.filter(x=>x.status!=="Finalized").length+" / "+rows.filter(x=>x.status==="Finalized").length;
+  document.getElementById("slipBody").innerHTML=rows.length?rows.map(x=>{
+    const t=slipTotals(x);
+    return `<tr><td><div class="person"><div class="avatar">${esc((x.emp?.name||"?")[0])}</div><div><div class="personname">${esc(x.emp?.name)}</div><div class="personmeta">${esc(x.empId)}</div></div></div></td>
+    <td>${esc(slipMonthLabel(x.month))}</td><td>${x.paidDays} / ${x.dim}</td><td>${slipInr(t.gross)}</td><td>${slipInr(t.ded)}</td><td><b>${slipInr(t.net)}</b></td>
+    <td><span class="badge ${x.status==="Finalized"?"green":"amber"}">${esc(x.status)}</span></td>
+    <td style="white-space:nowrap"><button class="btn btn-secondary" style="padding:7px 9px" onclick="viewSlip('${esc(x.id)}')">View</button>
+    <button class="btn btn-secondary" style="padding:7px 9px" onclick="openSlipEditor('${esc(x.id)}')">Edit</button>
+    <button class="btn btn-secondary" style="padding:7px 9px" onclick="printSlip('${esc(x.id)}')">Print</button>
+    <button class="btn btn-danger" style="padding:7px 9px" onclick="deleteSlip('${esc(x.id)}')">Delete</button></td></tr>`}).join("")
+    :`<tr><td colspan="8"><div class="empty">No pay slips for this selection. Use “New Pay Slip” or “Generate for All Active”.</div></td></tr>`;
+};
+function slipFiltered(){
+  const month=document.getElementById("slipMonth").value,emp_=document.getElementById("slipEmpFilter").value,st=document.getElementById("slipStatusFilter").value,q=document.getElementById("slipSearch").value.trim().toLowerCase();
+  return (DB.payslips||[]).filter(x=>(!month||x.month===month)&&(!emp_||x.empId===emp_)&&(!st||x.status===st)&&(!q||(x.emp?.name||"").toLowerCase().includes(q)||x.empId.toLowerCase().includes(q)))
+    .sort((a,b)=>b.month.localeCompare(a.month)||(a.emp?.name||"").localeCompare(b.emp?.name||""));
+}
+window.slipsForPeriod=(period)=>{
+  const mi=SLIP_MONTHS.findIndex(m=>new RegExp("\\b"+m+"\\b","i").test(period)),yr=(String(period).match(/\b(20\d{2})\b/)||[])[1];
+  const ym=(mi>=0&&yr)?`${yr}-${String(mi+1).padStart(2,"0")}`:today.slice(0,7);
+  go("payslips");document.getElementById("slipMonth").value=ym;document.getElementById("slipMonth").dataset.init="1";renderPayslips();
+};
+
+window.generateAllSlips=async()=>{
+  if(!slipIsAdmin())return;
+  const ym=document.getElementById("slipMonth").value||today.slice(0,7);
+  const list=DB.employees.filter(e=>e.status==="Active"&&(currentPeriod(e).joining||"0000-00")<=ym+"-31");
+  let made=0,skipped=0;
+  for(const e of list){
+    const id=`PS-${ym}-${e.id}`;
+    if(DB.payslips.some(x=>x.id===id)){skipped++;continue}
+    const ps=slipBuild(e,ym);ps.gross=slipTotals(ps).gross;ps.net=slipTotals(ps).net;DB.payslips.push(ps);made++;
+  }
+  if(!made){toast(skipped?"Pay slips for "+slipMonthLabel(ym)+" already exist.":"No eligible active employees.");return}
+  audit("Pay slips generated","Pay Slips",`${made} for ${slipMonthLabel(ym)}`);
+  try{await saveDB()}catch(err){toast("Could not save: "+(err?.message||err));return}
+  document.getElementById("slipMonth").value=ym;renderPayslips();renderAudit?.();
+  toast(`${made} pay slip(s) generated${skipped?`, ${skipped} already existed`:""}. Review and edit before finalizing.`);
+};
+
+window.deleteSlip=async(id)=>{
+  if(!slipIsAdmin())return;
+  const x=DB.payslips.find(p=>p.id===id);if(!x)return;
+  if(!confirm(`Delete pay slip for ${x.emp?.name} (${slipMonthLabel(x.month)})? This cannot be undone.`))return;
+  DB.payslips=DB.payslips.filter(p=>p.id!==id);audit("Pay slip deleted","Pay Slips",`${x.emp?.name} ${x.month}`);
+  try{await saveDB()}catch(err){toast("Could not save: "+(err?.message||err));return}
+  renderPayslips();toast("Pay slip deleted.");
+};
+
+/* ---------- Editor ---------- */
+const $se=id=>document.getElementById(id);
+window.openSlipEditor=(id)=>{
+  if(!slipIsAdmin())return;
+  const ex=id?DB.payslips.find(x=>x.id===id):null;
+  slipIsNew=!ex;
+  if(ex){slipDraft=JSON.parse(JSON.stringify(ex))}
+  else{
+    const ym=document.getElementById("slipMonth").value||today.slice(0,7);
+    const first=DB.employees.find(e=>e.status==="Active")||DB.employees[0];
+    if(!first){toast("Add an employee first.");return}
+    slipDraft=slipBuild(first,ym);
+  }
+  slipFillEditor();
+  $se("slipEditModal").classList.add("show");
+};
+function slipFillEditor(){
+  const d=slipDraft,e=d.emp;
+  $se("seTitle").textContent=slipIsNew?"New Pay Slip":"Edit Pay Slip — "+slipMonthLabel(d.month);
+  const sel=$se("se_emp");
+  const emps=[...DB.employees].sort((a,b)=>(a.status==="Active"?0:1)-(b.status==="Active"?0:1));
+  sel.innerHTML=emps.map(x=>`<option value="${esc(x.id)}">${esc(x.name)} — ${esc(x.id)}${x.status!=="Active"?" ("+esc(x.status)+")":""}</option>`).join("");
+  sel.value=d.empId;sel.disabled=!slipIsNew;
+  $se("se_month").value=d.month;$se("se_month").disabled=!slipIsNew;
+  $se("se_paydate").value=d.payDate||"";$se("se_status").value=d.status||"Draft";
+  const m={se_name:e.name,se_desig:e.designation,se_dept:e.department,se_doj:e.doj,se_loc:e.location,se_pan:e.pan,se_uan:e.uan,se_pf:e.pf,se_mode:e.payMode,se_bank:e.bankName,se_acc:e.account,se_ifsc:e.ifsc};
+  Object.entries(m).forEach(([k,v])=>$se(k).value=v||"");
+  $se("se_notes").value=d.notes||"";
+  $se("se_dim").value=d.dim;$se("se_outside").value=d.outside;$se("se_lop").value=d.lop;$se("se_paid").value=d.paidDays;
+  const a=d.att||{};
+  $se("se_attsum").textContent=`Present ${a.present||0} · Half-day ${a.half||0} · Leave ${a.leave||0} · Absent ${a.absent||0} · Unmarked ${a.unmarked||0}`;
+  slipRenderRows();slipSyncTotals();
+}
+function slipRenderRows(){
+  const d=slipDraft;
+  $se("se_earn").innerHTML=d.earnings.map((r,i)=>`<div class="slip-row">
+    <input class="input" value="${esc(r.label)}" oninput="slipRow('earnings',${i},'label',this.value)">
+    <input class="input" type="number" min="0" value="${r.full??0}" oninput="slipRow('earnings',${i},'full',this.value)">
+    <input class="input" type="number" min="0" id="se_earnings_${i}" value="${r.amount??0}" oninput="slipRow('earnings',${i},'amount',this.value)">
+    <button type="button" class="btn btn-danger" style="padding:8px" onclick="slipDelRow('earnings',${i})">✕</button></div>`).join("")||'<div class="empty" style="padding:12px">No earnings. Add one.</div>';
+  $se("se_ded").innerHTML=d.deductions.map((r,i)=>`<div class="slip-row ded">
+    <input class="input" value="${esc(r.label)}" oninput="slipRow('deductions',${i},'label',this.value)">
+    <input class="input" type="number" min="0" id="se_deductions_${i}" value="${r.amount??0}" oninput="slipRow('deductions',${i},'amount',this.value)">
+    <button type="button" class="btn btn-danger" style="padding:8px" onclick="slipDelRow('deductions',${i})">✕</button></div>`).join("")||'<div class="empty" style="padding:12px">No deductions.</div>';
+}
+function slipSyncTotals(){
+  const d=slipDraft,t=slipTotals(d);
+  ["earnings","deductions"].forEach(k=>d[k].forEach((r,i)=>{const el=$se(`se_${k}_${i}`);if(el&&document.activeElement!==el)el.value=r.amount??0}));
+  $se("se_gross").textContent=slipInr(t.gross);$se("se_totded").textContent=slipInr(t.ded);$se("se_net").textContent=slipInr(t.net);
+  $se("se_words").textContent="Net pay in words: "+(t.net<0?"Negative — please review deductions":slipWords(t.net));
+}
+window.slipRow=(kind,i,field,val)=>{
+  const r=slipDraft[kind][i];if(!r)return;
+  if(field==="label"){r.label=val;return}
+  r[field]=Number(val)||0;
+  if(field==="amount")r.manual=true;
+  if(field==="full"&&kind==="earnings")r.manual=false;
+  slipAutoCalc(slipDraft,false);slipSyncTotals();
+};
+window.slipAddRow=(kind)=>{
+  slipDraft[kind].push(kind==="earnings"?{label:"New Earning",full:0,amount:0,manual:true}:{label:"New Deduction",amount:0,manual:true});
+  slipRenderRows();slipSyncTotals();
+};
+window.slipDelRow=(kind,i)=>{slipDraft[kind].splice(i,1);slipAutoCalc(slipDraft,false);slipRenderRows();slipSyncTotals()};
+window.slipDaysChange=(which)=>{
+  const d=slipDraft,max=d.dim-d.outside;
+  if(which==="lop"){d.lop=Math.max(0,Math.min(max,Number($se("se_lop").value)||0));d.paidDays=max-d.lop;$se("se_paid").value=d.paidDays}
+  else{d.paidDays=Math.max(0,Math.min(max,Number($se("se_paid").value)||0));d.lop=max-d.paidDays;$se("se_lop").value=d.lop}
+  slipAutoCalc(d,false);slipSyncTotals();
+};
+window.slipReadFields=()=>{
+  const d=slipDraft;if(!d)return;
+  d.payDate=$se("se_paydate").value;d.status=$se("se_status").value;d.notes=$se("se_notes").value;
+  Object.assign(d.emp,{name:$se("se_name").value,designation:$se("se_desig").value,department:$se("se_dept").value,doj:$se("se_doj").value,location:$se("se_loc").value,pan:$se("se_pan").value,uan:$se("se_uan").value,pf:$se("se_pf").value,payMode:$se("se_mode").value,bankName:$se("se_bank").value,account:$se("se_acc").value,ifsc:$se("se_ifsc").value});
+};
+window.slipSelectionChange=()=>{
+  const e=emp($se("se_emp").value),ym=$se("se_month").value||today.slice(0,7);if(!e)return;
+  const ex=DB.payslips.find(x=>x.id===`PS-${ym}-${e.id}`);
+  if(ex){slipIsNew=false;slipDraft=JSON.parse(JSON.stringify(ex));toast("A pay slip already exists for this month — opened for editing.")}
+  else{slipIsNew=true;slipDraft=slipBuild(e,ym)}
+  slipFillEditor();
+};
+window.slipRecalc=()=>{
+  const e=emp(slipDraft.empId);if(!e){toast("Employee record not found.");return}
+  if(!slipIsNew&&!confirm("Replace the earnings, deductions, days and employee details with fresh values from the database? Your manual edits to those will be lost."))return;
+  slipReadFields();
+  const fresh=slipBuild(e,slipDraft.month);
+  Object.assign(fresh,{payDate:slipDraft.payDate,status:slipDraft.status,notes:slipDraft.notes,createdOn:slipDraft.createdOn||today});
+  slipDraft=fresh;slipFillEditor();toast("Refreshed from the database.");
+};
+window.saveSlip=async(thenPreview)=>{
+  if(!slipIsAdmin()||!slipDraft)return;
+  slipReadFields();const d=slipDraft;
+  if(!d.emp.name.trim()){toast("Employee name is required.");return}
+  if(!d.earnings.length){toast("Add at least one earning.");return}
+  const t=slipTotals(d);if(t.net<0){toast("Deductions exceed earnings — please review.");return}
+  Object.assign(d,{gross:t.gross,totalDed:t.ded,net:t.net,updatedOn:today,updatedAt:new Date().toISOString()});
+  const i=DB.payslips.findIndex(x=>x.id===d.id);
+  if(i>=0)DB.payslips[i]=d;else DB.payslips.push(d);
+  audit(i>=0?"Pay slip updated":"Pay slip created","Pay Slips",`${d.emp.name} · ${slipMonthLabel(d.month)} · ${d.status}`);
+  try{await saveDB()}catch(err){toast("Could not save: "+(err?.message||err));return}
+  closeModals();
+  const mEl=$se("slipMonth");if(mEl.value&&mEl.value!==d.month){mEl.value=d.month}
+  renderPayslips();renderAudit?.();toast("Pay slip saved.");
+  if(thenPreview)viewSlip(d.id);
+};
+
+/* ---------- Pay slip document (preview + print) ---------- */
+function slipHTML(ps){
+  const c=slipCfg(),e=ps.emp||{},t=slipTotals(ps),n=Math.max(ps.earnings.length,ps.deductions.length);
+  let rows="";
+  for(let i=0;i<n;i++){const a=ps.earnings[i],d=ps.deductions[i];
+    rows+=`<tr><td>${a?esc(a.label):"&nbsp;"}</td><td class="r">${a?slipInr(a.full):""}</td><td class="r">${a?slipInr(a.amount):""}</td><td>${d?esc(d.label):""}</td><td class="r">${d?slipInr(d.amount):""}</td></tr>`}
+  const info=[["Employee Name",e.name],["Employee ID",ps.empId],["Designation",e.designation],["Department",e.department],["Date of Joining",e.doj?fmt(e.doj):""],["Work Location",e.location],["PAN",e.pan],["UAN",e.uan],["PF Account No.",e.pf],["Payment Mode",e.payMode],["Bank",e.bankName],["Account No.",slipMask(e.account)],["IFSC",e.ifsc],["Pay Date",ps.payDate?fmt(ps.payDate):""]].filter(x=>x[1]);
+  const a=ps.att||{};
+  return `<div class="slip">
+    <div class="slip-head"><div><div class="slip-co">${esc(c.companyName)}</div>${c.address?`<div class="slip-addr">${esc(c.address)}</div>`:""}${c.contact?`<div class="slip-addr">${esc(c.contact)}</div>`:""}</div>
+      <div class="slip-title"><b>PAY SLIP</b><span>${esc(slipMonthLabel(ps.month))}</span></div></div>
+    <div class="slip-body">
+      <div class="slip-info">${info.map(([k,v])=>`<div><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join("")}</div>
+      <div class="slip-att"><div><span>Days in Month</span><b>${ps.dim}</b></div><div><span>Paid Days</span><b>${ps.paidDays}</b></div><div><span>LOP Days</span><b>${ps.lop}</b></div><div><span>Leave Taken</span><b>${a.leave||0}</b></div></div>
+      <table class="slip-pay"><thead><tr><th>Earnings</th><th class="r">Full Monthly</th><th class="r">Earned</th><th>Deductions</th><th class="r">Amount</th></tr></thead><tbody>${rows}</tbody>
+        <tfoot><tr><td>Gross Earnings</td><td></td><td class="r">${slipInr(t.gross)}</td><td>Total Deductions</td><td class="r">${slipInr(t.ded)}</td></tr></tfoot></table>
+      <div class="slip-net"><div><div style="font-size:10px;font-weight:700;color:#475569;letter-spacing:.06em">NET PAY</div><small>${esc(slipWords(t.net))}</small></div><div class="amt">${slipInr(t.net)}</div></div>
+      ${ps.notes?`<div class="slip-notes"><b>Remarks:</b> ${esc(ps.notes)}</div>`:""}
+      <div class="slip-sign"><div></div><div class="line"><b>${esc(c.signName)}</b><br>${esc(c.signTitle)}</div></div>
+      <div class="slip-foot">${esc(c.footer)}</div>
+    </div></div>`;
+}
+window.viewSlip=(id)=>{
+  const ps=DB.payslips.find(x=>x.id===id);if(!ps)return;
+  slipPreviewId=id;$se("svBody").innerHTML=slipHTML(ps);
+  $se("svEditBtn").style.display=slipIsAdmin()?"":"none";
+  closeModals();$se("slipViewModal").classList.add("show");
+};
+window.editFromPreview=()=>{closeModals();openSlipEditor(slipPreviewId)};
+function slipPrintList(list){
+  if(!list.length){toast("Nothing to print.");return}
+  $se("slipPrintRoot").innerHTML=list.map(slipHTML).join("");
+  document.body.classList.add("slip-printing");
+  setTimeout(()=>window.print(),80);
+}
+window.addEventListener("afterprint",()=>{document.body.classList.remove("slip-printing");const r=document.getElementById("slipPrintRoot");if(r)r.innerHTML=""});
+window.printSlip=(id)=>{const ps=DB.payslips.find(x=>x.id===id);if(!ps)return;if(!slipIsAdmin()&&ps.status!=="Finalized")return;slipPrintList([ps])};
+window.printShownSlips=()=>{slipPrintList(slipFiltered())};
+
+/* ---------- Settings ---------- */
+window.openSlipSettings=()=>{
+  if(!slipIsAdmin())return;const c=slipCfg();
+  const set=(id,v)=>$se(id).value=v;
+  set("ss_company",c.companyName);set("ss_contact",c.contact);set("ss_address",c.address);set("ss_basic",c.basicPct);set("ss_hra",c.hraPct);
+  set("ss_unmarked",c.unmarked);set("ss_pt",c.ptAmount);set("ss_pfon",c.pfOn?"1":"0");set("ss_pfpct",c.pfPct);set("ss_pfcap",c.pfCap?"1":"0");
+  set("ss_esion",c.esiOn?"1":"0");set("ss_esipct",c.esiPct);set("ss_esilimit",c.esiLimit);set("ss_signname",c.signName);set("ss_signtitle",c.signTitle);set("ss_footer",c.footer);
+  $se("slipSettingsModal").classList.add("show");
+};
+window.saveSlipSettings=async()=>{
+  const g=id=>$se(id).value;
+  const basic=Number(g("ss_basic"))||0,hra=Number(g("ss_hra"))||0;
+  if(basic+hra>100){toast("Basic % + HRA % cannot exceed 100.");return}
+  DB.payslipSettings={...slipCfg(),companyName:g("ss_company").trim()||"Gurunanak Impex",contact:g("ss_contact").trim(),address:g("ss_address").trim(),basicPct:basic,hraPct:hra,
+    unmarked:g("ss_unmarked"),ptAmount:Number(g("ss_pt"))||0,pfOn:g("ss_pfon")==="1",pfPct:Number(g("ss_pfpct"))||0,pfCap:g("ss_pfcap")==="1",
+    esiOn:g("ss_esion")==="1",esiPct:Number(g("ss_esipct"))||0,esiLimit:Number(g("ss_esilimit"))||0,signName:g("ss_signname").trim(),signTitle:g("ss_signtitle").trim(),footer:g("ss_footer").trim()};
+  audit("Pay slip settings updated","Pay Slips","");
+  try{await saveDB()}catch(err){toast("Could not save: "+(err?.message||err));return}
+  closeModals();toast("Pay slip settings saved.");
+};
+
+/* ---------- Employee self-service: finalized pay slips only ---------- */
+window.renderMyPayslips=()=>{
+  const box=document.getElementById("essPayslips");if(!box)return;
+  const me=essCurrentEmployee();
+  const list=me?(DB.payslips||[]).filter(x=>x.empId===me.id&&x.status==="Finalized").sort((a,b)=>b.month.localeCompare(a.month)):[];
+  box.innerHTML=list.length?list.map(x=>`<div class="ess-list-item"><div><b>${esc(slipMonthLabel(x.month))}</b><div class="ess-muted">Net pay ${slipInr(slipTotals(x).net)} · ${x.paidDays} paid days</div></div>
+    <div style="display:flex;gap:8px"><button class="btn btn-secondary" onclick="viewSlip('${esc(x.id)}')">View</button><button class="btn btn-primary" onclick="printSlip('${esc(x.id)}')">Print / PDF</button></div></div>`).join("")
+    :'<div class="empty">No pay slips have been published for you yet.</div>';
+};
 
 onAuthStateChanged(auth,async user=>{
  if(!user){document.getElementById("loginScreen").classList.remove("hide");document.getElementById("app").classList.add("hide");return}
