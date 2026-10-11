@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>Gurunanak Impex — Business Manager</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"/>
@@ -416,7 +417,42 @@ tr:hover td{background:#f8faff;}
   .inv .foot .sig{width:80mm;text-align:center;font-size:12px;}
   .inv .foot .sig .for{font-weight:600;}
   .inv .foot .sig .line{border-top:.5mm solid #444;margin-top:12mm;padding-top:3mm;font-size:11px;}
+  .print-invoice{break-after:page;page-break-after:always;}
+  .print-invoice:last-child{break-after:auto;page-break-after:auto;}
 }
+
+/* ---------- Excel bill import ---------- */
+.imp-modal{width:1100px;max-width:96vw;display:flex;flex-direction:column;max-height:92vh;}
+.imp-modal .modal-body{overflow-y:auto;flex:1;}
+.imp-drop{border:2px dashed #c9d6ea;border-radius:14px;padding:44px 20px;text-align:center;cursor:pointer;background:#fbfcff;transition:.15s;display:flex;flex-direction:column;align-items:center;gap:6px;}
+.imp-drop:hover,.imp-drop.over{border-color:var(--orange);background:var(--orange-light);}
+.imp-drop-t{font-weight:700;font-size:15px;font-family:var(--font-head);}
+.imp-help{margin-top:16px;font-size:12.5px;color:var(--text-mut);line-height:1.6;}
+.imp-help ul{margin:8px 0 0 18px;padding:0;}
+.imp-done{text-align:center;padding:36px 10px;display:flex;flex-direction:column;align-items:center;gap:8px;}
+.imp-spin{width:38px;height:38px;border-radius:50%;border:4px solid #e5eeff;border-top-color:var(--orange);animation:impspin .8s linear infinite;}
+@keyframes impspin{to{transform:rotate(360deg);}}
+.imp-bar{width:min(420px,80%);height:8px;border-radius:6px;background:#e5eeff;overflow:hidden;}
+.imp-bar div{height:100%;background:var(--orange);transition:width .2s;}
+.imp-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:12px;}
+.imp-stat{background:#f4f7ff;border:1px solid var(--border);border-radius:10px;padding:10px 12px;}
+.imp-stat .n{font-size:20px;font-weight:800;font-family:var(--font-head);}
+.imp-stat .l{font-size:11px;color:var(--text-mut);font-weight:600;}
+.imp-ok,.imp-warn,.imp-info{border-radius:9px;padding:9px 12px;font-size:12.5px;margin-bottom:8px;line-height:1.5;}
+.imp-ok{background:#e1f5ec;color:#0b6b4a;} .imp-warn{background:#faf1dc;color:#7d570a;} .imp-info{background:#e7edf5;color:var(--navy);}
+.imp-sec{font-family:var(--font-head);font-weight:800;font-size:14px;margin:18px 0 8px;}
+.imp-map{border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:8px;background:#fff;}
+.imp-map-h{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.imp-map-h select{margin-left:auto;padding:7px 9px;border:1px solid var(--border);border-radius:8px;font-size:12.5px;max-width:100%;min-width:220px;}
+.imp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px 12px;margin-top:10px;}
+.imp-grid label{font-size:11.5px;font-weight:600;color:var(--text-mut);display:block;}
+.imp-grid label.imp-wide{grid-column:1/-1;}
+.imp-grid input,.imp-grid select{display:block;width:100%;margin-top:3px;padding:7px 9px;border:1px solid var(--border);border-radius:7px;font-size:12.5px;background:#fff;}
+.imp-date{padding:5px 7px;border:1px solid var(--border);border-radius:7px;font-size:12px;background:#fff;}
+.imp-date.flag{border-color:var(--amber);background:#fff9ea;}
+.imp-note{font-size:11px;margin-top:3px;line-height:1.35;} .imp-note.r{color:var(--red);} .imp-note.a{color:var(--amber);}
+tr.imp-dim td{opacity:.55;}
+@media (max-width:760px){.imp-stats{grid-template-columns:repeat(2,1fr);}.imp-grid{grid-template-columns:1fr;}.imp-map-h select{margin-left:0;width:100%;}}
 </style>
 </head>
 <body>
@@ -773,6 +809,7 @@ tr:hover td{background:#f8faff;}
           <select id="billFilterStatus"><option value="">All Status</option><option value="active">Active</option><option value="void">Voided</option></select>
           <button class="btn btn-sm" onclick="BillsList.load(true)">Apply</button>
           <button class="btn btn-sm" onclick="BillsList.exportCSV()">Export CSV</button>
+          <button class="btn btn-sm btn-primary" onclick="ExcelImport.open()"><span class="material-symbols-outlined" style="font-size:16px !important;">upload_file</span> Import from Excel</button>
         </div>
         <div class="table-wrap"><table><thead><tr><th>Bill No.</th><th>Date</th><th>Customer</th><th id="billSalesLeadColHead">Sales Lead</th><th>Items</th><th>Sales</th><th>Cost</th><th>Profit</th><th>Paid</th><th>Balance</th><th>Mode</th><th>Status</th><th>Actions</th></tr></thead><tbody id="billsTableBody"></tbody></table></div>
         <div class="flex-between mt16"><span class="small text-mut" id="billsPageInfo"></span><button class="btn btn-sm" onclick="BillsList.loadMore()">Load More</button></div>
@@ -1231,6 +1268,14 @@ tr:hover td{background:#f8faff;}
     <div class="modal-head"><h3>Purchase Bill Details</h3><button class="modal-close" onclick="ModalUI.close('modalPurchaseView')">✕</button></div>
     <div class="modal-body" id="purchaseViewBody"></div>
     <div class="modal-foot"><button class="btn" onclick="ModalUI.close('modalPurchaseView')">Close</button><button class="btn btn-primary" onclick="PurchasesList.printFromView()">Print</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalImport">
+  <div class="modal imp-modal">
+    <div class="modal-head"><h3 id="impTitle">Import Bills from Excel</h3><button class="modal-close" onclick="ExcelImport.close()">✕</button></div>
+    <div class="modal-body" id="impScroll"><div id="impBody"></div></div>
+    <div class="modal-foot" id="impFoot"></div>
   </div>
 </div>
 
@@ -3795,7 +3840,7 @@ const Print = {
     const s = out.join(' ');
     return s.charAt(0).toUpperCase()+s.slice(1);
   },
-  async printBill(bill){
+  buildInvoice(bill){
     const g = State.settings.general || {};
     const E = s => this.esc(s);
     const sellerGstin = (g.gstin || '03FSQPK5327F1ZN').toUpperCase();
@@ -3907,8 +3952,13 @@ const Print = {
           <div class="sig"><div class="for">For ${E(biz)}</div><div class="line">Authorized Signatory${g.signatoryName? '<br/><b>'+E(g.signatoryName)+'</b>':''}</div></div>
         </div>
       </div>`;
+    return html;
+  },
+  async printBill(bill){ return this.printBills([bill]); },
+  async printBills(bills){
+    const html = bills.map(b=>this.buildInvoice(b)).join('');
     document.getElementById('printArea').innerHTML = html;
-    // A4 page just for this invoice; restore the small receipt size afterwards
+    // A4 page just for these invoices; restore the small receipt size afterwards
     let ps = document.getElementById('invPageStyle');
     if(!ps){ ps = document.createElement('style'); ps.id = 'invPageStyle'; document.head.appendChild(ps); }
     ps.textContent = '@media print{@page{size:A4 portrait;margin:0;}}';
@@ -4207,6 +4257,583 @@ async function initApp(){
 }
 initApp();
 
+/* ---------------------------- EXCEL BILL IMPORT ----------------------------
+   Upload an .xlsx/.xls/.csv sales register (S.No, Date, Month, Bill No, Qty, Rate, Amount, Slab,
+   GST, Total, Type, Party Name, Location) and turn every row into a real bill in the app's
+   standard GST Tax Invoice format. Flow: upload -> review/mapping -> import -> print.
+   Bill numbers and dates from the sheet are kept as-is. Rows with the same Bill No (and party)
+   are merged into one bill with several line items. Bills that already exist are skipped. */
+const ExcelImport = {
+  step: 'upload', fileName: '', bills: [], parties: [], items: [], sheetTotals: null,
+  gaps: [], skippedRows: 0, created: [], importing: false,
+
+  COLS: {
+    sno:['sno','srno','serialno','slno'],
+    date:['date','billdate','invoicedate'],
+    month:['month'],
+    billNo:['billno','billnumber','invoiceno','invoicenumber','billno','invno'],
+    qty:['qty','quantity'],
+    rate:['rate','price','unitprice'],
+    amount:['amount','taxable','taxablevalue','taxableamount','basicamount'],
+    slab:['slab','gstrate','gstslab','taxrate','taxslab','gstpercent','gst'],
+    gst:['gst','gstamount','taxamount','tax'],
+    total:['total','grandtotal','totalamount','invoiceamount'],
+    type:['type','item','product','productname','itemname','description'],
+    party:['partyname','party','customer','customername','buyer','buyername'],
+    location:['location','city','place']
+  },
+  MONTHS: ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'],
+
+  /* ---------- helpers ---------- */
+  norm(s){ return String(s==null?'':s).toLowerCase().replace(/\s+/g,' ').trim(); },
+  key(s){ return String(s==null?'':s).toLowerCase().replace(/[^a-z0-9]/g,''); },
+  esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); },
+  num(v){
+    if(v==null || v==='') return null;
+    if(typeof v==='number') return isFinite(v) ? v : null;
+    const n = parseFloat(String(v).replace(/[₹,\s]/g,'').replace(/%$/,''));
+    return isFinite(n) ? n : null;
+  },
+  monthIdx(txt){ const i = this.MONTHS.indexOf(String(txt||'').trim().slice(0,3).toLowerCase()); return i; },
+  noon(y,m,d){ return new Date(y, m, d, 12, 0, 0); },
+  ymd(d){ return d ? d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0') : ''; },
+  dmy(d){ return d ? String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear() : ''; },
+
+  /* Parse the Date cell. Handles real dates, Excel serials and typo'd text such as
+     "21-07-20265", "28-082026" or "26-0-2026" (using the Month column to repair a bad month). */
+  parseDate(v, monthTxt, ctxYear){
+    if(v instanceof Date && !isNaN(v)){
+      const n = new Date(v.getTime() + 12*3600*1000);
+      return { date: this.noon(n.getFullYear(), n.getMonth(), n.getDate()), fixed:false };
+    }
+    if(typeof v==='number' && v>20000 && v<80000){
+      const p = XLSX.SSF.parse_date_code(v);
+      if(p) return { date: this.noon(p.y, p.m-1, p.d), fixed:false };
+    }
+    if(v==null || String(v).trim()==='') return { date:null, fixed:false };
+    const s = String(v).trim();
+    let d, m, ys, fixed = false;
+    let mt = s.match(/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})$/);
+    if(mt){ ys = mt[1]; m = +mt[2]; d = +mt[3]; }
+    else {
+      const g = s.split(/[^0-9]+/).filter(Boolean);
+      if(g.length===3){ d=+g[0]; m=+g[1]; ys=g[2]; }
+      else if(g.length===2 && g[1].length>=6){ d=+g[0]; m=+g[1].slice(0,2); ys=g[1].slice(2); fixed=true; }
+      else if(g.length===1 && g[0].length>=8){ d=+g[0].slice(0,2); m=+g[0].slice(2,4); ys=g[0].slice(4); fixed=true; }
+      else return { date:null, fixed:false };
+    }
+    let y;
+    if(ys.length===2) y = 2000 + (+ys);
+    else if(ys.length===4) y = +ys;
+    else if(ys.length>4){ y = +ys.slice(0,4); fixed = true; }
+    else y = ctxYear;
+    if(!(m>=1 && m<=12)){
+      const mi = this.monthIdx(monthTxt);
+      if(mi<0) return { date:null, fixed:false };
+      m = mi+1; fixed = true;
+    }
+    if(!(d>=1 && d<=31)) return { date:null, fixed:false };
+    const dt = this.noon(y, m-1, d);
+    if(dt.getMonth() !== m-1) return { date:null, fixed:false };
+    return { date: dt, fixed };
+  },
+
+  /* ---------- open / reset ---------- */
+  open(){
+    this.step = 'upload'; this.fileName = ''; this.bills = []; this.parties = []; this.items = [];
+    this.sheetTotals = null; this.gaps = []; this.skippedRows = 0; this.created = []; this.importing = false;
+    const fi = document.getElementById('impFile'); if(fi) fi.value = '';
+    this.render();
+    ModalUI.open('modalImport');
+  },
+  close(){ if(this.importing){ Toast.show('Import in progress — please wait','err'); return; } ModalUI.close('modalImport'); },
+  back(){ if(this.importing) return; this.step = 'upload'; this.render(); },
+
+  /* ---------- read file ---------- */
+  async onFile(file){
+    if(!file) return;
+    if(typeof XLSX === 'undefined'){ Toast.show('Excel reader failed to load. Check your internet connection and reload.','err'); return; }
+    this.fileName = file.name;
+    try{
+      const buf = await file.arrayBuffer();
+      const wb = XLSX.read(buf, { type:'array', cellDates:true });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const grid = XLSX.utils.sheet_to_json(ws, { header:1, raw:true, defval:null, blankrows:false });
+      await this.parse(grid);
+    }catch(e){ console.error(e); Toast.show('Could not read this file: '+e.message,'err'); }
+  },
+  onDrop(ev){
+    ev.preventDefault();
+    document.getElementById('impDrop').classList.remove('over');
+    const f = ev.dataTransfer && ev.dataTransfer.files && ev.dataTransfer.files[0];
+    if(f) this.onFile(f);
+  },
+
+  /* ---------- parse rows into bills ---------- */
+  async parse(grid){
+    // locate header row
+    let hIdx = -1, map = {};
+    for(let r=0; r<Math.min(grid.length,15); r++){
+      const m = {};
+      (grid[r]||[]).forEach((h,ci)=>{
+        const k = this.key(h); if(!k) return;
+        for(const f in this.COLS){ if(m[f]==null && this.COLS[f].includes(k)) { m[f] = ci; break; } }
+      });
+      // "gst" header alone is the GST amount column, not the slab
+      if(m.billNo!=null && (m.party!=null || m.amount!=null)){ hIdx = r; map = m; break; }
+    }
+    if(hIdx<0){ Toast.show('Could not find the header row (need at least Bill No, Party Name and Amount)','err'); return; }
+    // "GST" matched slab first by alias order — resolve: if both slab & gst columns share an index, treat as amount
+    const headers = grid[hIdx].map(h=>this.key(h));
+    const slabCol = headers.findIndex(h=>['slab','gstrate','gstslab','taxrate','taxslab','gstpercent'].includes(h));
+    map.slab = slabCol>=0 ? slabCol : null;
+    const gstCol = headers.findIndex(h=>['gst','gstamount','taxamount','tax'].includes(h));
+    map.gst = gstCol>=0 ? gstCol : null;
+    const missing = ['billNo','party'].filter(f=>map[f]==null);
+    if(map.amount==null && (map.qty==null || map.rate==null)) missing.push('amount');
+    if(missing.length){ Toast.show('Missing column(s): '+missing.join(', '),'err'); return; }
+
+    const cell = (row,f)=> map[f]!=null ? row[map[f]] : null;
+    const rows = [];
+    let totals = null, skipped = 0;
+    for(let r=hIdx+1; r<grid.length; r++){
+      const row = grid[r] || [];
+      if(row.every(c=>c==null || String(c).trim()==='')){ skipped++; continue; }
+      const billNo = String(cell(row,'billNo')==null?'':cell(row,'billNo')).trim();
+      const party = String(cell(row,'party')==null?'':cell(row,'party')).trim();
+      if(!billNo && !party){
+        // totals row at the bottom
+        totals = { amount:this.num(cell(row,'amount')), gst:this.num(cell(row,'gst')), total:this.num(cell(row,'total')) };
+        continue;
+      }
+      rows.push({ excelRow: r+1, row, billNo, party });
+    }
+    this.skippedRows = skipped;
+    this.sheetTotals = totals;
+
+    // context year = most common valid year
+    const yc = {};
+    rows.forEach(x=>{ const p = this.parseDate(cell(x.row,'date'), cell(x.row,'month'), new Date().getFullYear()); if(p.date){ const y = p.date.getFullYear(); yc[y]=(yc[y]||0)+1; } });
+    const ctxYear = +Object.keys(yc).sort((a,b)=>yc[b]-yc[a])[0] || new Date().getFullYear();
+
+    const byNo = new Map();
+    for(const x of rows){
+      const row = x.row;
+      const issues = [], warns = [];
+      if(!x.billNo) issues.push('Missing bill number');
+      if(!x.party) issues.push('Missing party name');
+      const pd = this.parseDate(cell(row,'date'), cell(row,'month'), ctxYear);
+      const monthTxt = cell(row,'month');
+      const mi = this.monthIdx(monthTxt);
+      let qty = this.num(cell(row,'qty')), rate = this.num(cell(row,'rate')), amount = this.num(cell(row,'amount'));
+      if(amount==null && qty!=null && rate!=null) amount = qty*rate;
+      if(rate==null || rate===0) rate = (qty && amount!=null) ? amount/qty : 1;
+      if(qty==null) qty = amount!=null ? amount/rate : null;
+      if(qty==null || amount==null) issues.push('Amount / quantity missing');
+      let slab = this.num(cell(row,'slab'));
+      const gstSheet = this.num(cell(row,'gst'));
+      if(slab==null && gstSheet!=null && amount) slab = gstSheet/amount;
+      if(slab==null) slab = 0;
+      const taxPct = Math.round((slab<=1 ? slab*100 : slab)*100)/100;
+      const taxable = round2((qty||0)*rate);
+      if(amount!=null && Math.abs(taxable-amount)>0.5) warns.push(`Qty × Rate (${taxable}) differs from Amount (${amount})`);
+      const gstCalc = round2(taxable*taxPct/100);
+      if(gstSheet!=null && Math.abs(gstCalc-gstSheet)>0.5) warns.push(`GST in sheet (${gstSheet}) differs from ${taxPct}% of amount (${gstCalc})`);
+      const typeName = String(cell(row,'type')==null?'':cell(row,'type')).trim() || 'Item';
+      const line = { typeName, qty: qty||0, rate, taxPct, taxable, gstCalc, totalCalc: round2(taxable+gstCalc) };
+      const location = String(cell(row,'location')==null?'':cell(row,'location')).trim();
+
+      let b = x.billNo ? byNo.get(x.billNo.toLowerCase()) : null;
+      if(b){
+        if(this.norm(b.party)!==this.norm(x.party)){ issues.push(`Bill no. ${x.billNo} is used for a different party on row ${b.rows[0]}`); }
+        b.items.push(line); b.rows.push(x.excelRow);
+        issues.forEach(i=>b.issues.push(i)); warns.forEach(w=>b.warns.push(w));
+        continue;
+      }
+      b = { billNo: x.billNo, rows:[x.excelRow], party: x.party, location, date: pd.date, dateFixed: pd.fixed,
+            dateRaw: (cell(row,'date') instanceof Date) ? '' : String(cell(row,'date')==null?'':cell(row,'date')),
+            items:[line], issues, warns, include:true, exists:false };
+      if(!pd.date) b.issues.push('Date missing or unreadable — pick a date');
+      else if(mi>=0 && pd.date.getMonth()!==mi) b.warns.push(`Month column says "${monthTxt}" but date is in ${this.MONTHS[pd.date.getMonth()]}`);
+      if(x.billNo) byNo.set(x.billNo.toLowerCase(), b);
+      this.bills.push(b);
+    }
+    if(!this.bills.length){ Toast.show('No bills found in this file','err'); return; }
+
+    // gaps in bill-number sequence (same prefix)
+    const seq = this.bills.map(b=>{ const m = String(b.billNo).match(/^(.*?)(\d+)$/); return m ? { p:m[1], n:+m[2] } : null; }).filter(Boolean);
+    if(seq.length>1){
+      const p = seq[0].p;
+      const same = seq.filter(s=>s.p===p).map(s=>s.n);
+      const have = new Set(same);
+      const lo = Math.min(...same), hi = Math.max(...same);
+      const g = []; for(let n=lo+1; n<hi; n++) if(!have.has(n)) g.push(p+n);
+      this.gaps = g.slice(0,30);
+    }
+
+    // check which bill numbers already exist in the app
+    await this.checkExisting();
+
+    // build party + product mapping
+    this.buildMappings();
+    this.step = 'review';
+    this.render();
+  },
+
+  async checkExisting(){
+    const nos = this.bills.map(b=>b.billNo).filter(Boolean);
+    const found = new Set();
+    try{
+      for(let i=0; i<nos.length; i+=30){
+        const chunk = nos.slice(i,i+30);
+        const snap = await getDocs(query(collection(db,'bills'), where('billNumber','in',chunk)));
+        snap.docs.forEach(d=>{ const dd = d.data(); if(dd.status!=='void') found.add(String(dd.billNumber).toLowerCase()); });
+      }
+    }catch(e){ console.warn('Duplicate check failed', e); Toast.show('Could not check for existing bills — please verify bill numbers manually','err'); }
+    this.bills.forEach(b=>{ if(found.has(String(b.billNo).toLowerCase())){ b.exists = true; b.include = false; } });
+  },
+
+  buildMappings(){
+    const pmap = new Map(), imap = new Map();
+    const custs = State.customers.filter(c=>!c.deleted);
+    this.bills.forEach(b=>{
+      const pk = this.norm(b.party);
+      if(!pmap.has(pk)){
+        const match = custs.find(c=>this.norm(c.name)===pk || this.norm(c.firmName)===pk);
+        pmap.set(pk, { name:b.party, choice: match ? match.id : 'new', count:0,
+          nu:{ name:b.party, firmName:'', phone:'', city:b.location||'', state:'', gstin:'', address:'' } });
+      }
+      pmap.get(pk).count++;
+      b.pk = pk;
+      b.items.forEach(it=>{
+        const ik = this.norm(it.typeName);
+        if(!imap.has(ik)){
+          const match = State.products.find(p=>p.active!==false && (this.norm(p.name)===ik || this.norm(p.sku)===ik));
+          imap.set(ik, { name:it.typeName, choice: match ? match.id : 'new', count:0, firstRate: it.rate, gst: it.taxPct,
+            nu:{ name:it.typeName, sku:this.suggestSku(it.typeName), hsn:'', unit:'Pcs', cost:0, category:'General' } });
+        }
+        imap.get(ik).count++;
+        it.ik = ik;
+      });
+    });
+    this.parties = [...pmap.values()];
+    this.items = [...imap.values()];
+    this._pIndex = pmap; this._iIndex = imap;
+  },
+
+  suggestSku(name){
+    const base = String(name).toUpperCase().replace(/[^A-Z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,14) || 'ITEM';
+    const taken = new Set(State.products.map(p=>String(p.sku||'').toUpperCase()));
+    let sku = base, n = 1;
+    while(taken.has(sku)){ n++; sku = base+'-'+n; }
+    return sku;
+  },
+
+  /* ---------- edits from the review screen ---------- */
+  setDate(i, val){
+    const b = this.bills[i];
+    if(val){ const [y,m,d] = val.split('-').map(Number); b.date = this.noon(y,m-1,d); b.dateFixed = false;
+      b.issues = b.issues.filter(x=>!/^Date missing/.test(x)); }
+    else { b.date = null; if(!b.issues.some(x=>/^Date missing/.test(x))) b.issues.push('Date missing or unreadable — pick a date'); }
+    this.render(true);
+  },
+  toggle(i, on){ this.bills[i].include = !!on; this.render(true); },
+  toggleAll(on){ this.bills.forEach(b=>{ if(!b.exists && !b.issues.length) b.include = !!on; }); this.render(true); },
+  setParty(i, v){ this.parties[i].choice = v; this.render(true); },
+  setPartyField(i, f, v){ this.parties[i].nu[f] = v; },
+  setItem(i, v){ this.items[i].choice = v; this.render(true); },
+  setItemField(i, f, v){ this.items[i].nu[f] = f==='cost' ? (Number(v)||0) : v; },
+
+  /* ---------- rendering ---------- */
+  money(n){ return money(n); },
+  importable(){ return this.bills.filter(b=>b.include && !b.exists && !b.issues.length); },
+  render(keepScroll){
+    const body = document.getElementById('impBody');
+    const foot = document.getElementById('impFoot');
+    const title = document.getElementById('impTitle');
+    if(!body) return;
+    const sc = keepScroll ? document.getElementById('impScroll').scrollTop : 0;
+    if(this.step==='upload'){
+      title.textContent = 'Import Bills from Excel';
+      body.innerHTML = `
+        <div class="imp-drop" id="impDrop" onclick="document.getElementById('impFile').click()"
+             ondragover="event.preventDefault();this.classList.add('over')" ondragleave="this.classList.remove('over')" ondrop="ExcelImport.onDrop(event)">
+          <span class="material-symbols-outlined" style="font-size:42px !important;color:var(--orange);">upload_file</span>
+          <div class="imp-drop-t">Drop your Excel sheet here, or click to browse</div>
+          <div class="small text-mut">.xlsx, .xls or .csv — first sheet is read</div>
+          <input type="file" id="impFile" accept=".xlsx,.xls,.csv" style="display:none" onchange="ExcelImport.onFile(this.files[0])"/>
+        </div>
+        <div class="imp-help">
+          <b>Columns it looks for</b> (headers can be in any order):<br/>
+          <span class="chip">Date</span><span class="chip">Month</span><span class="chip">Bill No</span><span class="chip">Qty</span><span class="chip">Rate</span><span class="chip">Amount</span><span class="chip">Slab (GST %)</span><span class="chip">GST</span><span class="chip">Total</span><span class="chip">Type (product)</span><span class="chip">Party Name</span><span class="chip">Location</span>
+          <ul>
+            <li>Every row becomes one bill in the standard <b>GST Tax Invoice</b> format. Rows sharing a Bill No are merged into one bill.</li>
+            <li>Bill numbers and dates are kept exactly as in your sheet. Bills already in the app are skipped.</li>
+            <li>Badly typed dates (like <i>21-07-20265</i>) are repaired automatically and flagged so you can check them.</li>
+          </ul>
+        </div>`;
+      foot.innerHTML = `<button class="btn" onclick="ExcelImport.close()">Cancel</button>`;
+      return;
+    }
+    if(this.step==='done'){
+      title.textContent = 'Import Complete';
+      const ok = this.created.length;
+      body.innerHTML = `
+        <div class="imp-done">
+          <span class="material-symbols-outlined" style="font-size:54px !important;color:var(--green);">check_circle</span>
+          <div class="imp-drop-t">${ok} bill${ok===1?'':'s'} imported</div>
+          <div class="small text-mut">${this._doneMsg||''}</div>
+          ${this._failed && this._failed.length ? `<div class="imp-warn" style="text-align:left;margin-top:12px;"><b>${this._failed.length} failed:</b><br/>${this._failed.map(f=>this.esc(f)).join('<br/>')}</div>` : ''}
+        </div>`;
+      foot.innerHTML = `<button class="btn" onclick="ExcelImport.close()">Close</button>
+        <button class="btn btn-navy" onclick="ExcelImport.viewBills()">View in Bills History</button>
+        ${ok? `<button class="btn btn-primary" onclick="ExcelImport.printAll()">Print ${ok} Invoice${ok===1?'':'s'} (PDF)</button>`:''}`;
+      return;
+    }
+    // review step
+    title.textContent = 'Review & Import — ' + this.esc(this.fileName);
+    const ready = this.importable();
+    const readyTotal = ready.reduce((s,b)=>s+this.billTotal(b),0);
+    const dup = this.bills.filter(b=>b.exists).length;
+    const bad = this.bills.filter(b=>b.issues.length).length;
+    const allTaxable = this.bills.reduce((s,b)=>s+b.items.reduce((a,i)=>a+i.taxable,0),0);
+    const allGst = this.bills.reduce((s,b)=>s+b.items.reduce((a,i)=>a+i.gstCalc,0),0);
+    const allTotal = allTaxable + allGst;
+    let recon = '';
+    if(this.sheetTotals && this.sheetTotals.total!=null){
+      const diff = round2(allTotal - this.sheetTotals.total);
+      recon = Math.abs(diff)<1
+        ? `<div class="imp-ok">✔ Matches the totals row in your sheet — Amount ${this.money(this.sheetTotals.amount||allTaxable)}, GST ${this.money(this.sheetTotals.gst||allGst)}, Total ${this.money(this.sheetTotals.total)}.</div>`
+        : `<div class="imp-warn">⚠ Sheet totals row says ${this.money(this.sheetTotals.total)} but the bills add up to ${this.money(allTotal)} (difference ${this.money(diff)}). Check the rows flagged below.</div>`;
+    }
+    const gapNote = this.gaps.length ? `<div class="imp-info">ℹ Bill numbers not present in the sheet: <b>${this.gaps.map(g=>this.esc(g)).join(', ')}</b>. If those were real bills, they're missing from the file.</div>` : '';
+    const admin = isAdmin();
+    const leads = State.salesLeads.filter(s=>s.active!==false);
+
+    const custOpts = (sel)=> `<option value="new" ${sel==='new'?'selected':''}>➕ Create new customer</option>` +
+      State.customers.filter(c=>!c.deleted).map(c=>`<option value="${c.id}" ${sel===c.id?'selected':''}>${this.esc(c.name)}${c.firmName?' — '+this.esc(c.firmName):''}</option>`).join('');
+    const prodOpts = (sel)=> `<option value="new" ${sel==='new'?'selected':''}>➕ Create new product</option>` +
+      State.products.filter(p=>p.active!==false).map(p=>`<option value="${p.id}" ${sel===p.id?'selected':''}>${this.esc(p.name)} (${this.esc(p.sku)})</option>`).join('');
+
+    const partyHtml = this.parties.map((p,i)=>`
+      <div class="imp-map">
+        <div class="imp-map-h"><b>${this.esc(p.name)}</b><span class="small text-mut">${p.count} bill${p.count===1?'':'s'} in sheet</span>
+          <select onchange="ExcelImport.setParty(${i},this.value)">${custOpts(p.choice)}</select></div>
+        ${p.choice==='new' ? `
+        <div class="imp-grid">
+          <label>Name<input value="${this.esc(p.nu.name)}" oninput="ExcelImport.setPartyField(${i},'name',this.value)"/></label>
+          <label>Firm / Company<input value="${this.esc(p.nu.firmName)}" oninput="ExcelImport.setPartyField(${i},'firmName',this.value)"/></label>
+          <label>Phone<input value="${this.esc(p.nu.phone)}" oninput="ExcelImport.setPartyField(${i},'phone',this.value)"/></label>
+          <label>GSTIN<input value="${this.esc(p.nu.gstin)}" placeholder="optional" oninput="ExcelImport.setPartyField(${i},'gstin',this.value)"/></label>
+          <label>City<input value="${this.esc(p.nu.city)}" oninput="ExcelImport.setPartyField(${i},'city',this.value)"/></label>
+          <label>State<input value="${this.esc(p.nu.state)}" placeholder="e.g. Punjab" oninput="ExcelImport.setPartyField(${i},'state',this.value)"/></label>
+          <label class="imp-wide">Address<input value="${this.esc(p.nu.address)}" oninput="ExcelImport.setPartyField(${i},'address',this.value)"/></label>
+        </div>
+        <div class="small text-mut">Tip: GSTIN/State decide CGST+SGST vs IGST on the invoice. With neither filled in, it prints as CGST/SGST (same state).</div>` : ''}
+      </div>`).join('');
+
+    const itemHtml = this.items.map((p,i)=>`
+      <div class="imp-map">
+        <div class="imp-map-h"><b>${this.esc(p.name)}</b><span class="small text-mut">${p.count} line${p.count===1?'':'s'} · GST ${p.gst}%</span>
+          <select onchange="ExcelImport.setItem(${i},this.value)">${prodOpts(p.choice)}</select></div>
+        ${p.choice==='new' ? `
+        <div class="imp-grid">
+          <label>Product name<input value="${this.esc(p.nu.name)}" oninput="ExcelImport.setItemField(${i},'name',this.value)"/></label>
+          <label>SKU<input value="${this.esc(p.nu.sku)}" oninput="ExcelImport.setItemField(${i},'sku',this.value)"/></label>
+          <label>HSN / SAC<input value="${this.esc(p.nu.hsn)}" placeholder="e.g. 7318" oninput="ExcelImport.setItemField(${i},'hsn',this.value)"/></label>
+          <label>Unit<input value="${this.esc(p.nu.unit)}" oninput="ExcelImport.setItemField(${i},'unit',this.value)"/></label>
+          <label>Category<input value="${this.esc(p.nu.category)}" oninput="ExcelImport.setItemField(${i},'category',this.value)"/></label>
+          <label>Cost per unit (₹)<input type="number" step="0.0001" min="0" value="${p.nu.cost}" oninput="ExcelImport.setItemField(${i},'cost',this.value)"/></label>
+        </div>
+        <div class="small text-mut">Cost per unit drives the profit figures. Leave 0 if unknown — profit on these bills will then equal the full sales value.</div>` : ''}
+      </div>`).join('');
+
+    const rowsHtml = this.bills.map((b,i)=>{
+      const taxable = b.items.reduce((s,x)=>s+x.taxable,0), gst = b.items.reduce((s,x)=>s+x.gstCalc,0);
+      const status = b.exists ? '<span class="badge badge-navy">Already exists</span>'
+        : b.issues.length ? `<span class="badge badge-red">Fix needed</span>`
+        : b.warns.length ? `<span class="badge badge-amber">Check</span>` : '<span class="badge badge-green">Ready</span>';
+      const notes = [].concat(b.issues.map(x=>`<div class="imp-note r">✖ ${this.esc(x)}</div>`), b.warns.map(x=>`<div class="imp-note a">⚠ ${this.esc(x)}</div>`),
+        b.dateFixed ? [`<div class="imp-note a">✎ Date auto-corrected from “${this.esc(b.dateRaw)}” — please confirm</div>`] : []).join('');
+      return `<tr class="${b.exists?'imp-dim':''}">
+        <td><input type="checkbox" ${b.include?'checked':''} ${(b.exists||b.issues.length)?'disabled':''} onchange="ExcelImport.toggle(${i},this.checked)"/></td>
+        <td><b>${this.esc(b.billNo)}</b></td>
+        <td><input type="date" class="imp-date ${b.dateFixed||!b.date?'flag':''}" value="${this.ymd(b.date)}" onchange="ExcelImport.setDate(${i},this.value)"/></td>
+        <td>${this.esc(b.party)}</td>
+        <td>${b.items.map(x=>this.esc(x.typeName)).join(', ')}</td>
+        <td style="text-align:right">${this.num2(b.items.reduce((s,x)=>s+x.qty,0))}</td>
+        <td style="text-align:right">${this.num2(b.items[0].rate)}</td>
+        <td style="text-align:right">${this.money(taxable)}</td>
+        <td style="text-align:right">${b.items[0].taxPct}%</td>
+        <td style="text-align:right">${this.money(gst)}</td>
+        <td style="text-align:right"><b>${this.money(taxable+gst)}</b></td>
+        <td>${status}${notes?`<div style="white-space:normal;min-width:220px;">${notes}</div>`:''}</td>
+      </tr>`;
+    }).join('');
+
+    body.innerHTML = `
+      <div class="imp-stats">
+        <div class="imp-stat"><div class="n">${this.bills.length}</div><div class="l">Bills found</div></div>
+        <div class="imp-stat"><div class="n" style="color:var(--green)">${ready.length}</div><div class="l">Ready to import</div></div>
+        <div class="imp-stat"><div class="n" style="color:var(--amber)">${dup}</div><div class="l">Already in app</div></div>
+        <div class="imp-stat"><div class="n" style="color:var(--red)">${bad}</div><div class="l">Need a fix</div></div>
+        <div class="imp-stat"><div class="n">${this.money(readyTotal)}</div><div class="l">Importing (incl. GST)</div></div>
+      </div>
+      ${recon}${gapNote}
+      <div class="imp-sec">1 · Customers <span class="small text-mut">— match each party to an existing customer or create a new one</span></div>
+      ${partyHtml}
+      <div class="imp-sec">2 · Products <span class="small text-mut">— match each item type to an existing product or create a new one</span></div>
+      ${itemHtml}
+      <div class="imp-sec">3 · Bill settings</div>
+      <div class="imp-grid" style="max-width:760px;">
+        <label>Payment mode<select id="impPayMode"><option selected>Cash</option><option>UPI</option><option>Bank Transfer</option><option>Card</option><option>Credit</option><option>Other</option></select></label>
+        <label>Payment status<select id="impPayStatus"><option value="paid" selected>Paid in full</option><option value="unpaid">Unpaid — full amount is balance due</option></select></label>
+        ${leads.length ? `<label>Sales lead (internal)<select id="impLead"><option value="">— None —</option>${leads.map(s=>`<option value="${s.id}">${this.esc(s.name)}</option>`).join('')}</select></label>` : ''}
+      </div>
+      <div class="small text-mut" style="margin-top:4px;">Your sheet has no payment details, so these apply to every imported bill. You can record payments later from Bills History.</div>
+      <div class="imp-sec flex-between"><span>4 · Bills preview <span class="small text-mut">— dates are editable</span></span>
+        <span><button class="btn btn-sm" onclick="ExcelImport.toggleAll(true)">Select all</button> <button class="btn btn-sm" onclick="ExcelImport.toggleAll(false)">None</button></span></div>
+      <div class="table-wrap"><table>
+        <thead><tr><th></th><th>Bill No.</th><th>Date</th><th>Party</th><th>Item</th><th style="text-align:right">Qty</th><th style="text-align:right">Rate</th><th style="text-align:right">Taxable</th><th style="text-align:right">GST %</th><th style="text-align:right">GST</th><th style="text-align:right">Total</th><th>Status</th></tr></thead>
+        <tbody>${rowsHtml}</tbody></table></div>
+      ${this.skippedRows? `<div class="small text-mut" style="margin-top:6px;">${this.skippedRows} blank row${this.skippedRows===1?'':'s'} in the sheet were ignored.</div>`:''}`;
+    foot.innerHTML = `<button class="btn" onclick="ExcelImport.back()">← Choose another file</button>
+      <button class="btn btn-primary" ${ready.length?'':'disabled'} onclick="ExcelImport.run()">Import ${ready.length} bill${ready.length===1?'':'s'}</button>`;
+    document.getElementById('impScroll').scrollTop = sc;
+  },
+  num2(n){ n = Math.round((Number(n)||0)*100)/100; return n.toLocaleString('en-IN',{maximumFractionDigits:2}); },
+  billTotal(b){ return b.items.reduce((s,x)=>s+x.taxable+x.gstCalc,0); },
+
+  /* ---------- import ---------- */
+  validate(ready){
+    const usedParties = new Set(ready.map(b=>b.pk));
+    const usedItems = new Set(); ready.forEach(b=>b.items.forEach(i=>usedItems.add(i.ik)));
+    for(const p of this.parties){
+      if(usedParties.has(this.norm(p.name)) && p.choice==='new' && !p.nu.name.trim()) return `Customer name is required for "${p.name}"`;
+    }
+    const skus = new Set(State.products.map(p=>String(p.sku||'').trim().toUpperCase()));
+    for(const it of this.items){
+      if(!usedItems.has(this.norm(it.name)) || it.choice!=='new') continue;
+      if(!it.nu.name.trim()) return `Product name is required for "${it.name}"`;
+      const sku = it.nu.sku.trim().toUpperCase();
+      if(!sku) return `SKU is required for "${it.name}"`;
+      if(skus.has(sku)) return `SKU "${it.nu.sku}" is already used — change it for "${it.name}"`;
+      skus.add(sku);
+    }
+    return '';
+  },
+  progress(msg, pctDone){
+    const body = document.getElementById('impBody');
+    body.innerHTML = `<div class="imp-done"><div class="imp-spin"></div><div class="imp-drop-t">${this.esc(msg)}</div>
+      <div class="imp-bar"><div style="width:${Math.round(pctDone*100)}%"></div></div><div class="small text-mut">Please keep this window open.</div></div>`;
+    document.getElementById('impFoot').innerHTML = '';
+  },
+  async run(){
+    if(this.importing) return;
+    const ready = this.importable();
+    if(!ready.length){ Toast.show('Nothing to import','err'); return; }
+    const err = this.validate(ready);
+    if(err){ Toast.show(err,'err'); return; }
+    const payMode = document.getElementById('impPayMode').value;
+    const payStatus = document.getElementById('impPayStatus').value;
+    const leadSel = document.getElementById('impLead');
+    const leadId = leadSel ? leadSel.value : '';
+    const leadName = leadId ? ((State.salesLeads.find(s=>s.id===leadId)||{}).name||'') : '';
+    this.importing = true; this._failed = []; this.created = [];
+    try{
+      // 1) customers
+      const usedParties = new Set(ready.map(b=>b.pk));
+      const custById = {}; // party key -> customer object
+      let step = 0; const total = ready.length + this.parties.length + this.items.length;
+      for(const p of this.parties){
+        const k = this.norm(p.name);
+        if(!usedParties.has(k)) continue;
+        this.progress('Preparing customers…', (step++)/total);
+        if(p.choice==='new'){
+          const d = { name:p.nu.name.trim(), firmName:p.nu.firmName.trim(), phone:p.nu.phone.trim(), altPhone:'', email:'',
+            address:p.nu.address.trim(), city:p.nu.city.trim(), state:p.nu.state.trim(), gstin:p.nu.gstin.trim().toUpperCase(), type:'Retail', notes:'Created by Excel import' };
+          const id = await CustomersDAL.create(d);
+          custById[k] = { id, ...d };
+        } else custById[k] = State.customers.find(c=>c.id===p.choice);
+      }
+      // 2) products
+      const usedItems = new Set(); ready.forEach(b=>b.items.forEach(i=>usedItems.add(i.ik)));
+      const prodByKey = {};
+      for(const it of this.items){
+        const k = this.norm(it.name);
+        if(!usedItems.has(k)) continue;
+        this.progress('Preparing products…', (step++)/total);
+        if(it.choice==='new'){
+          const d = { name:it.nu.name.trim(), sku:it.nu.sku.trim(), category:(it.nu.category||'').trim(), brand:'', unit:(it.nu.unit||'Pcs').trim()||'Pcs',
+            hsn:it.nu.hsn.trim(), costPrice:Number(it.nu.cost)||0, sellingPrice:Number(it.firstRate)||0, minSellingPrice:0, gstRate:Number(it.gst)||0, active:true };
+          await CategoriesDAL.ensure(d.category);
+          const id = await ProductsDAL.create(d);
+          prodByKey[k] = { id, ...d };
+        } else prodByKey[k] = State.products.find(p=>p.id===it.choice);
+      }
+      // 3) bills
+      const admin = State.currentUser;
+      let n = 0;
+      for(const b of ready){
+        this.progress(`Creating bill ${b.billNo} (${++n} of ${ready.length})…`, (step++)/total);
+        try{
+          const c = custById[b.pk];
+          const calcItems = b.items.map(it=>{
+            const p = prodByKey[it.ik];
+            const calc = Logic.calcLineItem({quantity:it.qty, sellingPrice:it.rate, costPrice:p.costPrice, discountPct:0, taxPct:it.taxPct});
+            return { productId:p.id, productNameSnapshot:p.name, skuSnapshot:p.sku, quantity:Number(it.qty), sellingPriceSnapshot:Number(it.rate),
+              costPriceSnapshot:Number(p.costPrice)||0, discount:0, tax:Number(it.taxPct)||0, hsn:p.hsn||'', unit:p.unit||'Pcs',
+              revenue:calc.revenue, cost:calc.cost, profit:calc.profit };
+          });
+          const totals = Logic.calcBillTotals(calcItems.map(ci=>({ amount: ci.revenue + (ci.revenue*ci.tax/100), cost:ci.cost, profit:ci.profit })), 0, 0);
+          const paid = payStatus==='paid' ? totals.grandTotal : 0;
+          const billDoc = {
+            billNumber: b.billNo, customerId: c.id,
+            customerSnapshot: { name:c.name, firmName:c.firmName||'', phone:c.phone||'', email:c.email||'', address:c.address||(c.city||''), state:c.state||'', gstin:c.gstin||'' },
+            date: Timestamp.fromDate(b.date), createdBy: { uid: State.currentUser.uid, name: State.profile?.name || State.currentUser.email },
+            salesLeadId: leadId||null, salesLeadName: leadName,
+            paymentMode: payMode, subtotal: totals.subtotal, discount:0, tax:0, grandTotal: totals.grandTotal,
+            paidAmount: paid, balance: round2(totals.grandTotal - paid), status:'active',
+            totalCost: totals.totalCost, grossProfit: totals.grossProfit, grossMargin: totals.grossMargin,
+            items: calcItems, productIds: [...new Set(calcItems.map(i=>i.productId))],
+            importSource: 'excel', importFile: this.fileName
+          };
+          const id = await BillsDAL.create(billDoc);
+          this.created.push({ id, ...billDoc });
+        }catch(e){ console.error(e); this._failed.push(`${b.billNo}: ${e.message}`); }
+      }
+      this.progress('Refreshing data…', 0.98);
+      await Loader.reloadCustomersProducts();
+      const skippedDup = this.bills.filter(b=>b.exists).length;
+      this._doneMsg = `Total ${this.money(this.created.reduce((s,b)=>s+b.grandTotal,0))}` + (skippedDup? ` · ${skippedDup} already existed and were skipped`:'');
+    }catch(e){
+      console.error(e); this._failed.push(e.message);
+      this._doneMsg = 'The import stopped early — bills created before the error were saved.';
+    }
+    this.importing = false;
+    this.created.sort((a,b)=> dateFromTS(a.date)-dateFromTS(b.date));
+    this.step = 'done';
+    this.render();
+    if(this.created.length) Toast.show(this.created.length+' bills imported','ok');
+  },
+
+  viewBills(){
+    const ds = this.created.map(b=>dateFromTS(b.date));
+    if(ds.length){
+      const mn = new Date(Math.min(...ds)), mx = new Date(Math.max(...ds));
+      document.getElementById('billFilterFrom').value = this.ymd(mn);
+      document.getElementById('billFilterTo').value = this.ymd(mx);
+    }
+    ModalUI.close('modalImport');
+    Router.go('bills');
+  },
+  async printAll(){
+    if(!this.created.length) return;
+    ModalUI.close('modalImport');
+    await Print.printBills(this.created);
+  }
+};
+
 /* Expose to inline onclick handlers */
 window.Router = Router; window.AuthUI = AuthUI; window.BillUI = BillUI; window.BillsList = BillsList;
 window.CustomersList = CustomersList; window.CustomerDetail = CustomerDetail; window.ProductsList = ProductsList;
@@ -4214,7 +4841,7 @@ window.ProductDetail = ProductDetail; window.Profitability = Profitability; wind
 window.SettingsUI = SettingsUI; window.Backup = Backup; window.DemoData = DemoData; window.ModalUI = ModalUI;
 window.GlobalSearch = GlobalSearch; window.Toast = Toast; window.Dashboard = Dashboard; window.Print = Print;
 window.PipelineUI = PipelineUI; window.SalesPerformance = SalesPerformance;
-window.UI = UI;
+window.UI = UI; window.ExcelImport = ExcelImport;
 </script>
 </body>
 </html>
