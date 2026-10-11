@@ -1198,6 +1198,26 @@ tr:hover td{background:#f8faff;}
   </div>
 </div>
 
+<div class="modal-overlay" id="modalPayment">
+  <div class="modal" style="width:560px;">
+    <div class="modal-head"><h3>Record Payment Received</h3><button class="modal-close" onclick="ModalUI.close('modalPayment')">✕</button></div>
+    <div class="modal-body">
+      <div id="payBillInfo"></div>
+      <div class="form-grid mt16">
+        <div class="form-row"><label>Date Received *</label><input id="payDate" type="date"/></div>
+        <div class="form-row"><label>Amount Received (₹) *</label><input id="payAmount" type="number" min="0" step="0.01"/></div>
+      </div>
+      <div class="form-grid">
+        <div class="form-row"><label>Payment Mode</label>
+          <select id="payMode"><option>UPI</option><option>Cash</option><option>Bank Transfer</option><option>Cheque</option><option>Card</option><option>Other</option></select></div>
+        <div class="form-row"><label>Note / Reference</label><input id="payNote" placeholder="UTR / cheque no. (optional)"/></div>
+      </div>
+      <div id="payHistory"></div>
+    </div>
+    <div class="modal-foot"><button class="btn" onclick="ModalUI.close('modalPayment')">Cancel</button><button class="btn btn-primary" id="paySaveBtn" onclick="BillsList.savePayment()">Save Payment</button></div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="modalBillView">
   <div class="modal" style="width:640px;">
     <div class="modal-head"><h3>Bill Details</h3><button class="modal-close" onclick="ModalUI.close('modalBillView')">✕</button></div>
@@ -1571,6 +1591,18 @@ const BillsDAL = {
       voidedAt: serverTimestamp(), voidReason: reason||''
     });
     await Audit.log('Bill Voided', id, {reason});
+  },
+  async addPayment(bill, pay){
+    // pay: {date:Date, amount:Number, mode:String, note:String}
+    const prev = Array.isArray(bill.payments) ? bill.payments : [];
+    const entry = { id: uid(), date: Timestamp.fromDate(pay.date), amount: round2(pay.amount), mode: pay.mode||'', note: pay.note||'',
+      by: State.currentUser? (State.profile?.name||State.currentUser.email) : 'unknown', recordedAt: Timestamp.now() };
+    const payments = prev.concat([entry]);
+    const paidAmount = round2((Number(bill.paidAmount)||0) + entry.amount);
+    const balance = Math.max(0, round2((Number(bill.grandTotal)||0) - paidAmount));
+    await updateDoc(doc(db,'bills',bill.id), { payments, paidAmount, balance });
+    await Audit.log('Payment Received', bill.id, {amount: entry.amount, date: pay.date.toISOString().slice(0,10)});
+    return { payments, paidAmount, balance };
   }
 };
 
@@ -2335,10 +2367,11 @@ const BillsList = {
         <td>${money(b.grandTotal)}</td>
         <td>${admin? money(b.totalCost): '—'}</td>
         <td>${admin? money(b.grossProfit): '—'}</td>
-        <td>${money(b.paidAmount)}</td><td>${money(b.balance)}</td><td>${b.paymentMode}</td>
+        <td>${money(b.paidAmount)}${(b.payments&&b.payments.length)? `<div class="small text-mut">Last: ${fmtDate(b.payments[b.payments.length-1].date)}</div>`:''}</td><td>${money(b.balance)}</td><td>${b.paymentMode}</td>
         <td>${b.status==='void'? '<span class="badge badge-red">VOIDED</span>' : '<span class="badge badge-green">ACTIVE</span>'}</td>
         <td>
           <button class="btn btn-sm" onclick="BillsList.view('${b.id}')">View</button>
+          ${b.status!=='void' && (Number(b.balance)||0)>0.009 ? `<button class="btn btn-sm btn-primary" onclick="BillsList.openPayment('${b.id}')">Payment</button>` : ''}
           ${b.status!=='void' && admin ? `<button class="btn btn-sm btn-danger" onclick="BillsList.openVoid('${b.id}')">Void</button>` : ''}
         </td>
       </tr>`;
@@ -2365,8 +2398,59 @@ const BillsList = {
         <div class="trow"><span>Paid</span><span>${money(b.paidAmount)}</span></div>
         <div class="trow"><span>Balance</span><span>${money(b.balance)}</span></div>
         ${admin? `<div class="trow"><span>Cost</span><span>${money(b.totalCost)}</span></div><div class="trow"><span>Gross Profit</span><span>${money(b.grossProfit)} (${pct(b.grossMargin)})</span></div>` : ''}
-      </div>`;
+      </div>
+      ${this.paymentHistoryHTML(b)}
+      ${b.status!=='void' && (Number(b.balance)||0)>0.009 ? `<button class="btn btn-primary btn-sm mt8" onclick="ModalUI.close('modalBillView');BillsList.openPayment('${b.id}')">+ Record Payment Received</button>` : ''}`;
     ModalUI.open('modalBillView');
+  },
+  paymentHistoryHTML(b){
+    const pays = Array.isArray(b.payments) ? b.payments : [];
+    const received = pays.reduce((t,p)=>t+(Number(p.amount)||0),0);
+    const initial = Math.max(0, round2((Number(b.paidAmount)||0) - received));
+    const rows = [];
+    if(initial>0) rows.push(`<tr><td>${fmtDate(b.date)}</td><td>${money(initial)}</td><td>${b.paymentMode||''}</td><td class="small text-mut">Paid at billing</td></tr>`);
+    pays.slice().sort((a,c)=>dateFromTS(a.date)-dateFromTS(c.date)).forEach(p=>{
+      rows.push(`<tr><td>${fmtDate(p.date)}</td><td>${money(p.amount)}</td><td>${p.mode||''}</td><td class="small text-mut">${(p.note||'').replace(/</g,'&lt;')}${p.by?` <i>(by ${String(p.by).replace(/</g,'&lt;')})</i>`:''}</td></tr>`);
+    });
+    return `<div class="section-title mt16" style="font-size:13px;">Payment History</div>
+      <table><thead><tr><th>Date Received</th><th>Amount</th><th>Mode</th><th>Note</th></tr></thead>
+      <tbody>${rows.join('') || '<tr><td colspan="4" class="text-mut" style="text-align:center;">No payments received yet.</td></tr>'}</tbody></table>`;
+  },
+  openPayment(id){
+    const b = State.billsCache.find(x=>x.id===id);
+    if(!b) return;
+    this._paying = b;
+    const bal = round2(Number(b.balance)||0);
+    document.getElementById('payBillInfo').innerHTML = `<b>${b.billNumber}</b> · ${(b.customerSnapshot?.firmName||b.customerSnapshot?.name||'')}
+      <div class="small text-mut mt8">Bill Total: <b>${money(b.grandTotal)}</b> · Received so far: <b>${money(b.paidAmount)}</b> · Balance due: <b style="color:var(--red);">${money(bal)}</b></div>`;
+    const t = new Date(); const ds = t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');
+    document.getElementById('payDate').value = ds;
+    document.getElementById('payDate').max = ds;
+    document.getElementById('payAmount').value = bal;
+    document.getElementById('payAmount').max = bal;
+    document.getElementById('payMode').value = 'UPI';
+    document.getElementById('payNote').value = '';
+    document.getElementById('payHistory').innerHTML = this.paymentHistoryHTML(b);
+    ModalUI.open('modalPayment');
+  },
+  async savePayment(){
+    const b = this._paying; if(!b) return;
+    const ds = document.getElementById('payDate').value;
+    const amount = round2(document.getElementById('payAmount').value);
+    const bal = round2(Number(b.balance)||0);
+    if(!ds){ Toast.show('Select the date payment was received','err'); return; }
+    if(!(amount>0)){ Toast.show('Enter the amount received','err'); return; }
+    if(amount > bal + 0.009){ Toast.show('Amount cannot be more than the balance due ('+money(bal)+')','err'); return; }
+    const btn = document.getElementById('paySaveBtn'); btn.disabled = true;
+    try{
+      const r = await BillsDAL.addPayment(b, { date: new Date(ds+'T12:00:00'), amount, mode: document.getElementById('payMode').value, note: document.getElementById('payNote').value.trim() });
+      Object.assign(b, r);
+      ModalUI.close('modalPayment');
+      Toast.show(money(amount)+' received on '+fmtDate(new Date(ds+'T12:00:00'))+' — saved','ok');
+      this.render();
+      try{ await Loader.reloadCustomersProducts(); }catch(e){}
+    }catch(e){ Toast.show('Could not save payment: '+e.message,'err'); }
+    btn.disabled = false;
   },
   printFromView(){ if(this._viewing) Print.printBill(this._viewing); },
   openVoid(id){ document.getElementById('voidBillId').value = id; ModalUI.open('modalVoid'); },
@@ -2380,8 +2464,8 @@ const BillsList = {
     this.load(true);
   },
   exportCSV(){
-    const rows = [['Bill No','Date','Customer','Sales','Cost','Profit','Paid','Balance','Mode','Status']];
-    State.billsCache.forEach(b=> rows.push([b.billNumber, fmtDate(b.date), b.customerSnapshot?.name, b.grandTotal, b.totalCost, b.grossProfit, b.paidAmount, b.balance, b.paymentMode, b.status]));
+    const rows = [['Bill No','Date','Customer','Sales','Cost','Profit','Paid','Balance','Mode','Status','Last Payment Date']];
+    State.billsCache.forEach(b=> rows.push([b.billNumber, fmtDate(b.date), b.customerSnapshot?.name, b.grandTotal, b.totalCost, b.grossProfit, b.paidAmount, b.balance, b.paymentMode, b.status, (b.payments&&b.payments.length)? fmtDate(b.payments[b.payments.length-1].date):'']));
     downloadCSV('bills_export.csv', rows);
   }
 };
@@ -4019,7 +4103,7 @@ service cloud.firestore {
     match /bills/{id} {
       allow read: if isStaff();
       allow create: if isStaff() && request.resource.data.createdBy.uid == request.auth.uid && request.resource.data.status == 'active';
-      allow update: if isAdmin();
+      allow update: if isAdmin() || (isStaff() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['paidAmount','balance','payments']));
       allow delete: if false;
     }
 
