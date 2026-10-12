@@ -613,7 +613,7 @@ tr.imp-dim td{opacity:.55;}
 
       <!-- NEW BILL -->
       <div class="view" id="view-newbill">
-        <div class="page-title">New Bill <span class="small text-mut" id="billNumPreview"></span></div>
+        <div class="page-title" id="billPageTitle">New Bill <span class="small text-mut" id="billNumPreview"></span></div>
         <div class="bill-layout">
           <div>
             <div class="card">
@@ -640,6 +640,12 @@ tr.imp-dim td{opacity:.55;}
                 </div>
               </div>
               <div id="selectedCustomerBox" class="small text-mut"></div>
+              <div class="form-grid mt8">
+                <div class="form-row"><label>Customer GSTIN <span class="small text-mut">(printed on bill)</span></label><input id="billCustGstin" placeholder="e.g. 03ABCDE1234F1Z5" style="text-transform:uppercase;" maxlength="15"/></div>
+                <div class="form-row"><label>Name as per GST <span class="small text-mut">(printed on bill)</span></label><input id="billCustGstName" placeholder="Exactly as on GST certificate"/></div>
+              </div>
+              <div class="small text-mut">GSTIN and GST name are saved to the customer and applied to all their bills.<input type="checkbox" id="billCustGstinSave" style="display:none;"/>
+              </div>
             </div>
 
             <div class="card mt16">
@@ -1083,6 +1089,21 @@ tr.imp-dim td{opacity:.55;}
 </div>
 
 <!-- ============================= MODALS ============================= -->
+<div class="modal-overlay" id="modalDeleteBill">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-head"><h3>Delete Bill Forever</h3><button class="modal-close" onclick="ModalUI.close('modalDeleteBill')">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="delBillId"/>
+      <p class="small" id="delBillInfo" style="font-weight:700;"></p>
+      <p class="small text-mut">This permanently removes the bill and cannot be undone.</p>
+      <div class="form-row"><label style="display:flex;gap:8px;align-items:flex-start;font-weight:400;"><input type="radio" name="delBillAdjust" value="yes" checked style="width:auto;margin-top:3px;"/><span><b>Give stock back &amp; adjust customer balance</b><br/><span class="small text-mut">Bill is erased completely; stock, sales and customer balance are restored as if it never existed.</span></span></label></div>
+      <div class="form-row"><label style="display:flex;gap:8px;align-items:flex-start;font-weight:400;"><input type="radio" name="delBillAdjust" value="no" style="width:auto;margin-top:3px;"/><span><b>Don't give stock back / don't adjust balance</b><br/><span class="small text-mut">Bill disappears from the list, but stock stays deducted and customer sales/balance stay counted.</span></span></label></div>
+      <p class="small text-mut">Enter your login password to confirm.</p>
+      <div class="form-row"><label>Password</label><input id="delBillPass" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')BillsList.confirmDelete()"/></div>
+    </div>
+    <div class="modal-foot"><button class="btn" onclick="ModalUI.close('modalDeleteBill')">Cancel</button><button class="btn btn-danger" onclick="BillsList.confirmDelete()">Delete Forever</button></div>
+  </div>
+</div>
 <div class="modal-overlay" id="modalCustomer">
   <div class="modal">
     <div class="modal-head"><h3 id="mcTitle">Add New Customer</h3><button class="modal-close" onclick="ModalUI.close('modalCustomer')">✕</button></div>
@@ -1105,6 +1126,7 @@ tr.imp-dim td{opacity:.55;}
         <div class="form-row"><label>State</label><input id="mcState"/></div>
         <div class="form-row"><label>GSTIN</label><input id="mcGstin"/></div>
       </div>
+      <div class="form-row"><label>Name as per GST (legal / trade name)</label><input id="mcGstName" placeholder="Exactly as on GST certificate"/></div>
       <div class="form-row"><label>Customer Type</label><select id="mcType"><option>Retail</option><option>Wholesale</option><option>Distributor</option></select></div>
       <div class="form-row"><label>Notes</label><textarea id="mcNotes" rows="2"></textarea></div>
     </div>
@@ -1294,7 +1316,7 @@ tr.imp-dim td{opacity:.55;}
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
 import {
   getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword,
-  onAuthStateChanged, signOut
+  onAuthStateChanged, signOut, EmailAuthProvider, reauthenticateWithCredential
 } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
 import {
   getFirestore, collection, doc, getDoc, getDocs, addDoc, updateDoc, setDoc, deleteDoc,
@@ -1591,6 +1613,18 @@ const BillsDAL = {
     const snap = await getDocs(q);
     return snap.docs.map(d=>({id:d.id,...d.data()}));
   },
+  async syncCustomerGstin(customerId, gstin, gstName){
+    const bills = await this.listByCustomer(customerId);
+    const gn = gstName||'';
+    const todo = bills.filter(b=>(b.customerSnapshot?.gstin||'') !== gstin || (gn && (b.customerSnapshot?.gstName||'') !== gn));
+    for(let i=0;i<todo.length;i+=400){
+      const batch = writeBatch(db);
+      todo.slice(i,i+400).forEach(b=>batch.update(doc(db,'bills',b.id), Object.assign({'customerSnapshot.gstin': gstin}, gn ? {'customerSnapshot.gstName': gn} : {})));
+      await batch.commit();
+    }
+    if(todo.length) await Audit.log('Customer GSTIN synced to bills', customerId, {gstin, bills: todo.length});
+    return todo.length;
+  },
   async listByProduct(productId){
     const q = query(collection(db,'bills'), where('productIds','array-contains',productId), orderBy('date','desc'));
     const snap = await getDocs(q);
@@ -1629,6 +1663,24 @@ const BillsDAL = {
     const ref = await addDoc(this.col(), {...billData, createdAt: serverTimestamp()});
     await Audit.log('Bill Created', ref.id, {billNumber: billData.billNumber, grandTotal: billData.grandTotal});
     return ref.id;
+  },
+  async update(id, data){
+    await updateDoc(doc(db,'bills',id), {...data, editedAt: serverTimestamp(), editedBy: State.profile?.name||State.currentUser?.email||'unknown'});
+    await Audit.log('Bill Edited', id, {billNumber:data.billNumber, grandTotal:data.grandTotal});
+  },
+  async deleteForever(id, password, adjust){
+    const u = auth.currentUser;
+    if(!u || !u.email) throw new Error('Not signed in');
+    await reauthenticateWithCredential(u, EmailAuthProvider.credential(u.email, password));
+    const b = await this.getById(id);
+    if(adjust){
+      // full delete: stock and customer totals/balance are derived from bills, so they are restored automatically
+      await deleteDoc(doc(db,'bills',id));
+    }else{
+      // removed from Bills list, but kept in the ledger so stock deduction and customer balance stay as they were
+      await updateDoc(doc(db,'bills',id), { hiddenDeleted:true, hiddenDeletedAt: serverTimestamp(), hiddenDeletedBy: State.profile?.name||u.email });
+    }
+    await Audit.log('Bill Permanently Deleted', id, {billNumber:b?.billNumber||'', total:b?.grandTotal||0, adjusted:!!adjust});
   },
   async voidBill(id, reason){
     await updateDoc(doc(db,'bills',id), {
@@ -2206,7 +2258,12 @@ const BillUI = {
   acIndex: -1, acItems: [], prodAcIndex: -1, prodAcItems: [],
   async reset(){
     State.currentBill = { items: [], customer: null };
+    this.editingId = null; this.editingBill = null;
+    const pt = document.getElementById('billPageTitle'); if(pt) pt.firstChild.textContent = 'New Bill ';
+    document.querySelectorAll('#view-newbill .totals-box .btn-navy').forEach(b=>b.textContent='Save Bill');
+    document.querySelectorAll('#view-newbill .totals-box .btn-primary').forEach(b=>b.innerHTML='Save &amp; Print');
     document.getElementById('custSearchInput').value = '';
+    document.getElementById('billCustGstin').value = ''; document.getElementById('billCustGstName').value = ''; document.getElementById('billCustGstinSave').checked = false;
     document.getElementById('selectedCustomerBox').innerHTML = '';
     document.getElementById('prodSearchInput').value = '';
     document.getElementById('tDiscount').value = 0;
@@ -2221,6 +2278,32 @@ const BillUI = {
     document.getElementById('tProfitRow').style.display = isAdmin() ? '' : 'none';
     document.getElementById('tMarginRow').style.display = isAdmin() ? '' : 'none';
     document.getElementById('billNumPreview').textContent = '(bill number generated on save)';
+  },
+  loadForEdit(b){
+    this.editingId = b.id; this.editingBill = b;
+    const cust = State.customers.find(c=>c.id===b.customerId) || Object.assign({id:b.customerId}, b.customerSnapshot||{});
+    State.currentBill.customer = cust;
+    document.getElementById('custSearchInput').value = cust.name||'';
+    document.getElementById('selectedCustomerBox').innerHTML = `📞 ${cust.phone||'—'} &nbsp; ${cust.address||''} ${cust.gstin?('&nbsp; GSTIN: '+cust.gstin):''}`;
+    document.getElementById('billCustGstin').value = (b.customerSnapshot?.gstin) || cust.gstin || '';
+    document.getElementById('billCustGstName').value = (b.customerSnapshot?.gstName) || cust.gstName || '';
+    const prodMap = {}; (State.products||[]).forEach(p=>{ prodMap[p.id]=p; });
+    State.currentBill.items = (b.items||[]).map(it=>({
+      lineId: uid(), productId: it.productId, productNameSnapshot: it.productNameSnapshot, skuSnapshot: it.skuSnapshot||'',
+      quantity: Number(it.quantity)||1, sellingPriceSnapshot: Number(it.sellingPriceSnapshot)||0, costPriceSnapshot: Number(it.costPriceSnapshot)||0,
+      minSellingPrice: Number((prodMap[it.productId]||{}).minSellingPrice)||0, discount: Number(it.discount)||0, taxPct: Number(it.tax)||0, hsn: it.hsn||'', unit: it.unit||'Pcs'
+    }));
+    document.getElementById('tDiscount').value = Number(b.discount)||0;
+    document.getElementById('tTax').value = Number(b.tax)||0;
+    document.getElementById('tPaid').value = Number(b.paidAmount)||0;
+    document.getElementById('paymentMode').value = b.paymentMode || 'Cash';
+    this.populateSalesLeadSelect();
+    if(b.salesLeadId) document.getElementById('billSalesLead').value = b.salesLeadId;
+    document.getElementById('billNumPreview').textContent = '(editing ' + b.billNumber + ')';
+    const pt = document.getElementById('billPageTitle'); if(pt) pt.firstChild.textContent = 'Edit Bill ';
+    document.querySelectorAll('#view-newbill .totals-box .btn-navy').forEach(x=>x.textContent='Update Bill');
+    document.querySelectorAll('#view-newbill .totals-box .btn-primary').forEach(x=>x.innerHTML='Update &amp; Print');
+    this.renderItems(); this.recalc();
   },
   populateSalesLeadSelect(){
     const sel = document.getElementById('billSalesLead');
@@ -2258,6 +2341,8 @@ const BillUI = {
     document.getElementById('custSearchInput').value = c.name;
     document.getElementById('custAcList').classList.remove('show');
     document.getElementById('selectedCustomerBox').innerHTML = `📞 ${c.phone||'—'} &nbsp; ${c.address||''} ${c.gstin?('&nbsp; GSTIN: '+c.gstin):''}`;
+    document.getElementById('billCustGstin').value = c.gstin||'';
+    document.getElementById('billCustGstName').value = c.gstName||'';
   },
   searchProduct(val){
     const list = document.getElementById('prodAcList');
@@ -2362,21 +2447,37 @@ const BillUI = {
     const paid = Number(document.getElementById('tPaid').value)||0;
     const balance = round2(totals.grandTotal - paid);
     const paymentMode = document.getElementById('paymentMode').value;
-    const {billNumber} = await BillsDAL.nextBillNumber();
+    const editing = this.editingBill;
+    const billGstName = (document.getElementById('billCustGstName').value||'').trim();
+    const billGstin = (document.getElementById('billCustGstin').value||'').trim().toUpperCase();
+    if(billGstin && !/^\d{2}[A-Z0-9]{13}$/.test(billGstin)){ Toast.show('GSTIN must be 15 characters (e.g. 03ABCDE1234F1Z5)','err'); return; }
+    const billNumber = editing ? editing.billNumber : (await BillsDAL.nextBillNumber()).billNumber;
     const billDoc = {
       billNumber, customerId: c.id,
-      customerSnapshot: { name:c.name, firmName:c.firmName||'', phone:c.phone||'', email:c.email||'', address:c.address||'', state:c.state||'', gstin:c.gstin||'' },
-      date: Timestamp.now(), createdBy: { uid: State.currentUser.uid, name: State.profile?.name || State.currentUser.email },
+      customerSnapshot: { name:c.name, firmName:c.firmName||'', phone:c.phone||'', email:c.email||'', address:c.address||'', city:c.city||'', state:c.state||'', gstin:billGstin, gstName:billGstName },
+      ...(editing ? {} : { date: Timestamp.now(), createdBy: { uid: State.currentUser.uid, name: State.profile?.name || State.currentUser.email } }),
       salesLeadId: salesLeadId||null, salesLeadName, // internal attribution only — never shown on customer print
       paymentMode, subtotal: totals.subtotal, discount, tax, grandTotal: totals.grandTotal,
-      paidAmount: paid, balance, status:'active',
+      paidAmount: paid, balance, ...(editing ? {} : {status:'active'}),
       totalCost: totals.totalCost, grossProfit: totals.grossProfit, grossMargin: totals.grossMargin,
       items: calcItems, productIds: [...new Set(calcItems.map(i=>i.productId))]
     };
     try{
-      const billId = await BillsDAL.create(billDoc);
-      Toast.show('Bill ' + billNumber + ' saved','ok');
-      if(printAfter){ await Print.printBill({id:billId, ...billDoc}); }
+      if(c.id && billGstin && (billGstin !== (c.gstin||'') || billGstName !== (c.gstName||''))){
+        await CustomersDAL.update(c.id, { gstin: billGstin, gstName: billGstName });
+        await BillsDAL.syncCustomerGstin(c.id, billGstin, billGstName);
+      }
+      let billId;
+      if(editing){
+        billId = editing.id;
+        await BillsDAL.update(billId, billDoc);
+        Toast.show('Bill ' + billNumber + ' updated','ok');
+        if(printAfter){ await Print.printBill({...editing, ...billDoc, id:billId}); }
+      }else{
+        billId = await BillsDAL.create(billDoc);
+        Toast.show('Bill ' + billNumber + ' saved','ok');
+        if(printAfter){ await Print.printBill({id:billId, ...billDoc}); }
+      }
       await Loader.reloadCustomersProducts();
       this.reset();
       Router.go('bills');
@@ -2394,7 +2495,7 @@ const BillsList = {
     const fromDate = from? new Date(from+'T00:00:00') : new Date(Date.now()-90*86400000);
     const toDate = to? new Date(to+'T23:59:59') : new Date();
     const {results, lastDoc} = await BillsDAL.listRange(fromDate, toDate, status, 50, reset? null : State.billsLastDoc);
-    State.billsCache = reset ? results : State.billsCache.concat(results);
+    State.billsCache = (reset ? results : State.billsCache.concat(results)).filter(b=>!b.hiddenDeleted);
     State.billsLastDoc = lastDoc;
     this.render();
   },
@@ -2417,7 +2518,9 @@ const BillsList = {
         <td>
           <button class="btn btn-sm" onclick="BillsList.view('${b.id}')">View</button>
           ${b.status!=='void' && (Number(b.balance)||0)>0.009 ? `<button class="btn btn-sm btn-primary" onclick="BillsList.openPayment('${b.id}')">Payment</button>` : ''}
+          ${b.status!=='void' && admin ? `<button class="btn btn-sm" onclick="BillsList.edit('${b.id}')">Edit</button>` : ''}
           ${b.status!=='void' && admin ? `<button class="btn btn-sm btn-danger" onclick="BillsList.openVoid('${b.id}')">Void</button>` : ''}
+          ${admin ? `<button class="btn btn-sm btn-danger" onclick="BillsList.openDelete('${b.id}')">Delete Forever</button>` : ''}
         </td>
       </tr>`;
     }).join('') || `<tr><td colspan="13" class="text-mut" style="text-align:center;padding:20px;">No bills found for this range.</td></tr>`;
@@ -2499,6 +2602,39 @@ const BillsList = {
   },
   printFromView(){ if(this._viewing) Print.printBill(this._viewing); },
   openVoid(id){ document.getElementById('voidBillId').value = id; ModalUI.open('modalVoid'); },
+  edit(id){
+    const b = State.billsCache.find(x=>x.id===id);
+    if(!b) return;
+    if(!isAdmin()){ Toast.show('Admin only','err'); return; }
+    if(b.status==='void'){ Toast.show('Voided bills cannot be edited','err'); return; }
+    Router.go('newbill');
+    BillUI.loadForEdit(b);
+  },
+  openDelete(id){
+    const b = State.billsCache.find(x=>x.id===id);
+    document.getElementById('delBillId').value = id;
+    document.getElementById('delBillInfo').textContent = b ? `Bill ${b.billNumber} · ${b.customerSnapshot?.name||''} · ${money(b.grandTotal)}` : '';
+    document.getElementById('delBillPass').value = '';
+    ModalUI.open('modalDeleteBill');
+    setTimeout(()=>document.getElementById('delBillPass').focus(),50);
+  },
+  async confirmDelete(){
+    if(!isAdmin()){ Toast.show('Admin only','err'); return; }
+    const id = document.getElementById('delBillId').value;
+    const pass = document.getElementById('delBillPass').value;
+    if(!pass){ Toast.show('Enter your password','err'); return; }
+    try{
+      const adjust = document.querySelector('input[name="delBillAdjust"]:checked')?.value==='yes';
+      await BillsDAL.deleteForever(id, pass, adjust);
+    }catch(e){
+      Toast.show(/password|credential|auth/i.test(e.code||e.message||'') ? 'Wrong password' : ('Delete failed: '+(e.message||e)),'err');
+      return;
+    }
+    ModalUI.close('modalDeleteBill');
+    Toast.show('Bill permanently deleted','ok');
+    try{ await Loader.reloadCustomersProducts(); }catch(e){}
+    this.load(true);
+  },
   async confirmVoid(){
     const id = document.getElementById('voidBillId').value;
     const reason = document.getElementById('voidReason').value.trim();
@@ -3313,6 +3449,7 @@ const ModalUI = {
     document.getElementById('mcAddress').value = c ? (c.address||'') : '';
     document.getElementById('mcState').value = c ? (c.state||'') : '';
     document.getElementById('mcGstin').value = c ? (c.gstin||'') : '';
+    document.getElementById('mcGstName').value = c ? (c.gstName||'') : '';
     document.getElementById('mcNotes').value = c ? (c.notes||'') : '';
     document.getElementById('mcType').value = c ? (c.type||'Retail') : 'Retail';
     this.open('modalCustomer');
@@ -3335,15 +3472,22 @@ const ModalUI = {
         phone, altPhone: document.getElementById('mcAltPhone').value.trim(),
         email: document.getElementById('mcEmail').value.trim(),
         address: document.getElementById('mcAddress').value.trim(), city: document.getElementById('mcCity').value.trim(),
-        state: document.getElementById('mcState').value.trim(), gstin: document.getElementById('mcGstin').value.trim(),
+        state: document.getElementById('mcState').value.trim(), gstin: document.getElementById('mcGstin').value.trim(), gstName: document.getElementById('mcGstName').value.trim(),
         type: document.getElementById('mcType').value, notes: document.getElementById('mcNotes').value.trim()
       };
       let custId = id;
-      if(id){ await CustomersDAL.update(id, data); }
+      data.gstin = (data.gstin||'').toUpperCase();
+      const oldC = id ? (State.customers.find(x=>x.id===id)||{}) : {};
+      const oldGstin = oldC.gstin||'';
+      let synced = 0;
+      if(id){
+        await CustomersDAL.update(id, data);
+        if(data.gstin && (data.gstin !== oldGstin || data.gstName !== (oldC.gstName||''))) synced = await BillsDAL.syncCustomerGstin(id, data.gstin, data.gstName);
+      }
       else { custId = await CustomersDAL.create(data); }
       await Loader.reloadCustomersProducts();
       this.close('modalCustomer');
-      Toast.show(id ? 'Customer updated' : 'Customer added','ok');
+      Toast.show(id ? ('Customer updated'+(synced?` · GSTIN updated on ${synced} bill(s)`:'')) : 'Customer added','ok');
       if(Router.current==='newbill'){
         const c = State.customers.find(x=>x.id===custId);
         if(c){
@@ -3849,7 +3993,10 @@ const Print = {
     const addr = g.invoiceAddress || 'H/No108 Sukhdev Nagar Rajguru Nagar\nBadhewal Awana Ludhiana Punjab 141012';
     const phone = g.phone || '9781306796';
     const bank = { name: g.bankName || 'Indus land Bank', acc: g.bankAccount || '256280096796', ifsc: g.bankIfsc || 'INDB0002161' };
-    const cs = bill.customerSnapshot || {};
+    const live = (State.customers||[]).find(c=>c.id===bill.customerId) || {};
+    const cs = Object.assign({}, bill.customerSnapshot || {});
+    ['name','firmName','gstName','phone','address','city','state','gstin'].forEach(k=>{ if(!cs[k] && live[k]) cs[k] = live[k]; });
+    const fullAddr = [cs.address, cs.city, cs.state].map(x=>String(x||'').trim()).filter((x,i,arr)=>x && !arr.slice(0,i).some(y=>y.toLowerCase().includes(x.toLowerCase()))).join(', ');
     const custGstin = (cs.gstin||'').toUpperCase();
     const custCode = /^\d{2}/.test(custGstin) ? custGstin.slice(0,2) : '';
     const custStateName = cs.state || (custCode ? this.STATES[custCode] : '') || '';
@@ -3911,10 +4058,10 @@ const Print = {
           <div>
             <div class="lbl">INVOICE TO :</div>
             <div class="cust">
-              <b>${E(cs.firmName || cs.name)}</b><br/>
+              <b>${E(cs.gstName || cs.firmName || cs.name)}</b><br/>
+              ${fullAddr ? 'Address – '+E(fullAddr)+'<br/>' : ''}
               ${cs.phone ? 'Phone : '+E(cs.phone)+'<br/>' : ''}
-              ${custGstin ? 'GST No - '+E(custGstin)+'<br/>' : ''}
-              ${cs.address ? 'Address – '+E(cs.address)+'<br/>' : ''}
+              ${custGstin ? 'GST No - '+E(custGstin)+'<br/>' : 'GST No - Unregistered<br/>'}
               ${custStateName || custCode ? E(custStateName)+(custCode?' Code '+E(custCode):'') : ''}
             </div>
           </div>
@@ -4789,7 +4936,7 @@ const ExcelImport = {
           const paid = payStatus==='paid' ? totals.grandTotal : 0;
           const billDoc = {
             billNumber: b.billNo, customerId: c.id,
-            customerSnapshot: { name:c.name, firmName:c.firmName||'', phone:c.phone||'', email:c.email||'', address:c.address||(c.city||''), state:c.state||'', gstin:c.gstin||'' },
+            customerSnapshot: { name:c.name, firmName:c.firmName||'', phone:c.phone||'', email:c.email||'', address:c.address||'', city:c.city||'', state:c.state||'', gstin:c.gstin||'' },
             date: Timestamp.fromDate(b.date), createdBy: { uid: State.currentUser.uid, name: State.profile?.name || State.currentUser.email },
             salesLeadId: leadId||null, salesLeadName: leadName,
             paymentMode: payMode, subtotal: totals.subtotal, discount:0, tax:0, grandTotal: totals.grandTotal,
