@@ -4629,15 +4629,21 @@ const ExcelImport = {
 
   async checkExisting(){
     const nos = this.bills.map(b=>b.billNo).filter(Boolean);
-    const found = new Set();
+    const found = new Map();
     try{
       for(let i=0; i<nos.length; i+=30){
         const chunk = nos.slice(i,i+30);
         const snap = await getDocs(query(collection(db,'bills'), where('billNumber','in',chunk)));
-        snap.docs.forEach(d=>{ const dd = d.data(); if(dd.status!=='void') found.add(String(dd.billNumber).toLowerCase()); });
+        snap.docs.forEach(d=>{ const dd = d.data(); if(dd.status!=='void') found.set(String(dd.billNumber).toLowerCase(), d.id); });
       }
     }catch(e){ console.warn('Duplicate check failed', e); Toast.show('Could not check for existing bills — please verify bill numbers manually','err'); }
-    this.bills.forEach(b=>{ if(found.has(String(b.billNo).toLowerCase())){ b.exists = true; b.include = false; } });
+    this.bills.forEach(b=>{ const k = String(b.billNo).toLowerCase(); if(found.has(k)){ b.exists = true; b.existingId = found.get(k); b.dupAction = 'skip'; b.include = false; } });
+    const dups = this.bills.filter(b=>b.exists);
+    if(dups.length){
+      const list = dups.slice(0,15).map(b=>b.billNo).join(', ') + (dups.length>15 ? ` … +${dups.length-15} more` : '');
+      const replaceAll = confirm(`${dups.length} bill(s) in this sheet already exist in the app:\n${list}\n\nOK = REPLACE the existing bills with the sheet data\nCancel = SKIP them (keep existing bills)\n\n(You can change this for each bill on the next screen.)`);
+      dups.forEach(b=>{ b.dupAction = replaceAll ? 'replace' : 'skip'; b.include = replaceAll && !b.issues.length; });
+    }
   },
 
   buildMappings(){
@@ -4686,6 +4692,8 @@ const ExcelImport = {
   },
   toggle(i, on){ this.bills[i].include = !!on; this.render(true); },
   toggleAll(on){ this.bills.forEach(b=>{ if(!b.exists && !b.issues.length) b.include = !!on; }); this.render(true); },
+  setDup(i, v){ const b = this.bills[i]; b.dupAction = v; b.include = (v==='replace' && !b.issues.length); this.render(true); },
+  setDupAll(v){ this.bills.forEach((b,i)=>{ if(b.exists){ b.dupAction = v; b.include = (v==='replace' && !b.issues.length); } }); this.render(true); },
   setParty(i, v){ this.parties[i].choice = v; this.render(true); },
   setPartyField(i, f, v){ this.parties[i].nu[f] = v; },
   setItem(i, v){ this.items[i].choice = v; this.render(true); },
@@ -4693,7 +4701,7 @@ const ExcelImport = {
 
   /* ---------- rendering ---------- */
   money(n){ return money(n); },
-  importable(){ return this.bills.filter(b=>b.include && !b.exists && !b.issues.length); },
+  importable(){ return this.bills.filter(b=>b.include && (!b.exists || b.dupAction==='replace') && !b.issues.length); },
   render(keepScroll){
     const body = document.getElementById('impBody');
     const foot = document.getElementById('impFoot');
@@ -4715,7 +4723,7 @@ const ExcelImport = {
           <span class="chip">Date</span><span class="chip">Month</span><span class="chip">Bill No</span><span class="chip">Qty</span><span class="chip">Rate</span><span class="chip">Amount</span><span class="chip">Slab (GST %)</span><span class="chip">GST</span><span class="chip">Total</span><span class="chip">Type (product)</span><span class="chip">Party Name</span><span class="chip">Location</span>
           <ul>
             <li>Every row becomes one bill in the standard <b>GST Tax Invoice</b> format. Rows sharing a Bill No are merged into one bill.</li>
-            <li>Bill numbers and dates are kept exactly as in your sheet. Bills already in the app are skipped.</li>
+            <li>Bill numbers and dates are kept exactly as in your sheet. If a bill number already exists in the app, you will be asked to Cancel (keep existing) or Replace it.</li>
             <li>Badly typed dates (like <i>21-07-20265</i>) are repaired automatically and flagged so you can check them.</li>
           </ul>
         </div>`;
@@ -4797,12 +4805,12 @@ const ExcelImport = {
 
     const rowsHtml = this.bills.map((b,i)=>{
       const taxable = b.items.reduce((s,x)=>s+x.taxable,0), gst = b.items.reduce((s,x)=>s+x.gstCalc,0);
-      const status = b.exists ? '<span class="badge badge-navy">Already exists</span>'
+      const status = b.exists ? `<span class="badge badge-navy">Already exists</span><br/><select onchange="ExcelImport.setDup(${i},this.value)" style="margin-top:3px;font-size:11px;padding:2px 4px;"><option value="skip" ${b.dupAction!=='replace'?'selected':''}>Cancel (keep existing)</option><option value="replace" ${b.dupAction==='replace'?'selected':''}>Replace</option></select>`
         : b.issues.length ? `<span class="badge badge-red">Fix needed</span>`
         : b.warns.length ? `<span class="badge badge-amber">Check</span>` : '<span class="badge badge-green">Ready</span>';
       const notes = [].concat(b.issues.map(x=>`<div class="imp-note r">✖ ${this.esc(x)}</div>`), b.warns.map(x=>`<div class="imp-note a">⚠ ${this.esc(x)}</div>`),
         b.dateFixed ? [`<div class="imp-note a">✎ Date auto-corrected from “${this.esc(b.dateRaw)}” — please confirm</div>`] : []).join('');
-      return `<tr class="${b.exists?'imp-dim':''}">
+      return `<tr class="${b.exists && b.dupAction!=='replace' ?'imp-dim':''}">
         <td><input type="checkbox" ${b.include?'checked':''} ${(b.exists||b.issues.length)?'disabled':''} onchange="ExcelImport.toggle(${i},this.checked)"/></td>
         <td><b>${this.esc(b.billNo)}</b></td>
         <td><input type="date" class="imp-date ${b.dateFixed||!b.date?'flag':''}" value="${this.ymd(b.date)}" onchange="ExcelImport.setDate(${i},this.value)"/></td>
@@ -4822,7 +4830,7 @@ const ExcelImport = {
       <div class="imp-stats">
         <div class="imp-stat"><div class="n">${this.bills.length}</div><div class="l">Bills found</div></div>
         <div class="imp-stat"><div class="n" style="color:var(--green)">${ready.length}</div><div class="l">Ready to import</div></div>
-        <div class="imp-stat"><div class="n" style="color:var(--amber)">${dup}</div><div class="l">Already in app</div></div>
+        <div class="imp-stat"><div class="n" style="color:var(--amber)">${dup}</div><div class="l">Already in app${dup?` <a href="#" onclick="ExcelImport.setDupAll('replace');return false;">Replace all</a> · <a href="#" onclick="ExcelImport.setDupAll('skip');return false;">Cancel all</a>`:''}</div></div>
         <div class="imp-stat"><div class="n" style="color:var(--red)">${bad}</div><div class="l">Need a fix</div></div>
         <div class="imp-stat"><div class="n">${this.money(readyTotal)}</div><div class="l">Importing (incl. GST)</div></div>
       </div>
@@ -4886,7 +4894,7 @@ const ExcelImport = {
     const leadSel = document.getElementById('impLead');
     const leadId = leadSel ? leadSel.value : '';
     const leadName = leadId ? ((State.salesLeads.find(s=>s.id===leadId)||{}).name||'') : '';
-    this.importing = true; this._failed = []; this.created = [];
+    this.importing = true; this._failed = []; this.created = []; this._replaced = 0;
     try{
       // 1) customers
       const usedParties = new Set(ready.map(b=>b.pk));
@@ -4922,7 +4930,7 @@ const ExcelImport = {
       const admin = State.currentUser;
       let n = 0;
       for(const b of ready){
-        this.progress(`Creating bill ${b.billNo} (${++n} of ${ready.length})…`, (step++)/total);
+        this.progress(`${b.exists?'Replacing':'Creating'} bill ${b.billNo} (${++n} of ${ready.length})…`, (step++)/total);
         try{
           const c = custById[b.pk];
           const calcItems = b.items.map(it=>{
@@ -4945,14 +4953,22 @@ const ExcelImport = {
             items: calcItems, productIds: [...new Set(calcItems.map(i=>i.productId))],
             importSource: 'excel', importFile: this.fileName
           };
-          const id = await BillsDAL.create(billDoc);
+          let id;
+          if(b.exists && b.existingId){
+            id = b.existingId;
+            await setDoc(doc(db,'bills',id), {...billDoc, createdAt: serverTimestamp(), replacedByImport:true});
+            await Audit.log('Bill Replaced by Import', id, {billNumber:b.billNo});
+            this._replaced = (this._replaced||0)+1;
+          }else{
+            id = await BillsDAL.create(billDoc);
+          }
           this.created.push({ id, ...billDoc });
         }catch(e){ console.error(e); this._failed.push(`${b.billNo}: ${e.message}`); }
       }
       this.progress('Refreshing data…', 0.98);
       await Loader.reloadCustomersProducts();
-      const skippedDup = this.bills.filter(b=>b.exists).length;
-      this._doneMsg = `Total ${this.money(this.created.reduce((s,b)=>s+b.grandTotal,0))}` + (skippedDup? ` · ${skippedDup} already existed and were skipped`:'');
+      const skippedDup = this.bills.filter(b=>b.exists && b.dupAction!=='replace').length;
+      this._doneMsg = `Total ${this.money(this.created.reduce((s,b)=>s+b.grandTotal,0))}` + (this._replaced? ` · ${this._replaced} existing bill(s) replaced`:'') + (skippedDup? ` · ${skippedDup} already existed and were skipped`:'');
     }catch(e){
       console.error(e); this._failed.push(e.message);
       this._doneMsg = 'The import stopped early — bills created before the error were saved.';
