@@ -6,6 +6,9 @@
 <title>Gurunanak Impex — Business Manager</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"/>
@@ -397,7 +400,9 @@ tr:hover td{background:#f8faff;}
   .inv table.items td.num{text-align:right;}
   .inv table.items tr.item td{border-bottom:.3mm solid #000;}
   .inv table.items tr.fill td{height:34mm;border-bottom:.3mm solid #000;}
-  .inv table.items tr.fill td.pn{text-align:right;vertical-align:middle;}
+  .inv table.items tr.fill td{padding-top:2mm;}
+  .inv table.items tr.fill td.pn{text-align:right;vertical-align:top;}
+  .inv table.items tr.fill td div{line-height:5mm;height:5mm;white-space:nowrap;}
   .inv table.items tr.tot td{border:.3mm solid #000;padding:.6mm 1.5mm;}
   .inv .sum{display:flex;justify-content:space-between;align-items:flex-start;margin-top:5mm;}
   .inv .sum .hsn{font-size:14px;font-weight:700;padding-top:6mm;}
@@ -837,7 +842,7 @@ tr.imp-dim td{opacity:.55;}
       <div class="view" id="view-customerDetail">
         <div class="flex-between">
           <button class="btn btn-sm" onclick="Router.go('customers')">← Back to Customers</button>
-          <button class="btn btn-sm" id="cdEditBtn" onclick="CustomerDetail.edit()">Edit Customer</button>
+          <span><button class="btn btn-sm btn-primary" id="cdZipBtn" onclick="CustomerDetail.downloadZip()">⬇ Download All Bills (ZIP)</button> <button class="btn btn-sm" id="cdEditBtn" onclick="CustomerDetail.edit()">Edit Customer</button></span>
         </div>
         <div class="page-title mt16" id="cdName">Customer</div>
         <div class="page-sub" id="cdMeta"></div>
@@ -1613,17 +1618,25 @@ const BillsDAL = {
     const snap = await getDocs(q);
     return snap.docs.map(d=>({id:d.id,...d.data()}));
   },
-  async syncCustomerGstin(customerId, gstin, gstName){
+  async syncCustomerDetails(customerId, c){
+    const keys = ['name','firmName','gstName','phone','email','address','city','state','gstin'];
+    const vals = {}; keys.forEach(k=>{ vals[k] = String(c[k]||'').trim(); });
     const bills = await this.listByCustomer(customerId);
-    const gn = gstName||'';
-    const todo = bills.filter(b=>(b.customerSnapshot?.gstin||'') !== gstin || (gn && (b.customerSnapshot?.gstName||'') !== gn));
+    const todo = bills.filter(b=>keys.some(k=>(b.customerSnapshot?.[k]||'') !== vals[k]));
     for(let i=0;i<todo.length;i+=400){
       const batch = writeBatch(db);
-      todo.slice(i,i+400).forEach(b=>batch.update(doc(db,'bills',b.id), Object.assign({'customerSnapshot.gstin': gstin}, gn ? {'customerSnapshot.gstName': gn} : {})));
+      todo.slice(i,i+400).forEach(b=>{
+        const upd = {}; keys.forEach(k=>{ upd['customerSnapshot.'+k] = vals[k]; });
+        batch.update(doc(db,'bills',b.id), upd);
+      });
       await batch.commit();
     }
-    if(todo.length) await Audit.log('Customer GSTIN synced to bills', customerId, {gstin, bills: todo.length});
+    if(todo.length) await Audit.log('Customer details synced to bills', customerId, {bills: todo.length});
     return todo.length;
+  },
+  async syncCustomerGstin(customerId, gstin, gstName){
+    const c = (State.customers||[]).find(x=>x.id===customerId) || {};
+    return this.syncCustomerDetails(customerId, Object.assign({}, c, {gstin, gstName: gstName||c.gstName||''}));
   },
   async listByProduct(productId){
     const q = query(collection(db,'bills'), where('productIds','array-contains',productId), orderBy('date','desc'));
@@ -3009,6 +3022,58 @@ const CustomersList = {
 const CustomerDetail = {
   _id: null,
   edit(){ if(this._id) ModalUI.openCustomer(null, this._id); },
+  async downloadZip(){
+    if(!this._id) return;
+    if(!window.JSZip || !window.html2canvas || !(window.jspdf && window.jspdf.jsPDF)){ Toast.show('PDF libraries could not load — check internet connection and reload','err'); return; }
+    const btn = document.getElementById('cdZipBtn'); const label = btn.textContent;
+    btn.disabled = true;
+    const host = document.createElement('div');
+    host.style.cssText = 'position:fixed;left:-10000px;top:0;width:210mm;background:#fff;';
+    try{
+      const c = State.customers.find(x=>x.id===this._id) || await CustomersDAL.get(this._id) || {};
+      const bills = (await BillsDAL.listByCustomer(this._id)).filter(b=>b.status!=='void' && !b.hiddenDeleted)
+        .sort((a,b)=>dateFromTS(a.date)-dateFromTS(b.date));
+      if(!bills.length){ Toast.show('This customer has no bills','err'); return; }
+      // reuse the invoice's print-only CSS for on-screen rendering
+      let css = '';
+      for(const sh of document.styleSheets){
+        let rules; try{ rules = sh.cssRules; }catch(e){ continue; }
+        for(const r of rules){
+          if(r instanceof CSSMediaRule && /print/.test(r.conditionText||r.media.mediaText)){
+            for(const x of r.cssRules){ if(x.selectorText && /\.inv\b|\.print-invoice/.test(x.selectorText)) css += x.cssText+'\n'; }
+          }
+        }
+      }
+      const st = document.createElement('style'); st.textContent = css; host.appendChild(st);
+      const holder = document.createElement('div'); host.appendChild(holder);
+      document.body.appendChild(host);
+      const zip = new JSZip(); const used = new Set();
+      const rows = [['Bill No','Date','Total','Paid','Balance']];
+      let n = 0;
+      for(const b of bills){
+        btn.textContent = `Preparing ${++n} / ${bills.length}…`;
+        holder.innerHTML = Print.buildInvoice(b);
+        const el = holder.firstElementChild;
+        await Promise.all([...holder.querySelectorAll('img')].map(im=> im.complete ? 1 : new Promise(r=>{ im.onload = im.onerror = r; })));
+        const canvas = await html2canvas(el, { scale:2, backgroundColor:'#ffffff', useCORS:true });
+        const pdf = new jspdf.jsPDF({ unit:'mm', format:'a4', orientation:'portrait' });
+        pdf.addImage(canvas.toDataURL('image/jpeg',0.92), 'JPEG', 0, 0, 210, 297);
+        let fn = String(b.billNumber||b.id).replace(/[^\w\-]+/g,'_'); while(used.has(fn)) fn += '_'; used.add(fn);
+        zip.file(fn+'.pdf', pdf.output('arraybuffer'));
+        rows.push([b.billNumber, fmtDate(b.date), b.grandTotal, b.paidAmount||0, b.balance||0]);
+      }
+      zip.file('summary.csv', rows.map(r=>r.map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(',')).join('\n'));
+      btn.textContent = 'Zipping…';
+      const blob = await zip.generateAsync({type:'blob'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = String(c.gstName||c.firmName||c.name||'customer').replace(/[^\w\-]+/g,'_') + '_bills.zip';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(()=>URL.revokeObjectURL(a.href), 5000);
+      Toast.show(`${bills.length} bill(s) downloaded`,'ok');
+    }catch(e){ console.error(e); Toast.show('ZIP failed: '+(e.message||e),'err'); }
+    finally{ host.remove(); btn.disabled = false; btn.textContent = label; }
+  },
   async open(id){
     Router.go('customerDetail');
     this._id = id;
@@ -3482,12 +3547,12 @@ const ModalUI = {
       let synced = 0;
       if(id){
         await CustomersDAL.update(id, data);
-        if(data.gstin && (data.gstin !== oldGstin || data.gstName !== (oldC.gstName||''))) synced = await BillsDAL.syncCustomerGstin(id, data.gstin, data.gstName);
+        synced = await BillsDAL.syncCustomerDetails(id, data);
       }
       else { custId = await CustomersDAL.create(data); }
       await Loader.reloadCustomersProducts();
       this.close('modalCustomer');
-      Toast.show(id ? ('Customer updated'+(synced?` · GSTIN updated on ${synced} bill(s)`:'')) : 'Customer added','ok');
+      Toast.show(id ? ('Customer updated'+(synced?` · details updated on ${synced} bill(s)`:'')) : 'Customer added','ok');
       if(Router.current==='newbill'){
         const c = State.customers.find(x=>x.id===custId);
         if(c){
@@ -4034,8 +4099,8 @@ const Print = {
       ? rates.map(r=>`<div>${this.num(byRate[r])}</div>`).join('')
       : rates.map(r=>`<div>${this.num(byRate[r]/2)}</div><div>${this.num(byRate[r]/2)}</div>`).join('')) : '';
     const taxFillLabel = rates.length ? (interstate
-      ? rates.map(r=>`<div>IGST</div>`).join('')
-      : rates.map(r=>`<div>CGST</div><div>SGST</div>`).join('')) : '';
+      ? rates.map(r=>`<div>IGST @${r}%</div>`).join('')
+      : rates.map(r=>`<div>CGST @${r/2}%</div><div>SGST @${r/2}%</div>`).join('')) : '';
     const hsnList = [...new Set(items.map(i=>i.hsn).filter(Boolean))].join(', ');
     const paid = Number(bill.paidAmount)||0, balance = Number(bill.balance)||0;
     const d = dateFromTS(bill.date);
