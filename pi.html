@@ -416,7 +416,6 @@ tr:hover td{background:#f8faff;}
       <div class="nav-item" data-view="newpurchase" onclick="Router.go('newpurchase');UI.closeSidebar();"><span class="material-symbols-outlined nav-icon">calculate</span> Purchase Bill</div>
       <div class="nav-item" data-view="purchases" onclick="Router.go('purchases');UI.closeSidebar();"><span class="material-symbols-outlined nav-icon">move_to_inbox</span> Purchases History</div>
       <div class="nav-item" data-view="suppliers" onclick="Router.go('suppliers');UI.closeSidebar();"><span class="material-symbols-outlined nav-icon">factory</span> Suppliers</div>
-      <div class="nav-item" data-view="gst" onclick="Router.go('gst');UI.closeSidebar();"><span class="material-symbols-outlined nav-icon">receipt</span> GST Summary</div>
       <div class="nav-item" data-view="pipeline" onclick="Router.go('pipeline');UI.closeSidebar();"><span class="material-symbols-outlined nav-icon">trending_up</span> Sales Pipeline</div>
       <div class="nav-item" data-view="salesperformance" onclick="Router.go('salesperformance');UI.closeSidebar();"><span class="material-symbols-outlined nav-icon">leaderboard</span> Sales Performance</div>
       <div class="nav-item" data-view="profitability" onclick="Router.go('profitability');UI.closeSidebar();"><span class="material-symbols-outlined nav-icon">query_stats</span> Profitability</div>
@@ -455,7 +454,6 @@ tr:hover td{background:#f8faff;}
             <div class="dash-hero-sub" id="dashDateLine">Live figures computed directly from Firestore records.</div>
             <div class="dash-hero-actions mt16">
               <button class="btn btn-primary btn-sm" onclick="Router.go('newbill')"><span class="material-symbols-outlined" style="font-size:15px !important;">add</span> New Bill</button>
-              <button class="btn btn-sm" style="background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.18);color:#fff;" onclick="Router.go('gst')"><span class="material-symbols-outlined" style="font-size:15px !important;">receipt_long</span> GST Summary</button>
               <button class="btn btn-sm" style="background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.18);color:#fff;" onclick="Router.go('reports')"><span class="material-symbols-outlined" style="font-size:15px !important;">bar_chart</span> Reports</button>
             </div>
           </div>
@@ -471,9 +469,6 @@ tr:hover td{background:#f8faff;}
 
         <div class="section-title">This Month</div>
         <div class="grid grid-4" id="kpiMonth"></div>
-
-        <div class="section-title">GST This Month <span><a href="#" onclick="Router.go('gst');return false;" class="small" style="color:var(--orange);font-weight:700;">View Full GST Summary →</a></span></div>
-        <div class="grid grid-4" id="kpiGst"></div>
 
         <div class="section-title">Customers &amp; Products</div>
         <div class="grid grid-4" id="kpiOther"></div>
@@ -523,14 +518,17 @@ tr:hover td{background:#f8faff;}
 
       <!-- NEW BILL -->
       <div class="view" id="view-newbill">
-        <div class="page-title">New Bill <span class="small text-mut" id="billNumPreview"></span></div>
+        <div class="page-title"><span id="billPageTitle">New Bill</span> <span class="small text-mut" id="billNumPreview"></span></div>
         <div class="bill-layout">
           <div>
             <div class="card">
               <div class="form-grid">
                 <div class="form-row ac-wrap">
                   <label>Customer</label>
-                  <input id="custSearchInput" placeholder="Type name or phone..." autocomplete="off" oninput="BillUI.searchCustomer(this.value)" onkeydown="BillUI.custKeyNav(event)" />
+                  <div class="flex gap8">
+                    <input id="custSearchInput" style="flex:1;" placeholder="Search name or phone..." autocomplete="off" oninput="BillUI.searchCustomer(this.value)" onkeydown="BillUI.custKeyNav(event)" />
+                    <button type="button" class="btn btn-sm" onclick="ModalUI.openCustomer()">+ Add</button>
+                  </div>
                   <div class="ac-list" id="custAcList"></div>
                 </div>
                 <div class="form-row">
@@ -554,7 +552,7 @@ tr:hover td{background:#f8faff;}
 
             <div class="card mt16">
               <div class="form-row ac-wrap">
-                <label>Add Product (search name / SKU / category)</label>
+                <label>Add Product (search name / HSN / category)</label>
                 <div class="flex gap8">
                   <input id="prodSearchInput" style="flex:1;" placeholder="e.g. MOXI" autocomplete="off" oninput="BillUI.searchProduct(this.value)" onkeydown="BillUI.prodKeyNav(event)" />
                   <button type="button" class="btn btn-sm" onclick="ModalUI.openProduct(null, true)">+ New Product</button>
@@ -563,7 +561,7 @@ tr:hover td{background:#f8faff;}
               </div>
               <div class="table-wrap mt16">
                 <table class="bill-items-table">
-                  <thead><tr><th>Sr.</th><th>Product</th><th>SKU</th><th>Qty</th><th>Rate</th><th>Disc%</th><th>Amount</th><th id="profitColHead">Profit</th><th></th></tr></thead>
+                  <thead><tr><th>Sr.</th><th>Product</th><th>HSN</th><th>Qty</th><th>Rate</th><th>Disc%</th><th>Amount</th><th id="profitColHead">Profit</th><th></th></tr></thead>
                   <tbody id="billItemsBody"></tbody>
                 </table>
               </div>
@@ -582,8 +580,8 @@ tr:hover td{background:#f8faff;}
               <div class="form-row mt16"><label>Paid Amount</label><input id="tPaid" type="number" value="0" min="0" oninput="BillUI.recalc()"/></div>
               <div class="trow"><span>Balance</span><span id="tBalance">₹0.00</span></div>
               <div class="flex gap8 mt16">
-                <button class="btn btn-navy" style="flex:1;justify-content:center;" onclick="BillUI.save(false)">Save Bill</button>
-                <button class="btn btn-primary" style="flex:1;justify-content:center;" onclick="BillUI.save(true)">Save &amp; Print</button>
+                <button class="btn btn-navy" style="flex:1;justify-content:center;" onclick="BillUI.save(false)" id="billSaveBtn">Save Bill</button>
+                <button class="btn btn-primary" style="flex:1;justify-content:center;" onclick="BillUI.save(true)" id="billSavePrintBtn">Save &amp; Print</button>
               </div>
               <div class="flex gap8 mt8">
                 <button class="btn btn-sm" style="flex:1;justify-content:center;" onclick="Drafts.saveCurrent()"><span class="material-symbols-outlined" style="font-size:16px !important;">save</span>&nbsp;Save Draft</button>
@@ -604,10 +602,13 @@ tr:hover td{background:#f8faff;}
               <div class="form-grid">
                 <div class="form-row ac-wrap">
                   <label>Supplier</label>
-                  <input id="suppSearchInput" placeholder="Type supplier name or phone..." autocomplete="off" oninput="PurchaseUI.searchSupplier(this.value)" onkeydown="PurchaseUI.suppKeyNav(event)" />
+                  <div class="flex gap8">
+                    <input id="suppSearchInput" style="flex:1;" placeholder="Search supplier name or phone..." autocomplete="off" oninput="PurchaseUI.searchSupplier(this.value)" onkeydown="PurchaseUI.suppKeyNav(event)" />
+                    <button type="button" class="btn btn-sm" onclick="ModalUI.openSupplier()">+ Add</button>
+                  </div>
                   <div class="ac-list" id="suppAcList"></div>
                 </div>
-                <div class="form-row"><label>Supplier Invoice No.</label><input id="suppInvoiceNo" placeholder="Supplier's own invoice #"/></div>
+                <div class="form-row"><label>Supplier Invoice No.</label><input id="suppInvoiceNo" placeholder="Supplier invoice #"/></div>
               </div>
               <div class="form-grid">
                 <div class="form-row"><label>Payment Mode</label>
@@ -615,16 +616,23 @@ tr:hover td{background:#f8faff;}
                     <option>Cash</option><option>UPI</option><option>Bank Transfer</option><option>Card</option><option>Credit</option><option>Other</option>
                   </select>
                 </div>
-                <div class="form-row"><label><input type="checkbox" id="purchaseUpdateCost" checked style="width:auto;"/> Update product cost prices from this purchase</label></div>
+                <div class="form-row"><label><input type="checkbox" id="purchaseUpdateCost" checked style="width:auto;"/> Update product cost from this purchase</label></div>
               </div>
               <div id="selectedSupplierBox" class="small text-mut"></div>
             </div>
 
             <div class="card mt16">
-              <div class="form-row"><label>Add Product to this Bill <span class="small text-mut">(enter full product details — new products are added to inventory automatically when you save)</span></label></div>
-              <div class="form-grid">
-                <div class="form-row"><label>SKU / Code *</label><input id="purProdSku" placeholder="e.g. MOXI-500" oninput="PurchaseUI.lookupSku(this.value)"/></div>
-                <div class="form-row"><label>Product Name *</label><input id="purProdName" placeholder="e.g. Moxikind 500 Tablet"/></div>
+              <div class="flex-between" style="gap:12px;flex-wrap:wrap;">
+                <div>
+                  <div class="section-title" style="margin:0 0 3px;">Add Product</div>
+                  <div class="small text-mut">No SKU/Code required. Enter the HSN and purchase details. Existing products are matched automatically.</div>
+                </div>
+                <button type="button" class="btn btn-sm" onclick="ModalUI.openProduct()">+ New Product</button>
+              </div>
+
+              <div class="form-grid mt16">
+                <div class="form-row"><label>Product Name *</label><input id="purProdName" placeholder="Search or enter product name" oninput="PurchaseUI.lookupProduct(this.value)"/></div>
+                <div class="form-row"><label>HSN Code *</label><input id="purProdHsn" placeholder="e.g. 30049099" oninput="PurchaseUI.lookupProductByHsn(this.value)"/></div>
               </div>
               <div class="form-grid">
                 <div class="form-row"><label>Category</label><input id="purProdCategory" list="catList"/></div>
@@ -636,13 +644,14 @@ tr:hover td{background:#f8faff;}
               </div>
               <div class="form-grid">
                 <div class="form-row"><label>GST %</label><input id="purProdGst" type="number" min="0" value="0"/></div>
-                <div class="form-row"><label>Selling Price <span class="small text-mut">(optional)</span></label><input id="purProdSellingPrice" type="number" min="0" placeholder="Leave blank to keep existing"/></div>
+                <div class="form-row"><label>Selling Price <span class="small text-mut">(optional)</span></label><input id="purProdSellingPrice" type="number" min="0" placeholder="Optional"/></div>
               </div>
               <div id="purProdMatchNote" class="small mt8"></div>
               <button type="button" class="btn btn-primary btn-sm mt8" onclick="PurchaseUI.addItem()">+ Add to Bill</button>
+
               <div class="table-wrap mt16">
                 <table class="bill-items-table">
-                  <thead><tr><th>Sr.</th><th>Product</th><th>SKU</th><th>Qty</th><th>Purchase Rate</th><th>Disc%</th><th>GST%</th><th>Amount</th><th></th></tr></thead>
+                  <thead><tr><th>Sr.</th><th>Product</th><th>HSN</th><th>Qty</th><th>Purchase Rate</th><th>Disc%</th><th>GST%</th><th>Amount</th><th></th></tr></thead>
                   <tbody id="purchaseItemsBody"></tbody>
                 </table>
               </div>
@@ -694,27 +703,6 @@ tr:hover td{background:#f8faff;}
         <div class="table-wrap"><table><thead><tr><th>Supplier</th><th>Phone</th><th>GSTIN</th><th>Purchase Bills</th><th>Total Purchased</th><th>GST Paid</th><th>Last Purchase</th><th></th></tr></thead><tbody id="suppliersTableBody"></tbody></table></div>
       </div>
 
-      <!-- GST SUMMARY -->
-      <div class="view" id="view-gst">
-        <div class="page-title">GST Summary</div>
-        <div class="page-sub">GST Collected (output tax on sales) vs. GST Paid (input tax on purchases). Net Payable is remitted to the government; a negative figure means excess input credit is recoverable / carried forward.</div>
-        <div class="filter-bar">
-          <select id="gstRange" onchange="GST.render()">
-            <option value="month" selected>This Month</option><option value="lastmonth">Last Month</option>
-            <option value="fy">Current Financial Year</option><option value="lastfy">Previous Financial Year</option>
-            <option value="custom">Custom Range</option>
-          </select>
-          <input type="date" id="gstFrom" class="hidden"/><input type="date" id="gstTo" class="hidden"/>
-          <button class="btn btn-sm hidden" id="gstCustomApply" onclick="GST.render()">Apply</button>
-          <button class="btn btn-sm" onclick="GST.exportCSV()">Export CSV</button>
-        </div>
-        <div class="grid grid-4" id="gstKPIs"></div>
-        <div class="section-title">Month-by-Month GST</div>
-        <div class="table-wrap"><table><thead><tr><th>Month</th><th>GST Collected</th><th>GST Paid</th><th>Net Payable / (Recoverable)</th></tr></thead><tbody id="gstMonthlyBody"></tbody></table></div>
-        <div class="section-title">By GST Rate</div>
-        <div class="table-wrap"><table><thead><tr><th>Rate</th><th>Taxable (Sales)</th><th>GST Collected</th><th>Taxable (Purchases)</th><th>GST Paid</th></tr></thead><tbody id="gstRateBody"></tbody></table></div>
-      </div>
-
       <!-- BILLS HISTORY -->
       <div class="view" id="view-bills">
         <div class="page-title">Bills History</div>
@@ -724,7 +712,7 @@ tr:hover td{background:#f8faff;}
           <button class="btn btn-sm" onclick="BillsList.load(true)">Apply</button>
           <button class="btn btn-sm" onclick="BillsList.exportCSV()">Export CSV</button>
         </div>
-        <div class="table-wrap"><table><thead><tr><th>Bill No.</th><th>Date</th><th>Customer</th><th id="billSalesLeadColHead">Sales Lead</th><th>Items</th><th>Sales</th><th>Cost</th><th>Profit</th><th>Paid</th><th>Balance</th><th>Last Received</th><th>Mode</th><th>Status</th><th>Actions</th></tr></thead><tbody id="billsTableBody"></tbody></table></div>
+        <div class="table-wrap"><table><thead><tr><th>Bill No.</th><th>Date</th><th>Customer</th><th id="billSalesLeadColHead">Sales Lead</th><th>Items</th><th>Sales</th><th>Cost</th><th>Profit</th><th>Paid</th><th>Balance</th><th>Mode</th><th>Status</th><th>Actions</th></tr></thead><tbody id="billsTableBody"></tbody></table></div>
         <div class="flex-between mt16"><span class="small text-mut" id="billsPageInfo"></span><button class="btn btn-sm" onclick="BillsList.loadMore()">Load More</button></div>
       </div>
 
@@ -763,10 +751,10 @@ tr:hover td{background:#f8faff;}
       <div class="view" id="view-products">
         <div class="page-title">Products &amp; Inventory</div>
         <div class="filter-bar">
-          <input placeholder="Search name / SKU / category" id="prodListSearch" oninput="ProductsList.render()"/>
+          <input placeholder="Search name / HSN / category" id="prodListSearch" oninput="ProductsList.render()"/>
           <button class="btn btn-primary btn-sm" onclick="ModalUI.openProduct()">+ Add Product</button>
         </div>
-        <div class="table-wrap"><table><thead><tr><th>Product</th><th>SKU</th><th>Category</th><th>Cost</th><th>Selling</th><th>Purchased</th><th>Units Sold</th><th>In Stock</th><th>Revenue</th><th>Profit</th><th>Status</th><th></th></tr></thead><tbody id="productsTableBody"></tbody></table></div>
+        <div class="table-wrap"><table><thead><tr><th>Product</th><th>HSN</th><th>Category</th><th>Cost</th><th>Selling</th><th>Purchased</th><th>Units Sold</th><th>In Stock</th><th>Revenue</th><th>Profit</th><th>Status</th><th></th></tr></thead><tbody id="productsTableBody"></tbody></table></div>
       </div>
 
       <!-- PRODUCT DETAIL -->
@@ -993,24 +981,31 @@ tr:hover td{background:#f8faff;}
     <div class="modal-body">
       <input type="hidden" id="mcId"/>
       <div class="form-grid">
-        <div class="form-row"><label>Name *</label><input id="mcName" placeholder="Contact person's name"/></div>
-        <div class="form-row"><label>Firm / Company Name</label><input id="mcFirmName" placeholder="Business or firm name"/></div>
+        <div class="form-row"><label>Name *</label><input id="mcName" placeholder="Customer name"/></div>
+        <div class="form-row"><label>Phone *</label><input id="mcPhone" placeholder="Phone number"/></div>
       </div>
       <div class="form-grid">
-        <div class="form-row"><label>Phone *</label><input id="mcPhone"/></div>
-        <div class="form-row"><label>Alternate Phone</label><input id="mcAltPhone"/></div>
+        <div class="form-row"><label>Firm / Company</label><input id="mcFirmName" placeholder="Optional"/></div>
+        <div class="form-row"><label>GSTIN</label><input id="mcGstin" placeholder="Optional"/></div>
       </div>
-      <div class="form-grid">
-        <div class="form-row"><label>Email ID</label><input id="mcEmail" type="email" placeholder="name@example.com"/></div>
-        <div class="form-row"><label>City</label><input id="mcCity"/></div>
-      </div>
-      <div class="form-row"><label>Address</label><textarea id="mcAddress" rows="2"></textarea></div>
-      <div class="form-grid">
-        <div class="form-row"><label>State</label><input id="mcState"/></div>
-        <div class="form-row"><label>GSTIN</label><input id="mcGstin"/></div>
-      </div>
-      <div class="form-row"><label>Customer Type</label><select id="mcType"><option>Retail</option><option>Wholesale</option><option>Distributor</option></select></div>
-      <div class="form-row"><label>Notes</label><textarea id="mcNotes" rows="2"></textarea></div>
+      <details style="margin-top:4px;">
+        <summary class="small text-mut" style="cursor:pointer;font-weight:700;">More customer details (optional)</summary>
+        <div style="padding-top:12px;">
+          <div class="form-grid">
+            <div class="form-row"><label>Alternate Phone</label><input id="mcAltPhone"/></div>
+            <div class="form-row"><label>Email ID</label><input id="mcEmail" type="email" placeholder="name@example.com"/></div>
+          </div>
+          <div class="form-grid">
+            <div class="form-row"><label>City</label><input id="mcCity"/></div>
+            <div class="form-row"><label>State</label><input id="mcState"/></div>
+          </div>
+          <div class="form-row"><label>Address</label><textarea id="mcAddress" rows="2"></textarea></div>
+          <div class="form-grid">
+            <div class="form-row"><label>Customer Type</label><select id="mcType"><option>Retail</option><option>Wholesale</option><option>Distributor</option></select></div>
+            <div class="form-row"><label>Notes</label><textarea id="mcNotes" rows="2"></textarea></div>
+          </div>
+        </div>
+      </details>
     </div>
     <div class="modal-foot"><button class="btn" onclick="ModalUI.close('modalCustomer')">Cancel</button><button class="btn btn-primary" onclick="ModalUI.saveCustomer()">Save Customer</button></div>
   </div>
@@ -1022,17 +1017,24 @@ tr:hover td{background:#f8faff;}
     <div class="modal-body">
       <input type="hidden" id="msId"/>
       <div class="form-grid">
-        <div class="form-row"><label>Name *</label><input id="msName"/></div>
-        <div class="form-row"><label>Phone *</label><input id="msPhone"/></div>
-        <div class="form-row"><label>Alternate Phone</label><input id="msAltPhone"/></div>
-        <div class="form-row"><label>City</label><input id="msCity"/></div>
+        <div class="form-row"><label>Name *</label><input id="msName" placeholder="Supplier name"/></div>
+        <div class="form-row"><label>Phone</label><input id="msPhone" placeholder="Optional"/></div>
       </div>
-      <div class="form-row"><label>Address</label><textarea id="msAddress" rows="2"></textarea></div>
-      <div class="form-grid">
-        <div class="form-row"><label>State</label><input id="msState"/></div>
-        <div class="form-row"><label>GSTIN</label><input id="msGstin"/></div>
-      </div>
-      <div class="form-row"><label>Notes</label><textarea id="msNotes" rows="2"></textarea></div>
+      <div class="form-row"><label>GSTIN</label><input id="msGstin" placeholder="Optional"/></div>
+      <details>
+        <summary class="small text-mut" style="cursor:pointer;font-weight:700;">More supplier details (optional)</summary>
+        <div style="padding-top:12px;">
+          <div class="form-grid">
+            <div class="form-row"><label>Alternate Phone</label><input id="msAltPhone"/></div>
+            <div class="form-row"><label>City</label><input id="msCity"/></div>
+          </div>
+          <div class="form-grid">
+            <div class="form-row"><label>State</label><input id="msState"/></div>
+            <div class="form-row"><label>Address</label><textarea id="msAddress" rows="2"></textarea></div>
+          </div>
+          <div class="form-row"><label>Notes</label><textarea id="msNotes" rows="2"></textarea></div>
+        </div>
+      </details>
     </div>
     <div class="modal-foot"><button class="btn" onclick="ModalUI.close('modalSupplier')">Cancel</button><button class="btn btn-primary" onclick="ModalUI.saveSupplier()">Save Supplier</button></div>
   </div>
@@ -1044,12 +1046,11 @@ tr:hover td{background:#f8faff;}
     <div class="modal-body">
       <input type="hidden" id="mpId"/>
       <div class="form-grid">
-        <div class="form-row"><label>Product Name *</label><input id="mpName"/></div>
-        <div class="form-row"><label>SKU / Code</label><input id="mpSku"/></div>
+        <div class="form-row"><label>Product Name *</label><input id="mpName" placeholder="Product name"/></div>
+        <div class="form-row"><label>HSN Code *</label><input id="mpHsn" placeholder="HSN code"/></div>
         <div class="form-row"><label>Category</label><input id="mpCategory" list="catList"/><datalist id="catList"></datalist></div>
         <div class="form-row"><label>Brand</label><input id="mpBrand"/></div>
         <div class="form-row"><label>Unit</label><input id="mpUnit" value="Pcs"/></div>
-        <div class="form-row"><label>HSN Code</label><input id="mpHsn"/></div>
         <div class="form-row"><label>Cost Price</label><input id="mpCost" type="number"/></div>
         <div class="form-row"><label>Selling Price *</label><input id="mpPrice" type="number"/></div>
         <div class="form-row"><label>Minimum Selling Price</label><input id="mpMinPrice" type="number"/></div>
@@ -1139,32 +1140,11 @@ tr:hover td{background:#f8faff;}
   </div>
 </div>
 
-<div class="modal-overlay" id="modalRecordPayment">
-  <div class="modal" style="width:440px;">
-    <div class="modal-head"><h3>Record Payment Received</h3><button class="modal-close" onclick="ModalUI.close('modalRecordPayment')">✕</button></div>
-    <div class="modal-body">
-      <input type="hidden" id="rpBillId"/>
-      <div class="small text-mut" id="rpBillInfo" style="margin-bottom:12px;"></div>
-      <div class="form-grid">
-        <div class="form-row"><label>Date Received *</label><input id="rpDate" type="date"/></div>
-        <div class="form-row"><label>Amount Received *</label><input id="rpAmount" type="number" min="0" step="0.01"/></div>
-      </div>
-      <div class="form-grid">
-        <div class="form-row"><label>Payment Mode</label>
-          <select id="rpMode"><option>Cash</option><option>UPI</option><option>Bank Transfer</option><option>Cheque</option><option>Card</option><option>Other</option></select>
-        </div>
-        <div class="form-row"><label>Note (optional)</label><input id="rpNote" placeholder="Ref / cheque no."/></div>
-      </div>
-    </div>
-    <div class="modal-foot"><button class="btn" onclick="ModalUI.close('modalRecordPayment')">Cancel</button><button class="btn btn-primary" id="rpSaveBtn" onclick="BillsList.savePayment()">Save Payment</button></div>
-  </div>
-</div>
-
 <div class="modal-overlay" id="modalBillView">
   <div class="modal" style="width:640px;">
     <div class="modal-head"><h3>Bill Details</h3><button class="modal-close" onclick="ModalUI.close('modalBillView')">✕</button></div>
     <div class="modal-body" id="billViewBody"></div>
-    <div class="modal-foot"><button class="btn" onclick="ModalUI.close('modalBillView')">Close</button><button class="btn btn-primary" onclick="BillsList.printFromView()">Print</button></div>
+    <div class="modal-foot"><button class="btn" onclick="ModalUI.close('modalBillView')">Close</button><button class="btn btn-primary" id="billEditFromViewBtn" onclick="BillsList.edit(BillsList._viewing && BillsList._viewing.id)">Edit Bill</button><button class="btn btn-primary" onclick="BillsList.printFromView()">Print</button></div>
   </div>
 </div>
 
@@ -1243,6 +1223,7 @@ const State = {
   purchasesLastDoc: null,
   salesLeads: [],         // internal sales team members who can be attributed a bill/lead
   leads: [],              // sales pipeline deals
+  _mastersLoaded: false,
 };
 
 const LEAD_STAGES = [
@@ -1515,37 +1496,16 @@ const BillsDAL = {
     await Audit.log('Bill Created', ref.id, {billNumber: billData.billNumber, grandTotal: billData.grandTotal});
     return ref.id;
   },
+  async update(id, billData){
+    await updateDoc(doc(db,'bills',id), billData);
+    await Audit.log('Bill Updated', id, {billNumber: billData.billNumber || null, grandTotal: billData.grandTotal});
+  },
   async voidBill(id, reason){
     await updateDoc(doc(db,'bills',id), {
       status:'void', voidedBy: State.currentUser? (State.profile?.name||State.currentUser.email) : 'unknown',
       voidedAt: serverTimestamp(), voidReason: reason||''
     });
     await Audit.log('Bill Voided', id, {reason});
-  },
-  // Adds a received-payment entry to a bill and updates paidAmount/balance atomically.
-  async recordPayment(id, pay){
-    const ref = doc(db,'bills',id);
-    const updated = await runTransaction(db, async (tx)=>{
-      const snap = await tx.get(ref);
-      if(!snap.exists()) throw new Error('Bill not found');
-      const b = snap.data();
-      if(b.status==='void') throw new Error('Cannot record payment on a voided bill');
-      const due = round2((b.grandTotal||0) - (b.paidAmount||0));
-      if(pay.amount > due + 0.001) throw new Error('Amount exceeds balance due (' + due.toFixed(2) + ')');
-      const entry = {
-        id: uid(), date: Timestamp.fromDate(pay.date), amount: round2(pay.amount),
-        mode: pay.mode||'', note: pay.note||'',
-        recordedBy: State.currentUser? (State.profile?.name||State.currentUser.email) : 'unknown',
-        recordedAtMs: Date.now()
-      };
-      const paymentsReceived = (b.paymentsReceived||[]).concat([entry]);
-      const paidAmount = round2((b.paidAmount||0) + entry.amount);
-      const balance = round2((b.grandTotal||0) - paidAmount);
-      tx.update(ref, { paymentsReceived, paidAmount, balance });
-      return { paymentsReceived, paidAmount, balance };
-    });
-    await Audit.log('Payment Received', id, {amount: pay.amount, mode: pay.mode});
-    return updated;
   }
 };
 
@@ -2102,8 +2062,9 @@ function kpi(label, value, sub, icon, color){
 /* ---------------------------- BILLING (NEW BILL) UI ---------------------------- */
 const BillUI = {
   acIndex: -1, acItems: [], prodAcIndex: -1, prodAcItems: [],
+  _saving: false,
   async reset(){
-    State.currentBill = { items: [], customer: null };
+    State.currentBill = { items: [], customer: null, editId: null, originalBill: null };
     document.getElementById('custSearchInput').value = '';
     document.getElementById('selectedCustomerBox').innerHTML = '';
     document.getElementById('prodSearchInput').value = '';
@@ -2119,6 +2080,10 @@ const BillUI = {
     document.getElementById('tProfitRow').style.display = isAdmin() ? '' : 'none';
     document.getElementById('tMarginRow').style.display = isAdmin() ? '' : 'none';
     document.getElementById('billNumPreview').textContent = '(bill number generated on save)';
+    State.currentBill.editId = null; State.currentBill.originalBill = null;
+    const titleEl=document.getElementById('billPageTitle'); if(titleEl) titleEl.textContent='New Bill';
+    const saveEl=document.getElementById('billSaveBtn'); if(saveEl) saveEl.textContent='Save Bill';
+    const printEl=document.getElementById('billSavePrintBtn'); if(printEl) printEl.textContent='Save & Print';
   },
   populateSalesLeadSelect(){
     const sel = document.getElementById('billSalesLead');
@@ -2161,10 +2126,10 @@ const BillUI = {
     const list = document.getElementById('prodAcList');
     if(!val){ list.classList.remove('show'); return; }
     const v = val.toLowerCase();
-    this.prodAcItems = State.products.filter(p=> p.active!==false && ((p.name||'').toLowerCase().includes(v) || (p.sku||'').toLowerCase().includes(v) || (p.category||'').toLowerCase().includes(v))).slice(0,8);
+    this.prodAcItems = State.products.filter(p=> p.active!==false && ((p.name||'').toLowerCase().includes(v) || (p.hsn||'').toLowerCase().includes(v) || (p.category||'').toLowerCase().includes(v))).slice(0,8);
     this.prodAcIndex = -1;
     if(!this.prodAcItems.length){ list.innerHTML = `<div class="ac-item text-mut">No matching products</div>`; list.classList.add('show'); return; }
-    list.innerHTML = this.prodAcItems.map((p,i)=>`<div class="ac-item" data-i="${i}" onclick="BillUI.pickProduct(${i})">${p.name} <span class="text-mut">(${p.sku})</span><div class="ac-sub">₹${p.sellingPrice} · ${p.category||''} · Stock unit: ${p.unit||'Pcs'}</div></div>`).join('');
+    list.innerHTML = this.prodAcItems.map((p,i)=>`<div class="ac-item" data-i="${i}" onclick="BillUI.pickProduct(${i})">${p.name}<div class="ac-sub">HSN: ${p.hsn||'—'} · ₹${p.sellingPrice} · ${p.category||''} · ${p.unit||'Pcs'}</div></div>`).join('');
     list.classList.add('show');
   },
   prodKeyNav(e){
@@ -2182,7 +2147,7 @@ const BillUI = {
   },
   addProductObj(p){
     State.currentBill.items.push({
-      lineId: uid(), productId: p.id, productNameSnapshot: p.name, skuSnapshot: p.sku,
+      lineId: uid(), productId: p.id, productNameSnapshot: p.name, skuSnapshot: p.sku, hsnSnapshot: p.hsn||'',
       quantity: 1, sellingPriceSnapshot: Number(p.sellingPrice)||0, costPriceSnapshot: Number(p.costPrice)||0,
       minSellingPrice: Number(p.minSellingPrice)||0, discount: 0, taxPct: Number(p.gstRate)||0
     });
@@ -2197,7 +2162,7 @@ const BillUI = {
       return `<tr>
         <td>${idx+1}</td>
         <td>${it.productNameSnapshot}${belowMin?'<div class="small text-red">Below min price!</div>':''}</td>
-        <td>${it.skuSnapshot}</td>
+        <td>${it.hsnSnapshot||State.products.find(p=>p.id===it.productId)?.hsn||'—'}</td>
         <td><input class="qty-input" type="number" min="1" value="${it.quantity}" onchange="BillUI.updateItem(${idx},'quantity',this.value)"/></td>
         <td><input class="rate-input" type="number" value="${it.sellingPriceSnapshot}" onchange="BillUI.updateItem(${idx},'sellingPriceSnapshot',this.value)"/></td>
         <td><input class="disc-input" type="number" value="${it.discount}" onchange="BillUI.updateItem(${idx},'discount',this.value)"/></td>
@@ -2238,17 +2203,25 @@ const BillUI = {
     this._totals = totals;
   },
   async save(printAfter){
-    if(!State.currentBill.customer){ Toast.show('Please select a customer','err'); return; }
-    if(!State.currentBill.items.length){ Toast.show('Add at least one product','err'); return; }
+    // Prevent duplicate bills when the user clicks Save/Save & Print repeatedly
+    // while Firestore is still processing the first request.
+    if(this._saving) return;
+    this._saving = true;
+    const saveBtn = document.getElementById('billSaveBtn');
+    const savePrintBtn = document.getElementById('billSavePrintBtn');
+    if(saveBtn){ saveBtn.disabled = true; saveBtn.dataset.originalText = saveBtn.textContent; saveBtn.textContent = 'Saving...'; }
+    if(savePrintBtn){ savePrintBtn.disabled = true; savePrintBtn.dataset.originalText = savePrintBtn.textContent; savePrintBtn.textContent = 'Saving...'; }
+    if(!State.currentBill.customer){ Toast.show('Please select a customer','err'); this._unlockSave(); return; }
+    if(!State.currentBill.items.length){ Toast.show('Add at least one product','err'); this._unlockSave(); return; }
     const activeLeads = State.salesLeads.filter(s=>s.active!==false);
     const salesLeadId = document.getElementById('billSalesLead').value;
-    if(activeLeads.length && !salesLeadId){ Toast.show('Please select the Sales Lead who made this sale','err'); return; }
+    if(activeLeads.length && !salesLeadId){ Toast.show('Please select the Sales Lead who made this sale','err'); this._unlockSave(); return; }
     const salesLeadName = (activeLeads.find(s=>s.id===salesLeadId)||{}).name || '';
     const c = State.currentBill.customer;
     const calcItems = State.currentBill.items.map(it=>{
       const calc = Logic.calcLineItem({quantity:it.quantity, sellingPrice:it.sellingPriceSnapshot, costPrice:it.costPriceSnapshot, discountPct:it.discount, taxPct:it.taxPct});
       return {
-        productId: it.productId, productNameSnapshot: it.productNameSnapshot, skuSnapshot: it.skuSnapshot,
+        productId: it.productId, productNameSnapshot: it.productNameSnapshot, skuSnapshot: it.skuSnapshot, hsnSnapshot: it.hsnSnapshot || '',
         quantity: Number(it.quantity), sellingPriceSnapshot: Number(it.sellingPriceSnapshot), costPriceSnapshot: Number(it.costPriceSnapshot),
         discount: Number(it.discount)||0, tax: Number(it.taxPct)||0,
         revenue: calc.revenue, cost: calc.cost, profit: calc.profit
@@ -2256,31 +2229,53 @@ const BillUI = {
     });
     const discount = Number(document.getElementById('tDiscount').value)||0;
     const tax = Number(document.getElementById('tTax').value)||0;
-    const totals = Logic.calcBillTotals(calcItems.map(ci=>({amount: ci.revenue+  (ci.revenue*ci.tax/100), cost: ci.cost, profit: ci.profit})), discount, tax);
+    const totals = Logic.calcBillTotals(calcItems.map(ci=>({amount: ci.revenue + (ci.revenue*ci.tax/100), cost: ci.cost, profit: ci.profit})), discount, tax);
     const paid = Number(document.getElementById('tPaid').value)||0;
     const balance = round2(totals.grandTotal - paid);
     const paymentMode = document.getElementById('paymentMode').value;
-    const {billNumber} = await BillsDAL.nextBillNumber();
+    const editId = State.currentBill.editId;
+    const existing = State.currentBill.originalBill;
     const billDoc = {
-      billNumber, customerId: c.id,
+      customerId: c.id,
       customerSnapshot: { name:c.name, firmName:c.firmName||'', phone:c.phone||'', email:c.email||'', address:c.address||'', gstin:c.gstin||'' },
-      date: Timestamp.now(), createdBy: { uid: State.currentUser.uid, name: State.profile?.name || State.currentUser.email },
-      salesLeadId: salesLeadId||null, salesLeadName, // internal attribution only — never shown on customer print
+      salesLeadId: salesLeadId||null, salesLeadName,
       paymentMode, subtotal: totals.subtotal, discount, tax, grandTotal: totals.grandTotal,
-      paidAmount: paid, balance, status:'active',
+      paidAmount: paid, balance, status: existing?.status || 'active',
       totalCost: totals.totalCost, grossProfit: totals.grossProfit, grossMargin: totals.grossMargin,
-      items: calcItems, productIds: [...new Set(calcItems.map(i=>i.productId))]
+      items: calcItems, productIds: [...new Set(calcItems.map(i=>i.productId))],
+      updatedAt: serverTimestamp(),
+      updatedBy: { uid: State.currentUser.uid, name: State.profile?.name || State.currentUser.email }
     };
     try{
-      const billId = await BillsDAL.create(billDoc);
-      Toast.show('Bill ' + billNumber + ' saved','ok');
-      if(printAfter){ await Print.printBill({id:billId, ...billDoc}); }
+      let billId, savedBill;
+      if(editId){
+        await BillsDAL.update(editId, billDoc);
+        billId = editId;
+        savedBill = {...existing, ...billDoc, id:editId};
+        Toast.show('Bill ' + (existing?.billNumber||'') + ' updated','ok');
+      } else {
+        const {billNumber} = await BillsDAL.nextBillNumber();
+        billDoc.billNumber = billNumber;
+        billDoc.date = Timestamp.now();
+        billDoc.createdBy = { uid: State.currentUser.uid, name: State.profile?.name || State.currentUser.email };
+        billId = await BillsDAL.create(billDoc);
+        savedBill = {id:billId, ...billDoc};
+        Toast.show('Bill ' + billNumber + ' saved','ok');
+      }
+      if(printAfter){ await Print.printBill(savedBill); }
       await Loader.reloadCustomersProducts();
       this.reset();
       Router.go('bills');
-    }catch(e){ Toast.show('Save failed: '+e.message,'err'); }
-  }
-};
+    }catch(e){ Toast.show((editId?'Update':'Save')+' failed: '+e.message,'err'); }
+    finally { this._unlockSave(); }
+  },
+  _unlockSave(){
+    this._saving = false;
+    const saveBtn = document.getElementById('billSaveBtn');
+    const savePrintBtn = document.getElementById('billSavePrintBtn');
+    if(saveBtn){ saveBtn.disabled = false; saveBtn.textContent = saveBtn.dataset.originalText || 'Save Bill'; }
+    if(savePrintBtn){ savePrintBtn.disabled = false; savePrintBtn.textContent = savePrintBtn.dataset.originalText || 'Save & Print'; }
+  }};
 
 /* ---------------------------- BILL DRAFTS (saved locally in this browser, not synced to Firestore) ---------------------------- */
 const Drafts = {
@@ -2394,17 +2389,14 @@ const BillsList = {
         <td>${money(b.grandTotal)}</td>
         <td>${admin? money(b.totalCost): '—'}</td>
         <td>${admin? money(b.grossProfit): '—'}</td>
-        <td>${money(b.paidAmount)}</td><td>${money(b.balance)}</td>
-        <td>${this.lastPaymentCell(b)}</td>
-        <td>${b.paymentMode}</td>
+        <td>${money(b.paidAmount)}</td><td>${money(b.balance)}</td><td>${b.paymentMode}</td>
         <td>${b.status==='void'? '<span class="badge badge-red">VOIDED</span>' : '<span class="badge badge-green">ACTIVE</span>'}</td>
         <td>
           <button class="btn btn-sm" onclick="BillsList.view('${b.id}')">View</button>
-          ${b.status!=='void' && (b.balance||0)>0 ? `<button class="btn btn-sm btn-primary" onclick="BillsList.openPayment('${b.id}')">Payment</button>` : ''}
-          ${b.status!=='void' && admin ? `<button class="btn btn-sm btn-danger" onclick="BillsList.openVoid('${b.id}')">Void</button>` : ''}
+          ${b.status!=='void' && admin ? `<button class="btn btn-sm btn-primary" onclick="BillsList.edit('${b.id}')">Edit</button><button class="btn btn-sm btn-danger" onclick="BillsList.openVoid('${b.id}')">Void</button>` : ''}
         </td>
       </tr>`;
-    }).join('') || `<tr><td colspan="14" class="text-mut" style="text-align:center;padding:20px;">No bills found for this range.</td></tr>`;
+    }).join('') || `<tr><td colspan="13" class="text-mut" style="text-align:center;padding:20px;">No bills found for this range.</td></tr>`;
     document.getElementById('billsPageInfo').textContent = `${State.billsCache.length} bills loaded`;
   },
   view(id){
@@ -2428,65 +2420,41 @@ const BillsList = {
         <div class="trow"><span>Paid</span><span>${money(b.paidAmount)}</span></div>
         <div class="trow"><span>Balance</span><span>${money(b.balance)}</span></div>
         ${admin? `<div class="trow"><span>Cost</span><span>${money(b.totalCost)}</span></div><div class="trow"><span>Gross Profit</span><span>${money(b.grossProfit)} (${pct(b.grossMargin)})</span></div>` : ''}
-      </div>
-      ${this.paymentsHTML(b)}`;
+      </div>`;
     ModalUI.open('modalBillView');
   },
-  /* ---- Payments received ---- */
-  _sortedPayments(b){
-    return (b.paymentsReceived||[]).slice().sort((x,y)=> dateFromTS(x.date) - dateFromTS(y.date));
-  },
-  lastPaymentCell(b){
-    const list = this._sortedPayments(b);
-    if(!list.length) return '<span class="text-mut">—</span>';
-    const last = list[list.length-1];
-    return `${fmtDate(last.date)}<div class="small text-mut">${money(last.amount)}${list.length>1?` · ${list.length} payments`:''}</div>`;
-  },
-  paymentsHTML(b){
-    const list = this._sortedPayments(b);
-    const canPay = b.status!=='void' && (b.balance||0)>0;
-    return `<div class="mt16">
-      <div class="flex-between"><b>Payments Received</b>${canPay? `<button class="btn btn-sm btn-primary" onclick="BillsList.openPayment('${b.id}')">+ Record Payment</button>` : ''}</div>
-      ${list.length? `<table class="mt8"><thead><tr><th>Date</th><th>Amount</th><th>Mode</th><th>Note</th><th>By</th></tr></thead>
-        <tbody>${list.map(p=>`<tr><td>${fmtDate(p.date)}</td><td>${money(p.amount)}</td><td>${p.mode||'—'}</td><td>${p.note||'—'}</td><td>${p.recordedBy||'—'}</td></tr>`).join('')}</tbody></table>`
-        : '<div class="small text-mut mt8">No separate payments recorded yet.</div>'}
-    </div>`;
-  },
-  openPayment(id){
-    const b = State.billsCache.find(x=>x.id===id);
-    if(!b) return;
-    document.getElementById('rpBillId').value = id;
-    document.getElementById('rpBillInfo').innerHTML = `<b>${b.billNumber}</b> · ${b.customerSnapshot?.name||''}<br/>Total ${money(b.grandTotal)} · Paid ${money(b.paidAmount)} · <b>Balance due ${money(b.balance)}</b>`;
-    document.getElementById('rpDate').value = todayStr(new Date(Date.now() - new Date().getTimezoneOffset()*60000));
-    document.getElementById('rpAmount').value = b.balance||'';
-    document.getElementById('rpMode').value = 'Cash';
-    document.getElementById('rpNote').value = '';
+  edit(id){
+    if(!isAdmin()){ Toast.show('Only an Admin can edit bills','err'); return; }
+    const b = State.billsCache.find(x=>x.id===id) || this._viewing;
+    if(!b || b.status==='void'){ Toast.show('This bill cannot be edited','err'); return; }
     ModalUI.close('modalBillView');
-    ModalUI.open('modalRecordPayment');
-  },
-  async savePayment(){
-    const id = document.getElementById('rpBillId').value;
-    const dateStr = document.getElementById('rpDate').value;
-    const amount = Number(document.getElementById('rpAmount').value)||0;
-    if(!dateStr){ Toast.show('Select the date payment was received','err'); return; }
-    if(amount<=0){ Toast.show('Enter the amount received','err'); return; }
-    const btn = document.getElementById('rpSaveBtn');
-    btn.disabled = true;
-    try{
-      const res = await BillsDAL.recordPayment(id, {
-        date: new Date(dateStr+'T12:00:00'), amount,
-        mode: document.getElementById('rpMode').value,
-        note: document.getElementById('rpNote').value.trim()
-      });
-      const b = State.billsCache.find(x=>x.id===id);
-      if(b) Object.assign(b, res);
-      ModalUI.close('modalRecordPayment');
-      Toast.show('Payment recorded','ok');
-      this.render();
-      if(b) this.view(id);
-    }catch(e){
-      Toast.show(e.message||'Could not save payment','err');
-    }finally{ btn.disabled = false; }
+    State.currentBill = {
+      editId: b.id,
+      originalBill: b,
+      customer: State.customers.find(c=>c.id===b.customerId) || b.customerSnapshot || null,
+      items: (b.items||[]).map(it=>({
+        lineId: uid(), productId: it.productId, productNameSnapshot: it.productNameSnapshot,
+        skuSnapshot: it.skuSnapshot||'', hsnSnapshot: it.hsnSnapshot || State.products.find(p=>p.id===it.productId)?.hsn || '',
+        quantity: Number(it.quantity)||1, sellingPriceSnapshot: Number(it.sellingPriceSnapshot)||0,
+        costPriceSnapshot: Number(it.costPriceSnapshot)||0, minSellingPrice: Number(State.products.find(p=>p.id===it.productId)?.minSellingPrice)||0,
+        discount: Number(it.discount)||0, taxPct: Number(it.tax)||0
+      }))
+    };
+    Router.go('newbill');
+    document.getElementById('custSearchInput').value = State.currentBill.customer?.name || '';
+    const c=State.currentBill.customer||{};
+    document.getElementById('selectedCustomerBox').innerHTML = `📞 ${c.phone||'—'} &nbsp; ${c.address||''} ${c.gstin?('&nbsp; GSTIN: '+c.gstin):''}`;
+    document.getElementById('tDiscount').value = b.discount||0;
+    document.getElementById('tTax').value = b.tax||0;
+    document.getElementById('tPaid').value = b.paidAmount||0;
+    document.getElementById('paymentMode').value = b.paymentMode||'Cash';
+    document.getElementById('billSalesLead').value = b.salesLeadId||'';
+    document.getElementById('billPageTitle').textContent = 'Edit Bill';
+    document.getElementById('billNumPreview').textContent = b.billNumber ? `(${b.billNumber})` : '';
+    document.getElementById('billSaveBtn').textContent = 'Update Bill';
+    document.getElementById('billSavePrintBtn').textContent = 'Update & Print';
+    BillUI.renderItems();
+    BillUI.recalc();
   },
   printFromView(){ if(this._viewing) Print.printBill(this._viewing); },
   openVoid(id){ document.getElementById('voidBillId').value = id; ModalUI.open('modalVoid'); },
@@ -2500,214 +2468,111 @@ const BillsList = {
     this.load(true);
   },
   exportCSV(){
-    const rows = [['Bill No','Date','Customer','Sales','Cost','Profit','Paid','Balance','Payments Received','Mode','Status']];
-    State.billsCache.forEach(b=> rows.push([b.billNumber, fmtDate(b.date), b.customerSnapshot?.name, b.grandTotal, b.totalCost, b.grossProfit, b.paidAmount, b.balance, this._sortedPayments(b).map(p=>fmtDate(p.date)+': '+p.amount).join(' | '), b.paymentMode, b.status]));
+    const rows = [['Bill No','Date','Customer','Sales','Cost','Profit','Paid','Balance','Mode','Status']];
+    State.billsCache.forEach(b=> rows.push([b.billNumber, fmtDate(b.date), b.customerSnapshot?.name, b.grandTotal, b.totalCost, b.grossProfit, b.paidAmount, b.balance, b.paymentMode, b.status]));
     downloadCSV('bills_export.csv', rows);
   }
 };
 
 /* ---------------------------- PURCHASE BILL (NEW PURCHASE) UI ---------------------------- */
 const PurchaseUI = {
-  acIndex: -1, acItems: [],
+  acIndex: -1, acItems: [], productAcIndex: -1, productAcItems: [],
   async reset(){
-    State.currentPurchase = { items: [], supplier: null };
-    document.getElementById('suppSearchInput').value = '';
-    document.getElementById('selectedSupplierBox').innerHTML = '';
-    document.getElementById('suppInvoiceNo').value = '';
+    State.currentPurchase={items:[],supplier:null};
+    document.getElementById('suppSearchInput').value='';
+    document.getElementById('selectedSupplierBox').innerHTML='';
+    document.getElementById('suppInvoiceNo').value='';
     this.clearProductForm();
-    document.getElementById('pDiscount').value = 0;
-    document.getElementById('pCourier').value = 0;
-    document.getElementById('pOtherCharges').value = 0;
-    document.getElementById('pPaid').value = 0;
-    document.getElementById('purchasePaymentMode').value = 'Cash';
-    document.getElementById('purchaseUpdateCost').checked = true;
-    this.renderItems();
-    this.recalc();
-    document.getElementById('purchaseNumPreview').textContent = '(purchase number generated on save)';
+    document.getElementById('pDiscount').value=0;
+    document.getElementById('pCourier').value=0;
+    document.getElementById('pOtherCharges').value=0;
+    document.getElementById('pPaid').value=0;
+    document.getElementById('purchasePaymentMode').value='Cash';
+    document.getElementById('purchaseUpdateCost').checked=true;
+    this.renderItems(); this.recalc();
+    document.getElementById('purchaseNumPreview').textContent='(purchase number generated on save)';
   },
   searchSupplier(val){
-    const list = document.getElementById('suppAcList');
-    if(!val){ list.classList.remove('show'); return; }
-    const v = val.toLowerCase();
-    this.acItems = State.suppliers.filter(s=> (s.name||'').toLowerCase().includes(v) || (s.phone||'').includes(v)).slice(0,8);
-    this.acIndex = -1;
-    if(!this.acItems.length){
-      list.innerHTML = `<div class="ac-item" onclick="ModalUI.openSupplier(null,'${val.replace(/'/g,"")}')"><b>+ Add New Supplier</b> "${val}"</div>`;
-      list.classList.add('show'); return;
-    }
-    list.innerHTML = this.acItems.map((s,i)=>`<div class="ac-item" data-i="${i}" onclick="PurchaseUI.pickSupplier(${i})">${s.name}<div class="ac-sub">${s.phone||''} ${s.gstin? '· GSTIN: '+s.gstin:''}</div></div>`).join('')
-      + `<div class="ac-item" onclick="ModalUI.openSupplier(null,'${val.replace(/'/g,"")}')"><b>+ Add New Supplier</b></div>`;
+    const list=document.getElementById('suppAcList');
+    if(!val){list.classList.remove('show');return;}
+    const v=val.toLowerCase();
+    this.acItems=State.suppliers.filter(s=>(s.name||'').toLowerCase().includes(v)||(s.phone||'').includes(v)).slice(0,8);
+    this.acIndex=-1;
+    const safe=String(val).replace(/'/g,'&#39;');
+    if(!this.acItems.length){list.innerHTML=`<div class="ac-item" onclick="ModalUI.openSupplier(null,'${safe}')"><b>+ Add New Supplier</b> "${safe}"</div>`;list.classList.add('show');return;}
+    list.innerHTML=this.acItems.map((s,i)=>`<div class="ac-item" data-i="${i}" onclick="PurchaseUI.pickSupplier(${i})">${s.name}<div class="ac-sub">${s.phone||''} ${s.gstin?'· GSTIN: '+s.gstin:''}</div></div>`).join('')+`<div class="ac-item" onclick="ModalUI.openSupplier(null,'${safe}')"><b>+ Add New Supplier</b></div>`;
     list.classList.add('show');
   },
   suppKeyNav(e){
-    const list = document.getElementById('suppAcList');
-    const items = list.querySelectorAll('.ac-item');
-    if(e.key==='ArrowDown'){ this.acIndex = Math.min(this.acIndex+1, items.length-1); items.forEach(i=>i.classList.remove('hi')); if(items[this.acIndex])items[this.acIndex].classList.add('hi'); e.preventDefault(); }
-    else if(e.key==='ArrowUp'){ this.acIndex = Math.max(this.acIndex-1, 0); items.forEach(i=>i.classList.remove('hi')); if(items[this.acIndex])items[this.acIndex].classList.add('hi'); e.preventDefault(); }
-    else if(e.key==='Enter'){ if(this.acIndex>=0 && this.acItems[this.acIndex]) this.pickSupplier(this.acIndex); e.preventDefault(); }
+    const list=document.getElementById('suppAcList'),items=list.querySelectorAll('.ac-item');
+    if(e.key==='ArrowDown'){this.acIndex=Math.min(this.acIndex+1,items.length-1);items.forEach(i=>i.classList.remove('hi'));if(items[this.acIndex])items[this.acIndex].classList.add('hi');e.preventDefault();}
+    else if(e.key==='ArrowUp'){this.acIndex=Math.max(this.acIndex-1,0);items.forEach(i=>i.classList.remove('hi'));if(items[this.acIndex])items[this.acIndex].classList.add('hi');e.preventDefault();}
+    else if(e.key==='Enter'){if(this.acIndex>=0&&this.acItems[this.acIndex])this.pickSupplier(this.acIndex);e.preventDefault();}
   },
   pickSupplier(i){
-    const s = this.acItems[i];
-    State.currentPurchase.supplier = s;
-    document.getElementById('suppSearchInput').value = s.name;
-    document.getElementById('suppAcList').classList.remove('show');
-    document.getElementById('selectedSupplierBox').innerHTML = `📞 ${s.phone||'—'} &nbsp; ${s.address||''} ${s.gstin?('&nbsp; GSTIN: '+s.gstin):''}`;
+    const s=this.acItems[i];State.currentPurchase.supplier=s;
+    document.getElementById('suppSearchInput').value=s.name;document.getElementById('suppAcList').classList.remove('show');
+    document.getElementById('selectedSupplierBox').innerHTML=`📞 ${s.phone||'—'} &nbsp; ${s.address||''} ${s.gstin?('&nbsp; GSTIN: '+s.gstin):''}`;
   },
-  // Purchase Bill items are entered manually (name, SKU, category, unit, GST, rate) rather than
-  // picked from the existing Product Inventory list. If the SKU matches an existing product, that
-  // product's stock/cost is updated; otherwise a brand-new product is created in Product Inventory
-  // automatically when the bill is saved.
-  lookupSku(val){
-    const note = document.getElementById('purProdMatchNote');
-    if(!val || !val.trim()){ note.innerHTML = ''; return; }
-    const p = State.products.find(x=> (x.sku||'').toLowerCase() === val.trim().toLowerCase());
-    if(p){
-      document.getElementById('purProdName').value = p.name;
-      document.getElementById('purProdCategory').value = p.category||'';
-      document.getElementById('purProdUnit').value = p.unit||'Pcs';
-      document.getElementById('purProdGst').value = p.gstRate||0;
-      note.innerHTML = `<span class="text-green">✓ Matches existing product "${p.name}" — this purchase will add to its stock${document.getElementById('purchaseUpdateCost').checked? ' and update its cost price':''}.</span>`;
-    } else {
-      note.innerHTML = `<span class="text-mut">New SKU — this product will be added to Product Inventory when you save this bill.</span>`;
-    }
+  lookupProduct(val){
+    const note=document.getElementById('purProdMatchNote'),v=(val||'').trim().toLowerCase();
+    if(!v){note.innerHTML='';this.productAcItems=[];return;}
+    this.productAcItems=State.products.filter(p=>p.active!==false&&((p.name||'').toLowerCase().includes(v)||(p.hsn||'').toLowerCase().includes(v))).slice(0,6);
+    if(!this.productAcItems.length){note.innerHTML='<span class="text-mut">New product — enter HSN, quantity and purchase rate.</span>';return;}
+    note.innerHTML=this.productAcItems.map((p,i)=>`<div class="ac-item" style="display:inline-block;margin:4px 5px 0 0;border:1px solid var(--border);border-radius:8px;padding:6px 9px;cursor:pointer;" onclick="PurchaseUI.pickProduct(${i})"><b>${p.name}</b><div class="ac-sub">HSN: ${p.hsn||'—'} · ₹${p.sellingPrice||0} · ${p.unit||'Pcs'}</div></div>`).join('');
+  },
+  lookupProductByHsn(val){
+    const v=(val||'').trim().toLowerCase();if(!v)return;
+    const p=State.products.find(x=>x.active!==false&&(x.hsn||'').toLowerCase()===v);if(p)this.fillProduct(p);
+  },
+  pickProduct(i){const p=this.productAcItems[i];if(p)this.fillProduct(p);},
+  fillProduct(p){
+    document.getElementById('purProdName').value=p.name||'';document.getElementById('purProdHsn').value=p.hsn||'';
+    document.getElementById('purProdCategory').value=p.category||'';document.getElementById('purProdUnit').value=p.unit||'Pcs';
+    document.getElementById('purProdGst').value=p.gstRate||0;document.getElementById('purProdSellingPrice').value=p.sellingPrice||'';
+    document.getElementById('purProdMatchNote').innerHTML='<span class="text-green">✓ Existing product selected — stock will be increased and cost updated from this purchase.</span>';
   },
   clearProductForm(){
-    ['purProdSku','purProdName','purProdCategory','purProdSellingPrice'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
-    document.getElementById('purProdUnit').value = 'Pcs';
-    document.getElementById('purProdGst').value = 0;
-    document.getElementById('purProdQty').value = 1;
-    document.getElementById('purProdRate').value = '';
-    document.getElementById('purProdMatchNote').innerHTML = '';
+    ['purProdName','purProdHsn','purProdCategory','purProdSellingPrice'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+    document.getElementById('purProdUnit').value='Pcs';document.getElementById('purProdGst').value=0;document.getElementById('purProdQty').value=1;document.getElementById('purProdRate').value='';
+    document.getElementById('purProdMatchNote').innerHTML='';this.productAcItems=[];
   },
   addItem(){
-    const sku = document.getElementById('purProdSku').value.trim();
-    const name = document.getElementById('purProdName').value.trim();
-    const qty = Number(document.getElementById('purProdQty').value)||0;
-    const rate = Number(document.getElementById('purProdRate').value)||0;
-    if(!sku){ Toast.show('SKU / Code is required','err'); return; }
-    if(!name){ Toast.show('Product name is required','err'); return; }
-    if(qty<=0){ Toast.show('Quantity must be greater than 0','err'); return; }
-    if(rate<=0){ Toast.show('Purchase rate is required','err'); return; }
-    const category = document.getElementById('purProdCategory').value.trim();
-    const unit = document.getElementById('purProdUnit').value.trim() || 'Pcs';
-    const gstRate = Number(document.getElementById('purProdGst').value)||0;
-    const sellingPriceRaw = document.getElementById('purProdSellingPrice').value;
-    const existing = State.products.find(p=> (p.sku||'').toLowerCase() === sku.toLowerCase());
-    const sellingPrice = sellingPriceRaw!==''? Number(sellingPriceRaw) : (existing? Number(existing.sellingPrice)||0 : rate);
-    // Same SKU added twice in this bill just adds to the quantity of that line, instead of a duplicate row.
-    const existingLine = State.currentPurchase.items.find(it=> (it.skuSnapshot||'').toLowerCase()===sku.toLowerCase());
-    if(existingLine){
-      existingLine.quantity = Number(existingLine.quantity) + qty;
-      existingLine.purchaseRate = rate;
-    } else {
-      State.currentPurchase.items.push({
-        lineId: uid(), productId: existing? existing.id : null,
-        productNameSnapshot: name, skuSnapshot: sku, category, unit, sellingPrice,
-        quantity: qty, purchaseRate: rate, discount: 0, taxPct: gstRate, isNewProduct: !existing
-      });
-    }
-    this.clearProductForm();
-    this.renderItems(); this.recalc();
+    const name=document.getElementById('purProdName').value.trim(),hsn=document.getElementById('purProdHsn').value.trim(),qty=Number(document.getElementById('purProdQty').value)||0,rate=Number(document.getElementById('purProdRate').value)||0;
+    if(!name){Toast.show('Product name is required','err');return;}if(!hsn){Toast.show('HSN Code is required','err');return;}if(qty<=0){Toast.show('Quantity must be greater than 0','err');return;}if(rate<=0){Toast.show('Purchase rate is required','err');return;}
+    const category=document.getElementById('purProdCategory').value.trim(),unit=document.getElementById('purProdUnit').value.trim()||'Pcs',gstRate=Number(document.getElementById('purProdGst').value)||0,sellingPriceRaw=document.getElementById('purProdSellingPrice').value;
+    const existing=State.products.find(p=>p.active!==false&&(((p.name||'').trim().toLowerCase()===name.toLowerCase())||((p.hsn||'').trim().toLowerCase()===hsn.toLowerCase())));
+    const sellingPrice=sellingPriceRaw!==''?Number(sellingPriceRaw):(existing?Number(existing.sellingPrice)||0:rate);
+    const existingLine=State.currentPurchase.items.find(it=>(it.productNameSnapshot||'').toLowerCase()===name.toLowerCase()&&(it.hsnSnapshot||'').toLowerCase()===hsn.toLowerCase());
+    if(existingLine){existingLine.quantity=Number(existingLine.quantity)+qty;existingLine.purchaseRate=rate;existingLine.taxPct=gstRate;}
+    else State.currentPurchase.items.push({lineId:uid(),productId:existing?existing.id:null,productNameSnapshot:name,hsnSnapshot:hsn,skuSnapshot:existing?.sku||'',category,unit,sellingPrice,quantity:qty,purchaseRate:rate,discount:0,taxPct:gstRate,isNewProduct:!existing});
+    this.clearProductForm();this.renderItems();this.recalc();document.getElementById('purProdName').focus();
   },
-  calcLine(it){
-    // Per-product purchase cost: qty * rate, less line discount, plus GST on the taxable amount.
-    return Logic.calcLineItem({quantity:it.quantity, sellingPrice:it.purchaseRate, costPrice:0, discountPct:it.discount, taxPct:it.taxPct});
-  },
+  calcLine(it){return Logic.calcLineItem({quantity:it.quantity,sellingPrice:it.purchaseRate,costPrice:0,discountPct:it.discount,taxPct:it.taxPct});},
   renderItems(){
-    const tbody = document.getElementById('purchaseItemsBody');
-    tbody.innerHTML = State.currentPurchase.items.map((it,idx)=>{
-      const calc = this.calcLine(it);
-      return `<tr>
-        <td>${idx+1}</td>
-        <td>${it.productNameSnapshot}${it.isNewProduct? ' <span class="badge badge-orange" style="font-size:9px;">NEW</span>':''}</td>
-        <td>${it.skuSnapshot}</td>
-        <td><input class="qty-input" type="number" min="1" value="${it.quantity}" onchange="PurchaseUI.updateItem(${idx},'quantity',this.value)"/></td>
-        <td><input class="rate-input" type="number" value="${it.purchaseRate}" onchange="PurchaseUI.updateItem(${idx},'purchaseRate',this.value)"/></td>
-        <td><input class="disc-input" type="number" value="${it.discount}" onchange="PurchaseUI.updateItem(${idx},'discount',this.value)"/></td>
-        <td><input class="disc-input" type="number" value="${it.taxPct}" onchange="PurchaseUI.updateItem(${idx},'taxPct',this.value)"/></td>
-        <td>${money(calc.amount)}</td>
-        <td><button class="btn btn-sm btn-danger" onclick="PurchaseUI.removeItem(${idx})">✕</button></td>
-      </tr>`;
-    }).join('') || `<tr><td colspan="9" class="text-mut" style="text-align:center;padding:20px;">No items added yet. Enter product details above.</td></tr>`;
+    const tbody=document.getElementById('purchaseItemsBody');
+    tbody.innerHTML=State.currentPurchase.items.map((it,idx)=>{const calc=this.calcLine(it);return `<tr><td>${idx+1}</td><td>${it.productNameSnapshot}${it.isNewProduct?' <span class="badge badge-orange" style="font-size:9px;">NEW</span>':''}</td><td>${it.hsnSnapshot||'—'}</td><td><input class="qty-input" type="number" min="1" value="${it.quantity}" onchange="PurchaseUI.updateItem(${idx},'quantity',this.value)"/></td><td><input class="rate-input" type="number" value="${it.purchaseRate}" onchange="PurchaseUI.updateItem(${idx},'purchaseRate',this.value)"/></td><td><input class="disc-input" type="number" value="${it.discount}" onchange="PurchaseUI.updateItem(${idx},'discount',this.value)"/></td><td><input class="disc-input" type="number" value="${it.taxPct}" onchange="PurchaseUI.updateItem(${idx},'taxPct',this.value)"/></td><td>${money(calc.amount)}</td><td><button class="btn btn-sm btn-danger" onclick="PurchaseUI.removeItem(${idx})">✕</button></td></tr>`}).join('')||'<tr><td colspan="9" class="text-mut" style="text-align:center;padding:20px;">No items added yet. Search/select a product or enter a new product above.</td></tr>';
   },
-  updateItem(idx, field, value){
-    const it = State.currentPurchase.items[idx];
-    it[field] = Number(value);
-    this.renderItems(); this.recalc();
-  },
-  removeItem(idx){ State.currentPurchase.items.splice(idx,1); this.renderItems(); this.recalc(); },
+  updateItem(idx,field,value){const it=State.currentPurchase.items[idx];it[field]=Number(value);this.renderItems();this.recalc();},
+  removeItem(idx){State.currentPurchase.items.splice(idx,1);this.renderItems();this.recalc();},
   recalc(){
-    const calcItems = State.currentPurchase.items.map(it=> this.calcLine(it));
-    const discount = Number(document.getElementById('pDiscount').value)||0;
-    const courier = Number(document.getElementById('pCourier').value)||0;
-    const other = Number(document.getElementById('pOtherCharges').value)||0;
-    let subtotal=0, gstPaid=0;
-    calcItems.forEach(c=>{ subtotal += c.revenue; gstPaid += c.taxAmt; });
-    subtotal = round2(subtotal); gstPaid = round2(gstPaid);
-    const grandTotal = round2(subtotal - discount + gstPaid + courier + other);
-    const totalQty = State.currentPurchase.items.reduce((s,it)=>s+(Number(it.quantity)||0),0);
-    document.getElementById('pItemCount').textContent = State.currentPurchase.items.length;
-    document.getElementById('pQtyCount').textContent = totalQty;
-    document.getElementById('pSubtotal').textContent = money(subtotal);
-    document.getElementById('pGst').textContent = money(gstPaid);
-    document.getElementById('pGrand').textContent = money(grandTotal);
-    const paid = Number(document.getElementById('pPaid').value)||0;
-    const balance = round2(grandTotal - paid);
-    document.getElementById('pBalance').textContent = money(balance);
-    this._totals = { subtotal, discount, gstPaid, courier, other, grandTotal, totalQty };
+    const calcItems=State.currentPurchase.items.map(it=>this.calcLine(it)),discount=Number(document.getElementById('pDiscount').value)||0,courier=Number(document.getElementById('pCourier').value)||0,other=Number(document.getElementById('pOtherCharges').value)||0;let subtotal=0,gstPaid=0;
+    calcItems.forEach(c=>{subtotal+=c.revenue;gstPaid+=c.taxAmt;});subtotal=round2(subtotal);gstPaid=round2(gstPaid);const grandTotal=round2(subtotal-discount+gstPaid+courier+other),totalQty=State.currentPurchase.items.reduce((s,it)=>s+(Number(it.quantity)||0),0);
+    document.getElementById('pItemCount').textContent=State.currentPurchase.items.length;document.getElementById('pQtyCount').textContent=totalQty;document.getElementById('pSubtotal').textContent=money(subtotal);document.getElementById('pGst').textContent=money(gstPaid);document.getElementById('pGrand').textContent=money(grandTotal);
+    const paid=Number(document.getElementById('pPaid').value)||0;document.getElementById('pBalance').textContent=money(round2(grandTotal-paid));this._totals={subtotal,discount,gstPaid,courier,other,grandTotal,totalQty};
   },
   async save(printAfter){
-    if(!State.currentPurchase.supplier){ Toast.show('Please select a supplier','err'); return; }
-    if(!State.currentPurchase.items.length){ Toast.show('Add at least one product','err'); return; }
-    this.recalc();
-    const t = this._totals;
-    const s = State.currentPurchase.supplier;
-    const updateCost = document.getElementById('purchaseUpdateCost').checked;
-    // Create any brand-new products in Product Inventory first, so the purchase bill line items
-    // can be linked to a real productId (and stock/reporting picks them up immediately).
-    for(const it of State.currentPurchase.items){
-      if(!it.productId){
-        const newId = await ProductsDAL.create({
-          name: it.productNameSnapshot, sku: it.skuSnapshot, category: it.category||'', brand: '',
-          unit: it.unit||'Pcs', hsn: '', costPrice: Number(it.purchaseRate)||0, sellingPrice: Number(it.sellingPrice)||Number(it.purchaseRate)||0,
-          minSellingPrice: 0, gstRate: Number(it.taxPct)||0, active: true
-        });
-        it.productId = newId;
-      } else if(updateCost){
-        const p = State.products.find(x=>x.id===it.productId);
-        if(p) await ProductsDAL.update(p.id, {costPrice: Number(it.purchaseRate)||0}, p);
-      }
-    }
-    const calcItems = State.currentPurchase.items.map(it=>{
-      const calc = this.calcLine(it);
-      return {
-        productId: it.productId, productNameSnapshot: it.productNameSnapshot, skuSnapshot: it.skuSnapshot,
-        quantity: Number(it.quantity), purchaseRateSnapshot: Number(it.purchaseRate),
-        discount: Number(it.discount)||0, tax: Number(it.taxPct)||0,
-        amount: calc.amount, taxAmt: calc.taxAmt, taxableAmount: calc.revenue
-      };
-    });
-    const paid = Number(document.getElementById('pPaid').value)||0;
-    const balance = round2(t.grandTotal - paid);
-    const paymentMode = document.getElementById('purchasePaymentMode').value;
-    const {purchaseBillNumber} = await PurchaseBillsDAL.nextPurchaseBillNumber();
-    const purchaseDoc = {
-      purchaseBillNumber, supplierInvoiceNo: document.getElementById('suppInvoiceNo').value.trim(),
-      supplierId: s.id, supplierSnapshot: { name:s.name, phone:s.phone||'', address:s.address||'', gstin:s.gstin||'' },
-      date: Timestamp.now(), createdBy: { uid: State.currentUser.uid, name: State.profile?.name || State.currentUser.email },
-      paymentMode, subtotal: t.subtotal, discount: t.discount, gstPaid: t.gstPaid,
-      courierCharges: t.courier, otherCharges: t.other, grandTotal: t.grandTotal,
-      paidAmount: paid, balance, status:'active', totalQty: t.totalQty,
-      items: calcItems, productIds: [...new Set(calcItems.map(i=>i.productId))]
-    };
+    if(!State.currentPurchase.supplier){Toast.show('Please select a supplier','err');return;}if(!State.currentPurchase.items.length){Toast.show('Add at least one product','err');return;}this.recalc();const t=this._totals,s=State.currentPurchase.supplier,updateCost=document.getElementById('purchaseUpdateCost').checked;
     try{
-      const purchaseId = await PurchaseBillsDAL.create(purchaseDoc);
-      Toast.show('Purchase Bill ' + purchaseBillNumber + ' saved','ok');
-      if(printAfter){ await Print.printPurchase({id:purchaseId, ...purchaseDoc}); }
-      await Loader.reloadCustomersProducts();
-      this.reset();
-      Router.go('purchases');
-    }catch(e){ Toast.show('Save failed: '+e.message,'err'); }
+      for(const it of State.currentPurchase.items){
+        if(!it.productId){const newId=await ProductsDAL.create({name:it.productNameSnapshot,sku:(it.productNameSnapshot.replace(/[^A-Za-z0-9]/g,'').slice(0,4).toUpperCase()||'PRD')+'-'+uid().slice(0,4).toUpperCase(),category:it.category||'',brand:'',unit:it.unit||'Pcs',hsn:it.hsnSnapshot||'',costPrice:Number(it.purchaseRate)||0,sellingPrice:Number(it.sellingPrice)||Number(it.purchaseRate)||0,minSellingPrice:0,gstRate:Number(it.taxPct)||0,active:true});it.productId=newId;}
+        else if(updateCost){const p=State.products.find(x=>x.id===it.productId);if(p)await ProductsDAL.update(p.id,{costPrice:Number(it.purchaseRate)||0,hsn:it.hsnSnapshot||p.hsn||''},p);}
+      }
+      const calcItems=State.currentPurchase.items.map(it=>{const calc=this.calcLine(it);return {productId:it.productId,productNameSnapshot:it.productNameSnapshot,skuSnapshot:it.skuSnapshot||'',hsnSnapshot:it.hsnSnapshot||'',quantity:Number(it.quantity),purchaseRateSnapshot:Number(it.purchaseRate),discount:Number(it.discount)||0,tax:Number(it.taxPct)||0,amount:calc.amount,taxAmt:calc.taxAmt,taxableAmount:calc.revenue};});
+      const paid=Number(document.getElementById('pPaid').value)||0,balance=round2(t.grandTotal-paid),paymentMode=document.getElementById('purchasePaymentMode').value,{purchaseBillNumber}=await PurchaseBillsDAL.nextPurchaseBillNumber();
+      const purchaseDoc={purchaseBillNumber,supplierInvoiceNo:document.getElementById('suppInvoiceNo').value.trim(),supplierId:s.id,supplierSnapshot:{name:s.name,phone:s.phone||'',address:s.address||'',gstin:s.gstin||''},date:Timestamp.now(),createdBy:{uid:State.currentUser.uid,name:State.profile?.name||State.currentUser.email},paymentMode,subtotal:t.subtotal,discount:t.discount,gstPaid:t.gstPaid,courierCharges:t.courier,otherCharges:t.other,grandTotal:t.grandTotal,paidAmount:paid,balance,status:'active',totalQty:t.totalQty,items:calcItems,productIds:[...new Set(calcItems.map(i=>i.productId))]};
+      const purchaseId=await PurchaseBillsDAL.create(purchaseDoc);Toast.show('Purchase Bill '+purchaseBillNumber+' saved','ok');if(printAfter)await Print.printPurchase({id:purchaseId,...purchaseDoc});await Loader.reloadCustomersProducts();this.reset();Router.go('purchases');
+    }catch(e){Toast.show('Save failed: '+e.message,'err');}
   }
 };
 
@@ -2806,7 +2671,12 @@ const SuppliersList = {
 
 /* ---------------------------- CUSTOMERS UI ---------------------------- */
 const CustomersList = {
-  async load(){ await Loader.reloadCustomersProducts(); this.render(); },
+  async load(){
+    // Do not re-download customers/products and run per-customer analytics every time
+    // the user opens this screen. The initial app load already hydrates the cache.
+    if(!State._mastersLoaded) await Loader.reloadCustomersProducts(false);
+    this.render();
+  },
   render(){
     const search = (document.getElementById('custListSearch')?.value||'').toLowerCase();
     const seg = document.getElementById('custSegFilter')?.value||'';
@@ -3074,14 +2944,18 @@ const SalesPerformance = {
 
 /* ---------------------------- PRODUCTS UI ---------------------------- */
 const ProductsList = {
-  async load(){ await Loader.reloadCustomersProducts(); this.render(); },
+  async load(){
+    // Reuse the in-memory cache; opening Products should be instant.
+    if(!State._mastersLoaded) await Loader.reloadCustomersProducts(false);
+    this.render();
+  },
   render(){
     const search = (document.getElementById('prodListSearch')?.value||'').toLowerCase();
-    let list = State.products.filter(p=> (p.name||'').toLowerCase().includes(search) || (p.sku||'').toLowerCase().includes(search) || (p.category||'').toLowerCase().includes(search));
+    let list = State.products.filter(p=> (p.name||'').toLowerCase().includes(search) || (p.hsn||'').toLowerCase().includes(search) || (p.category||'').toLowerCase().includes(search));
     document.getElementById('productsTableBody').innerHTML = list.map(p=>`
       <tr>
         <td><a href="#" onclick="ProductDetail.open('${p.id}');return false;">${p.name}</a></td>
-        <td>${p.sku}</td><td>${p.category||''}</td>
+        <td>${p.hsn||'—'}</td><td>${p.category||''}</td>
         <td>${isAdmin()? money(p.costPrice): '—'}</td>
         <td>${money(p.sellingPrice)}</td>
         <td>${p._unitsPurchased||0}</td>
@@ -3317,7 +3191,7 @@ const ModalUI = {
     const id = document.getElementById('mcId').value;
     const name = document.getElementById('mcName').value.trim();
     const phone = document.getElementById('mcPhone').value.trim();
-    if(!name || !phone){ Toast.show('Name and phone are required','err'); return; }
+    if(!name){ Toast.show('Name is required','err'); return; }
     this._savingCustomer = true;
     if(btn){ btn.disabled = true; btn.textContent = 'Saving...'; }
     try{
@@ -3369,7 +3243,7 @@ const ModalUI = {
     const id = document.getElementById('msId').value;
     const name = document.getElementById('msName').value.trim();
     const phone = document.getElementById('msPhone').value.trim();
-    if(!name || !phone){ Toast.show('Name and phone are required','err'); return; }
+    if(!name){ Toast.show('Name is required','err'); return; }
     this._savingSupplier = true;
     if(btn){ btn.disabled = true; btn.textContent = 'Saving...'; }
     try{
@@ -3405,14 +3279,14 @@ const ModalUI = {
     document.getElementById('catList').innerHTML = State.categories.map(c=>`<option value="${c.name}">`).join('');
     if(id){
       const p = State.products.find(x=>x.id===id);
-      document.getElementById('mpName').value = p.name; document.getElementById('mpSku').value = p.sku;
+      document.getElementById('mpName').value = p.name;
       document.getElementById('mpCategory').value = p.category||''; document.getElementById('mpBrand').value = p.brand||'';
       document.getElementById('mpUnit').value = p.unit||'Pcs'; document.getElementById('mpHsn').value = p.hsn||'';
       document.getElementById('mpCost').value = p.costPrice; document.getElementById('mpPrice').value = p.sellingPrice;
       document.getElementById('mpMinPrice').value = p.minSellingPrice||''; document.getElementById('mpGst').value = p.gstRate||0;
       document.getElementById('mpActive').checked = p.active!==false;
     } else {
-      ['mpName','mpSku','mpCategory','mpBrand','mpHsn','mpMinPrice'].forEach(f=>document.getElementById(f).value='');
+      ['mpName','mpCategory','mpBrand','mpHsn','mpMinPrice'].forEach(f=>document.getElementById(f).value='');
       document.getElementById('mpUnit').value='Pcs'; document.getElementById('mpCost').value=''; document.getElementById('mpPrice').value=''; document.getElementById('mpGst').value=0;
       document.getElementById('mpActive').checked = true;
     }
@@ -3420,8 +3294,10 @@ const ModalUI = {
   },
   async saveProduct(){
     const id = document.getElementById('mpId').value;
+    const existing = id ? State.products.find(x=>x.id===id) : null;
     const data = {
-      name: document.getElementById('mpName').value.trim(), sku: document.getElementById('mpSku').value.trim(),
+      name: document.getElementById('mpName').value.trim(),
+      sku: existing?.sku || ((document.getElementById('mpName').value.trim().replace(/[^A-Za-z0-9]/g,'').slice(0,4).toUpperCase() || 'PRD') + '-' + uid().slice(0,4).toUpperCase()),
       category: document.getElementById('mpCategory').value.trim(), brand: document.getElementById('mpBrand').value.trim(),
       unit: document.getElementById('mpUnit').value.trim(), hsn: document.getElementById('mpHsn').value.trim(),
       costPrice: Number(document.getElementById('mpCost').value)||0, sellingPrice: Number(document.getElementById('mpPrice').value)||0,
@@ -3429,7 +3305,7 @@ const ModalUI = {
       active: document.getElementById('mpActive').checked
     };
     if(!data.name || !data.sellingPrice){ Toast.show('Product Name and Selling Price are required','err'); return; }
-    if(!data.sku){ data.sku = (data.name.replace(/[^A-Za-z0-9]/g,'').slice(0,4).toUpperCase() || 'PRD') + '-' + uid().slice(0,4).toUpperCase(); }
+    if(!data.hsn){ Toast.show('HSN Code is required','err'); return; }
     await CategoriesDAL.ensure(data.category);
     let newId = null;
     if(id){
@@ -3889,44 +3765,110 @@ const Print = {
 
 /* ---------------------------- LOADER ---------------------------- */
 const Loader = {
-  async reloadCustomersProducts(){
-    const [customers, products, categories] = await Promise.all([CustomersDAL.all(), ProductsDAL.all(), CategoriesDAL.all()]);
-    // enrich customers with lifetime stats (bounded: only if not too many; for scale, this should ideally be a scheduled aggregation)
+  // Fast path: customers/products/categories are loaded once and kept in memory.
+  // Analytics are calculated with ONE bills read + ONE purchaseBills read, instead of
+  // one Firestore query per customer/product (the previous N+1 pattern could take minutes).
+  async reloadCustomersProducts(withAnalytics=false){
+    const [customers, products, categories] = await Promise.all([
+      CustomersDAL.all(), ProductsDAL.all(), CategoriesDAL.all()
+    ]);
+
+    State.customers = customers;
+    State.products = products;
+    State.categories = categories;
+    State._mastersLoaded = true;
+
+    if(!withAnalytics) return;
+
+    const [billSnap, purchaseSnap] = await Promise.all([
+      getDocs(collection(db,'bills')),
+      getDocs(collection(db,'purchaseBills'))
+    ]);
+    const bills = billSnap.docs.map(d=>({id:d.id,...d.data()}));
+    const purchases = purchaseSnap.docs.map(d=>({id:d.id,...d.data()}));
+
+    // Aggregate everything in memory. This replaces hundreds/thousands of sequential
+    // Firestore reads with just two collection reads.
+    const customerAgg = new Map();
+    const productAgg = new Map();
+    const purchaseAgg = new Map();
+
+    for(const b of bills){
+      if(b.status==='void') continue;
+      const cid = b.customerId;
+      if(cid){
+        const a = customerAgg.get(cid) || {bills:0,revenue:0,cost:0,profit:0,first:null,last:null};
+        a.bills += 1;
+        a.revenue += Number(b.grandTotal)||0;
+        a.cost += Number(b.totalCost)||0;
+        a.profit += Number(b.grossProfit)||0;
+        const dt = dateFromTS(b.date);
+        if(!a.last || dt>a.last) a.last=dt;
+        if(!a.first || dt<a.first) a.first=dt;
+        customerAgg.set(cid,a);
+      }
+      for(const it of (b.items||[])){
+        if(!it.productId) continue;
+        const a = productAgg.get(it.productId) || {sold:0,revenue:0,profit:0};
+        a.sold += Number(it.quantity)||0;
+        a.revenue += Number(it.revenue ?? it.amount)||0;
+        a.profit += Number(it.profit)||0;
+        productAgg.set(it.productId,a);
+      }
+    }
+
+    for(const b of purchases){
+      if(b.status==='void') continue;
+      for(const it of (b.items||[])){
+        if(!it.productId) continue;
+        const a = purchaseAgg.get(it.productId) || {qty:0,cost:0};
+        a.qty += Number(it.quantity)||0;
+        a.cost += Number(it.amount)||0;
+        purchaseAgg.set(it.productId,a);
+      }
+    }
+
     for(const c of customers){
-      const bills = await BillsDAL.listByCustomer(c.id).catch(()=>[]);
-      const active = bills.filter(b=>b.status!=='void');
-      const revenue = active.reduce((s,b)=>s+(b.grandTotal||0),0);
-      const cost = active.reduce((s,b)=>s+(b.totalCost||0),0);
-      const profit = active.reduce((s,b)=>s+(b.grossProfit||0),0);
-      c._totalBills = active.length; c._lifetimeRevenue = revenue; c._lifetimeCost = cost; c._lifetimeProfit = profit;
-      c._margin = revenue>0? profit/revenue*100:0; c._avgBill = active.length? revenue/active.length:0;
-      c._lastPurchase = active.length? dateFromTS(active.sort((a,b)=>dateFromTS(b.date)-dateFromTS(a.date))[0].date) : null;
-      c._firstPurchase = active.length? dateFromTS(active.sort((a,b)=>dateFromTS(a.date)-dateFromTS(b.date))[0].date) : null;
-      c._segment = Logic.classifyCustomer({lifetimeRevenue:revenue, totalBills:active.length, firstPurchase:c._firstPurchase}, State.settings.segmentation);
+      const a = customerAgg.get(c.id) || {bills:0,revenue:0,cost:0,profit:0,first:null,last:null};
+      c._totalBills = a.bills;
+      c._lifetimeRevenue = round2(a.revenue);
+      c._lifetimeCost = round2(a.cost);
+      c._lifetimeProfit = round2(a.profit);
+      c._margin = a.revenue>0 ? a.profit/a.revenue*100 : 0;
+      c._avgBill = a.bills ? a.revenue/a.bills : 0;
+      c._lastPurchase = a.last;
+      c._firstPurchase = a.first;
+      c._segment = Logic.classifyCustomer({
+        lifetimeRevenue:c._lifetimeRevenue,
+        totalBills:c._totalBills,
+        firstPurchase:c._firstPurchase
+      }, State.settings.segmentation);
     }
+
     for(const p of products){
-      const bills = await BillsDAL.listByProduct(p.id).catch(()=>[]);
-      let units=0, revenue=0, profit=0;
-      bills.filter(b=>b.status!=='void').forEach(b=>{
-        (b.items||[]).filter(i=>i.productId===p.id).forEach(it=>{ units+=it.quantity; revenue+=it.revenue; profit+=it.profit; });
-      });
-      const purchases = await PurchaseBillsDAL.listByProduct(p.id).catch(()=>[]);
-      let purchasedUnits=0, purchaseCost=0;
-      purchases.filter(b=>b.status!=='void').forEach(b=>{
-        (b.items||[]).filter(i=>i.productId===p.id).forEach(it=>{ purchasedUnits+=it.quantity; purchaseCost+=(it.amount||0); });
-      });
-      p._unitsSold = units; p._revenue = revenue; p._profit = profit;
-      p._unitsPurchased = purchasedUnits; p._purchaseCost = purchaseCost; p._stockQty = purchasedUnits - units;
+      const s = productAgg.get(p.id) || {sold:0,revenue:0,profit:0};
+      const pu = purchaseAgg.get(p.id) || {qty:0,cost:0};
+      p._unitsSold = s.sold;
+      p._revenue = round2(s.revenue);
+      p._profit = round2(s.profit);
+      p._unitsPurchased = pu.qty;
+      p._purchaseCost = round2(pu.cost);
+      p._stockQty = pu.qty - s.sold;
     }
-    State.customers = customers; State.products = products; State.categories = categories;
   },
   async reloadAll(){
-    State.settings.general = await SettingsDAL.get('general');
-    State.settings.billing = await SettingsDAL.get('billing');
-    State.settings.segmentation = await SettingsDAL.get('segmentation');
-    await this.reloadCustomersProducts();
-    State.salesLeads = await SalesLeadsDAL.all().catch(()=>[]);
-    State.suppliers = await SuppliersDAL.all().catch(()=>[]);
+    // Settings + master data + analytics are loaded in parallel where possible.
+    const [general,billing,segmentation] = await Promise.all([
+      SettingsDAL.get('general'), SettingsDAL.get('billing'), SettingsDAL.get('segmentation')
+    ]);
+    State.settings.general = general;
+    State.settings.billing = billing;
+    State.settings.segmentation = segmentation;
+    await Promise.all([
+      this.reloadCustomersProducts(true),
+      SalesLeadsDAL.all().then(x=>{State.salesLeads=x}).catch(()=>{State.salesLeads=[]}),
+      SuppliersDAL.all().then(x=>{State.suppliers=x}).catch(()=>{State.suppliers=[]})
+    ]);
     Router.go(Router.current);
   }
 };
@@ -4030,8 +3972,7 @@ service cloud.firestore {
     match /bills/{id} {
       allow read: if isStaff();
       allow create: if isStaff() && request.resource.data.createdBy.uid == request.auth.uid && request.resource.data.status == 'active';
-      allow update: if isAdmin() ||
-        (isStaff() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['paymentsReceived','paidAmount','balance']));
+      allow update: if isAdmin();
       allow delete: if false;
     }
 
