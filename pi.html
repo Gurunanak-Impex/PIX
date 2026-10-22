@@ -1144,7 +1144,33 @@ tr:hover td{background:#f8faff;}
   <div class="modal" style="width:640px;">
     <div class="modal-head"><h3>Bill Details</h3><button class="modal-close" onclick="ModalUI.close('modalBillView')">✕</button></div>
     <div class="modal-body" id="billViewBody"></div>
-    <div class="modal-foot"><button class="btn" onclick="ModalUI.close('modalBillView')">Close</button><button class="btn btn-primary" id="billEditFromViewBtn" onclick="BillsList.edit(BillsList._viewing && BillsList._viewing.id)">Edit Bill</button><button class="btn btn-primary" onclick="BillsList.printFromView()">Print</button></div>
+    <div class="modal-foot"><button class="btn" onclick="ModalUI.close('modalBillView')">Close</button><button class="btn" id="billReceiveFromViewBtn" style="display:none;border-color:var(--green);color:var(--green);" onclick="BillsList.openReceive(BillsList._viewing && BillsList._viewing.id)">💰 Receive Payment</button><button class="btn btn-primary" id="billEditFromViewBtn" onclick="BillsList.edit(BillsList._viewing && BillsList._viewing.id)">Edit Bill</button><button class="btn btn-primary" onclick="BillsList.printFromView()">Print</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalReceivePayment">
+  <div class="modal" style="width:460px;">
+    <div class="modal-head"><h3>Receive Payment</h3><button class="modal-close" onclick="ModalUI.close('modalReceivePayment')">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="rpBillId"/>
+      <div id="rpSummary" class="totals-box"></div>
+      <div class="form-row mt16">
+        <label>Amount Received *</label>
+        <div class="flex gap8">
+          <input id="rpAmount" type="number" min="0" step="0.01" style="flex:1;" oninput="BillsList.updateReceivePreview()"/>
+          <button type="button" class="btn btn-sm" onclick="BillsList.fillFullBalance()">Full Balance</button>
+        </div>
+        <div class="small mt8" id="rpPreview"></div>
+      </div>
+      <div class="form-grid">
+        <div class="form-row"><label>Payment Mode</label>
+          <select id="rpMode"><option>Cash</option><option>UPI</option><option>Bank Transfer</option><option>Cheque</option><option>Card</option><option>Other</option></select>
+        </div>
+        <div class="form-row"><label>Date Received</label><input id="rpDate" type="date"/></div>
+      </div>
+      <div class="form-row"><label>Reference / Note <span class="small text-mut">(UTR, cheque no., etc. — optional)</span></label><input id="rpNote" type="text" maxlength="120"/></div>
+    </div>
+    <div class="modal-foot"><button class="btn" onclick="ModalUI.close('modalReceivePayment')">Cancel</button><button class="btn btn-primary" id="rpSaveBtn" onclick="BillsList.confirmReceive()">Save Payment</button></div>
   </div>
 </div>
 
@@ -1506,6 +1532,34 @@ const BillsDAL = {
       voidedAt: serverTimestamp(), voidReason: reason||''
     });
     await Audit.log('Bill Voided', id, {reason});
+  },
+  // Record a payment received against an existing (credit / part-paid) bill.
+  // Runs in a transaction so two people can't over-collect the same balance.
+  async receivePayment(id, {amount, mode, note, date}){
+    const ref = doc(db,'bills',id);
+    const payRef = doc(collection(db,'payments'));
+    const who = { uid: State.currentUser.uid, name: State.profile?.name || State.currentUser.email };
+    const out = await runTransaction(db, async (tx)=>{
+      const snap = await tx.get(ref);
+      if(!snap.exists()) throw new Error('Bill not found');
+      const b = snap.data();
+      if(b.status==='void') throw new Error('Cannot receive payment on a voided bill');
+      const bal = round2(b.balance||0);
+      if(!(amount>0)) throw new Error('Enter an amount greater than 0');
+      if(amount > bal + 0.001) throw new Error('Amount exceeds balance due ('+money(bal)+')');
+      const entry = { id: uid(), amount: round2(amount), mode, note: note||'', date: Timestamp.fromDate(date), receivedBy: who.name };
+      const paymentHistory = (b.paymentHistory||[]).concat([entry]);
+      const paidAmount = round2((b.paidAmount||0) + amount);
+      const balance = round2(bal - amount);
+      tx.update(ref, { paidAmount, balance, paymentHistory, updatedAt: serverTimestamp(), updatedBy: who });
+      tx.set(payRef, {
+        billId: id, billNumber: b.billNumber||'', customerId: b.customerId||null, customerName: b.customerSnapshot?.name||'',
+        amount: round2(amount), mode, note: note||'', date: entry.date, receivedBy: who, createdAt: serverTimestamp()
+      });
+      return { paidAmount, balance, paymentHistory, billNumber: b.billNumber };
+    });
+    await Audit.log('Payment Received', id, {billNumber: out.billNumber, amount, mode, balanceAfter: out.balance});
+    return out;
   }
 };
 
@@ -2389,10 +2443,11 @@ const BillsList = {
         <td>${money(b.grandTotal)}</td>
         <td>${admin? money(b.totalCost): '—'}</td>
         <td>${admin? money(b.grossProfit): '—'}</td>
-        <td>${money(b.paidAmount)}</td><td>${money(b.balance)}</td><td>${b.paymentMode}</td>
+        <td>${money(b.paidAmount)}</td><td${(b.balance||0)>0 && b.status!=='void' ? ' style="color:var(--red);font-weight:600;"' : ''}>${money(b.balance)}</td><td>${b.paymentMode}</td>
         <td>${b.status==='void'? '<span class="badge badge-red">VOIDED</span>' : '<span class="badge badge-green">ACTIVE</span>'}</td>
         <td>
           <button class="btn btn-sm" onclick="BillsList.view('${b.id}')">View</button>
+          ${b.status!=='void' && (b.balance||0)>0 ? `<button class="btn btn-sm" style="border-color:var(--green);color:var(--green);" onclick="BillsList.openReceive('${b.id}')">💰 Receive</button>` : ''}
           ${b.status!=='void' && admin ? `<button class="btn btn-sm btn-primary" onclick="BillsList.edit('${b.id}')">Edit</button><button class="btn btn-sm btn-danger" onclick="BillsList.openVoid('${b.id}')">Void</button>` : ''}
         </td>
       </tr>`;
@@ -2407,7 +2462,7 @@ const BillsList = {
     document.getElementById('billViewBody').innerHTML = `
       <div class="flex-between"><b>${b.billNumber}</b><span>${fmtDate(b.date)}</span></div>
       <div class="small text-mut">${b.customerSnapshot?.name}${b.customerSnapshot?.firmName?(' — '+b.customerSnapshot.firmName):''} · ${b.customerSnapshot?.phone}</div>
-      <div class="mt8">${(b.balance||0)>0? '<span class="badge badge-red">CREDIT — BALANCE DUE</span>' : '<span class="badge badge-green">PAYMENT RECEIVED</span>'}</div>
+      <div class="mt8">${(b.balance||0)>0? ((b.paidAmount||0)>0 ? '<span class="badge badge-orange">PARTIALLY PAID — BALANCE DUE</span>' : '<span class="badge badge-red">CREDIT — BALANCE DUE</span>') : '<span class="badge badge-green">PAYMENT RECEIVED</span>'}</div>
       ${admin && b.salesLeadName? `<div class="small text-mut">Sales Lead (internal only): <b>${b.salesLeadName}</b></div>`:''}
       ${b.status==='void'? `<div class="badge badge-red mt8">VOIDED — ${b.voidReason||''} (by ${b.voidedBy||''})</div>`:''}
       <table class="mt16"><thead><tr><th>Product</th><th>Qty</th><th>Rate</th><th>Amount</th>${admin?'<th>Profit</th>':''}</tr></thead>
@@ -2420,14 +2475,94 @@ const BillsList = {
         <div class="trow"><span>Paid</span><span>${money(b.paidAmount)}</span></div>
         <div class="trow"><span>Balance</span><span>${money(b.balance)}</span></div>
         ${admin? `<div class="trow"><span>Cost</span><span>${money(b.totalCost)}</span></div><div class="trow"><span>Gross Profit</span><span>${money(b.grossProfit)} (${pct(b.grossMargin)})</span></div>` : ''}
-      </div>`;
+      </div>
+      ${(b.paymentHistory||[]).length ? `
+      <div class="mt16"><b>Payments Received Later</b></div>
+      <table class="mt8"><thead><tr><th>Date</th><th>Mode</th><th>Amount</th><th>Note</th><th>By</th></tr></thead>
+      <tbody>${b.paymentHistory.map(p=>`<tr><td>${fmtDate(p.date)}</td><td>${this._esc(p.mode)}</td><td>${money(p.amount)}</td><td>${this._esc(p.note)||'—'}</td><td>${this._esc(p.receivedBy)||'—'}</td></tr>`).join('')}</tbody></table>` : ''}`;
+    const rb = document.getElementById('billReceiveFromViewBtn');
+    if(rb) rb.style.display = (b.status!=='void' && (b.balance||0)>0) ? '' : 'none';
+    const eb = document.getElementById('billEditFromViewBtn');
+    if(eb) eb.style.display = (admin && b.status!=='void') ? '' : 'none';
     ModalUI.open('modalBillView');
+  },
+  _esc(v){ return String(v==null?'':v).replace(/[&<>"']/g, ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch])); },
+
+  /* ---- Receive Payment ---- */
+  _receiving: false,
+  openReceive(id){
+    const b = State.billsCache.find(x=>x.id===id) || (this._viewing && this._viewing.id===id ? this._viewing : null);
+    if(!b){ Toast.show('Bill not found','err'); return; }
+    if(b.status==='void'){ Toast.show('Cannot receive payment on a voided bill','err'); return; }
+    if((b.balance||0) <= 0){ Toast.show('This bill is already fully paid','ok'); return; }
+    this._receiveBill = b;
+    document.getElementById('rpBillId').value = b.id;
+    document.getElementById('rpSummary').innerHTML = `
+      <div class="trow"><span>Bill</span><span><b>${this._esc(b.billNumber)}</b> · ${this._esc(b.customerSnapshot?.name)}</span></div>
+      <div class="trow"><span>Grand Total</span><span>${money(b.grandTotal)}</span></div>
+      <div class="trow"><span>Already Paid</span><span>${money(b.paidAmount)}</span></div>
+      <div class="trow grand"><span>Balance Due</span><span>${money(b.balance)}</span></div>`;
+    document.getElementById('rpAmount').value = '';
+    document.getElementById('rpMode').value = 'Cash';
+    document.getElementById('rpNote').value = '';
+    const t = new Date(); t.setMinutes(t.getMinutes()-t.getTimezoneOffset());
+    const dEl = document.getElementById('rpDate'); dEl.value = t.toISOString().slice(0,10); dEl.max = dEl.value;
+    this.updateReceivePreview();
+    ModalUI.open('modalReceivePayment');
+    setTimeout(()=>document.getElementById('rpAmount').focus(), 50);
+  },
+  fillFullBalance(){
+    if(!this._receiveBill) return;
+    document.getElementById('rpAmount').value = round2(this._receiveBill.balance||0);
+    this.updateReceivePreview();
+  },
+  updateReceivePreview(){
+    const b = this._receiveBill; if(!b) return;
+    const amt = Number(document.getElementById('rpAmount').value)||0;
+    const bal = round2(b.balance||0);
+    const el = document.getElementById('rpPreview');
+    if(amt<=0){ el.innerHTML = '<span class="text-mut">Enter the amount received.</span>'; return; }
+    if(amt > bal + 0.001){ el.innerHTML = `<span style="color:var(--red);">Amount exceeds balance due (${money(bal)}).</span>`; return; }
+    const after = round2(bal-amt);
+    el.innerHTML = after===0 ? '<span class="text-green">✓ Bill will be fully paid.</span>' : `Balance after this payment: <b>${money(after)}</b>`;
+  },
+  async confirmReceive(){
+    if(this._receiving) return;
+    const id = document.getElementById('rpBillId').value;
+    const amount = round2(Number(document.getElementById('rpAmount').value)||0);
+    const mode = document.getElementById('rpMode').value;
+    const note = document.getElementById('rpNote').value.trim();
+    const dStr = document.getElementById('rpDate').value;
+    if(!(amount>0)){ Toast.show('Enter an amount greater than 0','err'); return; }
+    let date = dStr ? new Date(dStr+'T12:00:00') : new Date();
+    if(dStr === new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,10)) date = new Date();
+    this._receiving = true;
+    const btn = document.getElementById('rpSaveBtn'); btn.disabled = true; btn.textContent = 'Saving...';
+    try{
+      const out = await BillsDAL.receivePayment(id, {amount, mode, note, date});
+      const b = State.billsCache.find(x=>x.id===id);
+      if(b) Object.assign(b, {paidAmount: out.paidAmount, balance: out.balance, paymentHistory: out.paymentHistory});
+      if(this._viewing && this._viewing.id===id && this._viewing!==b) Object.assign(this._viewing, {paidAmount: out.paidAmount, balance: out.balance, paymentHistory: out.paymentHistory});
+      ModalUI.close('modalReceivePayment');
+      this.render();
+      if(document.getElementById('modalBillView').classList.contains('show') && b) this.view(id);
+      Toast.show(`${money(amount)} received on ${out.billNumber||'bill'}` + (out.balance===0 ? ' — fully paid ✓' : ` — balance ${money(out.balance)}`), 'ok');
+      try{ if(Router.current==='dashboard') Dashboard.render(); }catch(e){}
+    }catch(e){
+      const denied = /permission|insufficient/i.test(e.message||'');
+      Toast.show(denied ? 'Permission denied — update Firestore rules (Settings → Security Rules)' : ('Could not save payment: '+e.message), 'err');
+    }finally{
+      this._receiving = false; btn.disabled = false; btn.textContent = 'Save Payment';
+    }
   },
   edit(id){
     if(!isAdmin()){ Toast.show('Only an Admin can edit bills','err'); return; }
     const b = State.billsCache.find(x=>x.id===id) || this._viewing;
     if(!b || b.status==='void'){ Toast.show('This bill cannot be edited','err'); return; }
     ModalUI.close('modalBillView');
+    // IMPORTANT: Router.go('newbill') runs BillUI.reset(), which wipes State.currentBill (and editId).
+    // So navigate FIRST, then load the bill being edited into State.currentBill.
+    Router.go('newbill');
     State.currentBill = {
       editId: b.id,
       originalBill: b,
@@ -2440,7 +2575,6 @@ const BillsList = {
         discount: Number(it.discount)||0, taxPct: Number(it.tax)||0
       }))
     };
-    Router.go('newbill');
     document.getElementById('custSearchInput').value = State.currentBill.customer?.name || '';
     const c=State.currentBill.customer||{};
     document.getElementById('selectedCustomerBox').innerHTML = `📞 ${c.phone||'—'} &nbsp; ${c.address||''} ${c.gstin?('&nbsp; GSTIN: '+c.gstin):''}`;
@@ -2516,6 +2650,7 @@ const PurchaseUI = {
   },
   lookupProduct(val){
     const note=document.getElementById('purProdMatchNote'),v=(val||'').trim().toLowerCase();
+    if(this._pickedId){const pp=State.products.find(x=>x.id===this._pickedId);if(!pp||(pp.name||'').trim().toLowerCase()!==v)this._pickedId=null;}
     if(!v){note.innerHTML='';this.productAcItems=[];return;}
     this.productAcItems=State.products.filter(p=>p.active!==false&&((p.name||'').toLowerCase().includes(v)||(p.hsn||'').toLowerCase().includes(v))).slice(0,6);
     if(!this.productAcItems.length){note.innerHTML='<span class="text-mut">New product — enter HSN, quantity and purchase rate.</span>';return;}
@@ -2523,10 +2658,14 @@ const PurchaseUI = {
   },
   lookupProductByHsn(val){
     const v=(val||'').trim().toLowerCase();if(!v)return;
-    const p=State.products.find(x=>x.active!==false&&(x.hsn||'').toLowerCase()===v);if(p)this.fillProduct(p);
+    if(document.getElementById('purProdName').value.trim())return; // never overwrite a name the user typed
+    const matches=State.products.filter(x=>x.active!==false&&(x.hsn||'').toLowerCase()===v);
+    if(matches.length===1)this.fillProduct(matches[0]);
   },
   pickProduct(i){const p=this.productAcItems[i];if(p)this.fillProduct(p);},
+  _pickedId:null,
   fillProduct(p){
+    this._pickedId=p.id;
     document.getElementById('purProdName').value=p.name||'';document.getElementById('purProdHsn').value=p.hsn||'';
     document.getElementById('purProdCategory').value=p.category||'';document.getElementById('purProdUnit').value=p.unit||'Pcs';
     document.getElementById('purProdGst').value=p.gstRate||0;document.getElementById('purProdSellingPrice').value=p.sellingPrice||'';
@@ -2535,13 +2674,13 @@ const PurchaseUI = {
   clearProductForm(){
     ['purProdName','purProdHsn','purProdCategory','purProdSellingPrice'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
     document.getElementById('purProdUnit').value='Pcs';document.getElementById('purProdGst').value=0;document.getElementById('purProdQty').value=1;document.getElementById('purProdRate').value='';
-    document.getElementById('purProdMatchNote').innerHTML='';this.productAcItems=[];
+    document.getElementById('purProdMatchNote').innerHTML='';this.productAcItems=[];this._pickedId=null;
   },
   addItem(){
     const name=document.getElementById('purProdName').value.trim(),hsn=document.getElementById('purProdHsn').value.trim(),qty=Number(document.getElementById('purProdQty').value)||0,rate=Number(document.getElementById('purProdRate').value)||0;
     if(!name){Toast.show('Product name is required','err');return;}if(!hsn){Toast.show('HSN Code is required','err');return;}if(qty<=0){Toast.show('Quantity must be greater than 0','err');return;}if(rate<=0){Toast.show('Purchase rate is required','err');return;}
     const category=document.getElementById('purProdCategory').value.trim(),unit=document.getElementById('purProdUnit').value.trim()||'Pcs',gstRate=Number(document.getElementById('purProdGst').value)||0,sellingPriceRaw=document.getElementById('purProdSellingPrice').value;
-    const existing=State.products.find(p=>p.active!==false&&(((p.name||'').trim().toLowerCase()===name.toLowerCase())||((p.hsn||'').trim().toLowerCase()===hsn.toLowerCase())));
+    const existing=(this._pickedId&&State.products.find(p=>p.id===this._pickedId&&p.active!==false))||State.products.find(p=>p.active!==false&&(p.name||'').trim().toLowerCase()===name.toLowerCase());
     const sellingPrice=sellingPriceRaw!==''?Number(sellingPriceRaw):(existing?Number(existing.sellingPrice)||0:rate);
     const existingLine=State.currentPurchase.items.find(it=>(it.productNameSnapshot||'').toLowerCase()===name.toLowerCase()&&(it.hsnSnapshot||'').toLowerCase()===hsn.toLowerCase());
     if(existingLine){existingLine.quantity=Number(existingLine.quantity)+qty;existingLine.purchaseRate=rate;existingLine.taxPct=gstRate;}
@@ -2561,8 +2700,10 @@ const PurchaseUI = {
     document.getElementById('pItemCount').textContent=State.currentPurchase.items.length;document.getElementById('pQtyCount').textContent=totalQty;document.getElementById('pSubtotal').textContent=money(subtotal);document.getElementById('pGst').textContent=money(gstPaid);document.getElementById('pGrand').textContent=money(grandTotal);
     const paid=Number(document.getElementById('pPaid').value)||0;document.getElementById('pBalance').textContent=money(round2(grandTotal-paid));this._totals={subtotal,discount,gstPaid,courier,other,grandTotal,totalQty};
   },
+  _saving:false,
   async save(printAfter){
-    if(!State.currentPurchase.supplier){Toast.show('Please select a supplier','err');return;}if(!State.currentPurchase.items.length){Toast.show('Add at least one product','err');return;}this.recalc();const t=this._totals,s=State.currentPurchase.supplier,updateCost=document.getElementById('purchaseUpdateCost').checked;
+    if(this._saving)return;
+    if(!State.currentPurchase.supplier){Toast.show('Please select a supplier','err');return;}if(!State.currentPurchase.items.length){Toast.show('Add at least one product','err');return;}this._saving=true;this.recalc();const t=this._totals,s=State.currentPurchase.supplier,updateCost=document.getElementById('purchaseUpdateCost').checked;
     try{
       for(const it of State.currentPurchase.items){
         if(!it.productId){const newId=await ProductsDAL.create({name:it.productNameSnapshot,sku:(it.productNameSnapshot.replace(/[^A-Za-z0-9]/g,'').slice(0,4).toUpperCase()||'PRD')+'-'+uid().slice(0,4).toUpperCase(),category:it.category||'',brand:'',unit:it.unit||'Pcs',hsn:it.hsnSnapshot||'',costPrice:Number(it.purchaseRate)||0,sellingPrice:Number(it.sellingPrice)||Number(it.purchaseRate)||0,minSellingPrice:0,gstRate:Number(it.taxPct)||0,active:true});it.productId=newId;}
@@ -2573,6 +2714,7 @@ const PurchaseUI = {
       const purchaseDoc={purchaseBillNumber,supplierInvoiceNo:document.getElementById('suppInvoiceNo').value.trim(),supplierId:s.id,supplierSnapshot:{name:s.name,phone:s.phone||'',address:s.address||'',gstin:s.gstin||''},date:Timestamp.now(),createdBy:{uid:State.currentUser.uid,name:State.profile?.name||State.currentUser.email},paymentMode,subtotal:t.subtotal,discount:t.discount,gstPaid:t.gstPaid,courierCharges:t.courier,otherCharges:t.other,grandTotal:t.grandTotal,paidAmount:paid,balance,status:'active',totalQty:t.totalQty,items:calcItems,productIds:[...new Set(calcItems.map(i=>i.productId))]};
       const purchaseId=await PurchaseBillsDAL.create(purchaseDoc);Toast.show('Purchase Bill '+purchaseBillNumber+' saved','ok');if(printAfter)await Print.printPurchase({id:purchaseId,...purchaseDoc});await Loader.reloadCustomersProducts();this.reset();Router.go('purchases');
     }catch(e){Toast.show('Save failed: '+e.message,'err');}
+    finally{this._saving=false;}
   }
 };
 
@@ -3972,7 +4114,9 @@ service cloud.firestore {
     match /bills/{id} {
       allow read: if isStaff();
       allow create: if isStaff() && request.resource.data.createdBy.uid == request.auth.uid && request.resource.data.status == 'active';
-      allow update: if isAdmin();
+      allow update: if isAdmin() ||
+        (isStaff() && request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['paidAmount','balance','paymentHistory','updatedAt','updatedBy']));
       allow delete: if false;
     }
 
@@ -4099,6 +4243,7 @@ window.SettingsUI = SettingsUI; window.Backup = Backup; window.DemoData = DemoDa
 window.GlobalSearch = GlobalSearch; window.Toast = Toast; window.Dashboard = Dashboard; window.Print = Print;
 window.PipelineUI = PipelineUI; window.SalesPerformance = SalesPerformance;
 window.UI = UI; window.Drafts = Drafts;
+window.PurchaseUI = PurchaseUI; window.PurchasesList = PurchasesList; window.SuppliersList = SuppliersList;
 </script>
 </body>
 </html>
