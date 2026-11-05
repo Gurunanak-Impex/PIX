@@ -735,10 +735,10 @@
 
       <div id="page-payslips" class="page">
         <div class="pagehead">
-          <div><div class="title">Pay Slips</div><div class="subtitle">Generated from employee, salary and attendance records. Admins can edit every pay slip before finalizing.</div></div>
+          <div><div class="title">Pay Slips</div><div class="subtitle">Pay slips are generated automatically when you open this page or select a month, using employee salary and attendance records. Admins can edit drafts before finalizing.</div></div>
           <div style="display:flex;gap:8px;flex-wrap:wrap">
             <button class="btn btn-secondary" onclick="openSlipSettings()">⚙ Pay Slip Settings</button>
-            <button class="btn btn-secondary" onclick="generateAllSlips()">⚡ Generate for All Active</button>
+            <button class="btn btn-secondary" onclick="generateAllSlips()">↻ Generate Missing Slips</button>
             <button class="btn btn-secondary" onclick="refreshDraftSlips()">↻ Refresh Drafts</button>
             <button class="btn btn-primary" onclick="openSlipEditor()">＋ New Pay Slip</button>
           </div>
@@ -2599,6 +2599,37 @@ function slipAutoCalc(ps,reset){
   else ps.deductions.forEach(d=>{if(d.auto&&!d.manual){const w=want.find(x=>x.auto===d.auto);d.amount=w?w.amount:0}});
 }
 
+/* ---------- Automatic monthly pay slip generation ---------- */
+let autoSlipGenerationInProgress=false;
+const autoSlipMonthsDone=new Set();
+window.autoGenerateSlipsForMonth=async(ym)=>{
+  if(!slipIsAdmin()||!ym||autoSlipGenerationInProgress||autoSlipMonthsDone.has(ym))return;
+  const eligible=DB.employees.filter(e=>e.status==="Active"&&(currentPeriod(e).joining||"0000-00")<=ym+"-31");
+  const missing=eligible.filter(e=>!(DB.payslips||[]).some(x=>x.id===`PS-${ym}-${e.id}`));
+  if(!missing.length){autoSlipMonthsDone.add(ym);return}
+  autoSlipGenerationInProgress=true;
+  const before=JSON.parse(JSON.stringify(DB.payslips||[]));
+  try{
+    for(const e of missing){
+      const ps=slipBuild(e,ym);
+      ps.gross=slipTotals(ps).gross;
+      ps.net=slipTotals(ps).net;
+      DB.payslips.push(ps);
+    }
+    audit("Pay slips auto-generated","Pay Slips",`${missing.length} for ${slipMonthLabel(ym)}`);
+    await saveDB();
+    autoSlipMonthsDone.add(ym);
+    toast(`${missing.length} pay slip(s) automatically generated for ${slipMonthLabel(ym)}.`);
+    if(currentPage==="payslips"&&document.getElementById("slipMonth").value===ym)renderPayslips();
+    renderAudit?.();
+  }catch(err){
+    DB.payslips=before;
+    toast("Automatic pay slip generation could not save: "+(err?.message||err));
+  }finally{
+    autoSlipGenerationInProgress=false;
+  }
+};
+
 /* ---------- Pay Slip register page ---------- */
 window.renderPayslips=()=>{
   ensureModules();
@@ -2625,7 +2656,8 @@ window.renderPayslips=()=>{
     <button class="btn btn-secondary" style="padding:7px 9px" onclick="printSlip('${esc(x.id)}')">Print</button>
     ${x.status==="Finalized"?"":`<button class="btn btn-primary" style="padding:7px 9px" onclick="finalizeSlipById('${esc(x.id)}')">Publish</button>`}
     <button class="btn btn-danger" style="padding:7px 9px" onclick="deleteSlip('${esc(x.id)}')">Delete</button></td></tr>`}).join("")
-    :`<tr><td colspan="8"><div class="empty">No pay slips for this selection. Use “New Pay Slip” or “Generate for All Active”.</div></td></tr>`;
+    :`<tr><td colspan="8"><div class="empty">No pay slips for this selection. Generating automatically…</div></td></tr>`;
+  if(month)autoGenerateSlipsForMonth(month);
 };
 function slipFiltered(){
   const month=document.getElementById("slipMonth").value,emp_=document.getElementById("slipEmpFilter").value,st=document.getElementById("slipStatusFilter").value,q=document.getElementById("slipSearch").value.trim().toLowerCase();
