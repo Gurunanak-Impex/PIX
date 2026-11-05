@@ -740,6 +740,7 @@
           <div style="display:flex;gap:8px;flex-wrap:wrap">
             <button class="btn btn-secondary" onclick="openSlipSettings()">⚙ Pay Slip Settings</button>
             <button class="btn btn-secondary" onclick="generateAllSlips()">⚡ Generate for All Active</button>
+            <button class="btn btn-secondary" onclick="refreshDraftSlips()">↻ Refresh Drafts</button>
             <button class="btn btn-primary" onclick="openSlipEditor()">＋ New Pay Slip</button>
           </div>
         </div>
@@ -998,6 +999,7 @@
     <div class="modalfoot">
       <button class="btn btn-secondary" onclick="closeModals()">Cancel</button>
       <button class="btn btn-secondary" onclick="saveSlip(true)">Save & Preview</button>
+      <button class="btn btn-secondary" onclick="finalizeSlipDraft()">Finalize & Publish</button>
       <button class="btn btn-primary" onclick="saveSlip(false)">Save Pay Slip</button>
     </div>
   </div>
@@ -2560,7 +2562,7 @@ function slipAttendance(e,ym){
     else if(st==="Present"){r.present++}
     else{
       // Business rule: if no attendance status was entered, treat the employee as Present.
-      r.present++;
+      r.present++;r.unmarked++;
     }
   }
   return r;
@@ -2622,12 +2624,13 @@ window.renderPayslips=()=>{
     <td style="white-space:nowrap"><button class="btn btn-secondary" style="padding:7px 9px" onclick="viewSlip('${esc(x.id)}')">View</button>
     <button class="btn btn-secondary" style="padding:7px 9px" onclick="openSlipEditor('${esc(x.id)}')">Edit</button>
     <button class="btn btn-secondary" style="padding:7px 9px" onclick="printSlip('${esc(x.id)}')">Print</button>
+    ${x.status==="Finalized"?"":`<button class="btn btn-primary" style="padding:7px 9px" onclick="finalizeSlipById('${esc(x.id)}')">Publish</button>`}
     <button class="btn btn-danger" style="padding:7px 9px" onclick="deleteSlip('${esc(x.id)}')">Delete</button></td></tr>`}).join("")
     :`<tr><td colspan="8"><div class="empty">No pay slips for this selection. Use “New Pay Slip” or “Generate for All Active”.</div></td></tr>`;
 };
 function slipFiltered(){
   const month=document.getElementById("slipMonth").value,emp_=document.getElementById("slipEmpFilter").value,st=document.getElementById("slipStatusFilter").value,q=document.getElementById("slipSearch").value.trim().toLowerCase();
-  return (DB.payslips||[]).filter(x=>(!month||x.month===month)&&(!emp_||x.empId===emp_)&&(!st||x.status===st)&&(!q||(x.emp?.name||"").toLowerCase().includes(q)||x.empId.toLowerCase().includes(q)))
+  return (DB.payslips||[]).filter(x=>(!month||x.month===month)&&(!emp_||x.empId===emp_)&&(!st||x.status===st)&&(!q||(x.emp?.name||"").toLowerCase().includes(q)||String(x.empId||"").toLowerCase().includes(q)))
     .sort((a,b)=>b.month.localeCompare(a.month)||(a.emp?.name||"").localeCompare(b.emp?.name||""));
 }
 window.slipsForPeriod=(period)=>{
@@ -2653,6 +2656,48 @@ window.generateAllSlips=async()=>{
   toast(`${made} pay slip(s) generated${skipped?`, ${skipped} already existed`:""}. Review and edit before finalizing.`);
 };
 
+window.finalizeSlipDraft=async()=>{
+  if(!slipDraft)return;
+  if(!confirm("Finalize and publish this pay slip? The employee will be able to view it in their portal."))return;
+  $se("se_status").value="Finalized";
+  await saveSlip(false);
+};
+
+window.refreshDraftSlips=async()=>{
+  if(!slipIsAdmin())return;
+  const ym=$se("slipMonth").value||today.slice(0,7);
+  const drafts=(DB.payslips||[]).filter(x=>x.month===ym&&x.status!=="Finalized");
+  if(!drafts.length){toast("There are no draft pay slips to refresh for "+slipMonthLabel(ym)+".");return}
+  if(!confirm("Refresh "+drafts.length+" draft pay slip(s) from the latest salary and attendance records for "+slipMonthLabel(ym)+"? Manual earning/deduction rows, pay date and notes will be retained."))return;
+  const before=JSON.parse(JSON.stringify(DB.payslips));
+  for(const old of drafts){
+    const e=emp(old.empId);if(!e)continue;
+    const fresh=slipBuild(e,ym);
+    fresh.payDate=old.payDate||"";
+    fresh.status=old.status||"Draft";
+    fresh.notes=old.notes||"";
+    fresh.createdOn=old.createdOn||today;
+    const manualEarn=(old.earnings||[]).filter(r=>r.manual);
+    manualEarn.forEach(r=>{const ix=fresh.earnings.findIndex(x=>x.label===r.label);if(ix>=0)fresh.earnings[ix]=r;else fresh.earnings.push(r)});
+    const manualDed=(old.deductions||[]).filter(r=>r.manual&&!r.auto);
+    fresh.deductions.push(...manualDed);
+    const ix=DB.payslips.findIndex(x=>x.id===old.id);
+    if(ix>=0)DB.payslips[ix]=fresh;
+  }
+  try{await saveDB()}catch(err){DB.payslips=before;toast("Could not refresh draft slips: "+(err?.message||err));return}
+  renderPayslips();toast("Draft pay slips refreshed using the latest attendance and salary records.");
+};
+
+window.finalizeSlipById=async(id)=>{
+  if(!slipIsAdmin())return;
+  const ps=DB.payslips.find(x=>x.id===id);if(!ps)return;
+  if(ps.status==="Finalized")return;
+  if(!confirm("Finalize and publish the pay slip for "+(ps.emp?.name||ps.empId)+" ("+slipMonthLabel(ps.month)+")?"))return;
+  const old=ps.status;ps.status="Finalized";ps.updatedOn=today;ps.updatedAt=new Date().toISOString();
+  try{await saveDB()}catch(err){ps.status=old;toast("Could not publish pay slip: "+(err?.message||err));return}
+  renderPayslips();toast("Pay slip finalized and published to the employee portal.");
+};
+
 window.deleteSlip=async(id)=>{
   if(!slipIsAdmin())return;
   const x=DB.payslips.find(p=>p.id===id);if(!x)return;
@@ -2668,7 +2713,7 @@ window.openSlipEditor=(id)=>{
   if(!slipIsAdmin())return;
   const ex=id?DB.payslips.find(x=>x.id===id):null;
   slipIsNew=!ex;
-  if(ex){slipDraft=JSON.parse(JSON.stringify(ex))}
+  if(ex){slipDraft=JSON.parse(JSON.stringify(ex));slipDraft.earnings=slipDraft.earnings||[];slipDraft.deductions=slipDraft.deductions||[];slipDraft.emp=slipDraft.emp||{};slipDraft.att=slipDraft.att||{}}
   else{
     const ym=document.getElementById("slipMonth").value||today.slice(0,7);
     const first=DB.employees.find(e=>e.status==="Active")||DB.employees[0];
@@ -2759,10 +2804,11 @@ window.saveSlip=async(thenPreview)=>{
   if(!d.earnings.length){toast("Add at least one earning.");return}
   const t=slipTotals(d);if(t.net<0){toast("Deductions exceed earnings — please review.");return}
   Object.assign(d,{gross:t.gross,totalDed:t.ded,net:t.net,updatedOn:today,updatedAt:new Date().toISOString()});
-  const i=DB.payslips.findIndex(x=>x.id===d.id);
+  if(!d.id||!d.empId||!/^\d{4}-\d{2}$/.test(d.month||"")){toast("Pay slip is missing its employee or pay month. Select the employee and month again.");return}
+  const i=DB.payslips.findIndex(x=>x.id===d.id),previous=i>=0?JSON.parse(JSON.stringify(DB.payslips[i])):null;
   if(i>=0)DB.payslips[i]=d;else DB.payslips.push(d);
   audit(i>=0?"Pay slip updated":"Pay slip created","Pay Slips",`${d.emp.name} · ${slipMonthLabel(d.month)} · ${d.status}`);
-  try{await saveDB()}catch(err){toast("Could not save: "+(err?.message||err));return}
+  try{await saveDB()}catch(err){if(i>=0)DB.payslips[i]=previous;else DB.payslips=DB.payslips.filter(x=>x.id!==d.id);toast("Could not save pay slip to Firebase: "+(err?.message||err));return}
   closeModals();
   const mEl=$se("slipMonth");if(mEl.value&&mEl.value!==d.month){mEl.value=d.month}
   renderPayslips();renderAudit?.();toast("Pay slip saved.");
@@ -2771,9 +2817,9 @@ window.saveSlip=async(thenPreview)=>{
 
 /* ---------- Pay slip document (preview + print) ---------- */
 function slipHTML(ps){
-  const c=slipCfg(),e=ps.emp||{},t=slipTotals(ps),n=Math.max(ps.earnings.length,ps.deductions.length);
+  const c=slipCfg(),e=ps.emp||{},t=slipTotals(ps),earnings=ps.earnings||[],deductions=ps.deductions||[],n=Math.max(earnings.length,deductions.length);
   let rows="";
-  for(let i=0;i<n;i++){const a=ps.earnings[i],d=ps.deductions[i];
+  for(let i=0;i<n;i++){const a=earnings[i],d=deductions[i];
     rows+=`<tr><td>${a?esc(a.label):"&nbsp;"}</td><td class="r">${a?slipInr(a.full):""}</td><td class="r">${a?slipInr(a.amount):""}</td><td>${d?esc(d.label):""}</td><td class="r">${d?slipInr(d.amount):""}</td></tr>`}
   const info=[["Employee Name",e.name],["Employee ID",ps.empId],["Designation",e.designation],["Department",e.department],["Date of Joining",e.doj?fmt(e.doj):""],["Work Location",e.location],["PAN",e.pan],["UAN",e.uan],["PF Account No.",e.pf],["Payment Mode",e.payMode],["Bank",e.bankName],["Account No.",slipMask(e.account)],["IFSC",e.ifsc],["Pay Date",ps.payDate?fmt(ps.payDate):""]].filter(x=>x[1]);
   const a=ps.att||{};
