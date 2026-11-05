@@ -2395,50 +2395,50 @@ window.manualAttendance=(id,date)=>{
       </div><div class="modalfoot"><button type="button" class="btn btn-secondary" onclick="closeManualAttendance()">Cancel</button><button class="btn btn-primary" type="submit">Save Attendance</button></div></form></div>`;
     document.body.appendChild(modal);
     const updateHours=()=>{
-      const a=$("ma_in")?.value,b=$("ma_out")?.value,br=Number($("ma_break")?.value||0);
-      if(!a||!b){$("ma_hours").textContent="Enter both check-in and check-out to calculate net working hours.";return}
+      const a=document.getElementById("ma_in")?.value,b=document.getElementById("ma_out")?.value,br=Number(document.getElementById("ma_break")?.value||0);
+      if(!a||!b){document.getElementById("ma_hours").textContent="Enter both check-in and check-out to calculate net working hours.";return}
       let mins=(Number(b.slice(0,2))*60+Number(b.slice(3))-Number(a.slice(0,2))*60-Number(a.slice(3)));
       if(mins<0)mins+=1440; mins=Math.max(0,mins-br);
-      $("ma_hours").textContent=`Net working hours: ${(mins/60).toFixed(2)} hrs (excluding ${br} min break).`;
+      document.getElementById("ma_hours").textContent=`Net working hours: ${(mins/60).toFixed(2)} hrs (excluding ${br} min break).`;
     };
     ["ma_in","ma_out","ma_break"].forEach(x=>$(x).addEventListener("input",updateHours));
-    $("ma_status").addEventListener("change",()=>{
-      const absent=["Absent","Leave"].includes($("ma_status").value);
-      $("ma_in").required=$("ma_status").value==="Present";
-      $("ma_out").required=$("ma_status").value==="Present";
-      if(absent){$("ma_in").value="";$("ma_out").value="";$("ma_ot").value="0"}
+    document.getElementById("ma_status").addEventListener("change",()=>{
+      const absent=["Absent","Leave"].includes(document.getElementById("ma_status").value);
+      document.getElementById("ma_in").required=document.getElementById("ma_status").value==="Present";
+      document.getElementById("ma_out").required=document.getElementById("ma_status").value==="Present";
+      if(absent){document.getElementById("ma_in").value="";document.getElementById("ma_out").value="";document.getElementById("ma_ot").value="0"}
       updateHours();
     });
-    $("manualAttendanceForm").addEventListener("submit",async ev=>{
+    document.getElementById("manualAttendanceForm").addEventListener("submit",async ev=>{
       ev.preventDefault();
-      const d=$("ma_date").value,s=$("ma_status").value,ci=$("ma_in").value,co=$("ma_out").value;
+      const d=document.getElementById("ma_date").value,s=document.getElementById("ma_status").value,ci=document.getElementById("ma_in").value,co=document.getElementById("ma_out").value;
       if(!d)return toast("Choose an attendance date.");
       if(s==="Present"&&(!ci||!co))return toast("For Present attendance, enter both check-in and check-out times.");
       if(ci&&co){
         const to=n=>Number(n.slice(0,2))*60+Number(n.slice(3));
         if(to(co)===to(ci))return toast("Check-out time must be different from check-in time.");
       }
-      const br=Number($("ma_break").value||0),ot=Number($("ma_ot").value||0);
+      const br=Number(document.getElementById("ma_break").value||0),ot=Number(document.getElementById("ma_ot").value||0);
       let worked=0;
       if(ci&&co){let mins=(Number(co.slice(0,2))*60+Number(co.slice(3)))-(Number(ci.slice(0,2))*60+Number(ci.slice(3)));if(mins<0)mins+=1440;worked=Math.max(0,mins-br)/60;}
       DB.attendance=DB.attendance||{};DB.punches=DB.punches||{};
       DB.attendance[id+"|"+d]=s;
-      DB.punches[id+"|"+d]={in:ci||null,out:co||null,breakMinutes:br,workedHours:Number(worked.toFixed(2)),overtimeHours:ot,remarks:$("ma_reason").value.trim(),enteredBy:auth.currentUser?.email||"Admin",backdated:true};
+      DB.punches[id+"|"+d]={in:ci||null,out:co||null,breakMinutes:br,workedHours:Number(worked.toFixed(2)),overtimeHours:ot,remarks:document.getElementById("ma_reason").value.trim(),enteredBy:auth.currentUser?.email||"Admin",backdated:true};
       DB.attendanceHistory=DB.attendanceHistory||[];
-      DB.attendanceHistory.push({id:"AH-"+Date.now(),empId:id,date:d,status:s,checkIn:ci||null,checkOut:co||null,workedHours:Number(worked.toFixed(2)),overtimeHours:ot,remarks:$("ma_reason").value.trim(),updatedOn:new Date().toISOString()});
+      DB.attendanceHistory.push({id:"AH-"+Date.now(),empId:id,date:d,status:s,checkIn:ci||null,checkOut:co||null,workedHours:Number(worked.toFixed(2)),overtimeHours:ot,remarks:document.getElementById("ma_reason").value.trim(),updatedOn:new Date().toISOString()});
       audit("Backdated attendance saved","Attendance",`${employee.name} — ${d} — ${s} — ${worked.toFixed(2)} hours`);
       await saveDB();closeManualAttendance();renderAttendance();renderDashboard();renderPayslips?.();toast("Attendance and shift timings saved. Re-generate or refresh the relevant draft pay slip to apply the updated paid days.");
     });
   }
-  $("ma_employee").textContent=employee.name+" • "+id;
-  $("ma_date").value=date;
-  $("ma_status").value=status;
-  $("ma_in").value=existing.in||"";
-  $("ma_out").value=existing.out||"";
-  $("ma_break").value=existing.breakMinutes??60;
-  $("ma_ot").value=existing.overtimeHours??0;
-  $("ma_reason").value=existing.remarks||"";
-  $("ma_status").dispatchEvent(new Event("change"));
+  document.getElementById("ma_employee").textContent=employee.name+" • "+id;
+  document.getElementById("ma_date").value=date;
+  document.getElementById("ma_status").value=status;
+  document.getElementById("ma_in").value=existing.in||"";
+  document.getElementById("ma_out").value=existing.out||"";
+  document.getElementById("ma_break").value=existing.breakMinutes??60;
+  document.getElementById("ma_ot").value=existing.overtimeHours??0;
+  document.getElementById("ma_reason").value=existing.remarks||"";
+  document.getElementById("ma_status").dispatchEvent(new Event("change"));
   modal.classList.add("show");
 };
 window.closeManualAttendance=()=>document.getElementById("manualAttendanceModal")?.classList.remove("show");
