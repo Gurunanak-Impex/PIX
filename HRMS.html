@@ -1494,6 +1494,7 @@ function renderDashboard(){
     const t=slipTotals(x),items=(x.deductions||[]).filter(d=>Number(d.amount)>0).map(d=>`${esc(d.label)}: ${slipInr(d.amount)}`).join("<br>")||'<span style="color:#64748b">No deductions</span>';
     return `<tr><td><b>${esc(x.emp?.name||x.empId)}</b><div class="personmeta">${esc(x.empId)}</div></td><td style="font-size:11px;line-height:1.7">${items}</td><td style="color:#dc2626;font-weight:700">${slipInr(t.ded)}</td><td><b>${slipInr(t.net)}</b></td></tr>`;
   }).join(""):`<tr><td colspan="4"><div class="empty">No pay slips generated for ${esc(payMonth)}.</div></td></tr>`;
+  if(payMonth)syncDraftSlipsForMonth(payMonth).then(changed=>{if(changed&&currentPage==="dashboard"&&document.getElementById("dashPayrollMonth")?.value===payMonth)renderDashboard()});
 }
 
 function isOwnerCeo(e){
@@ -2677,6 +2678,49 @@ window.autoGenerateSlipsForMonth=async(ym)=>{
   }
 };
 
+/* ---------- Migrate/recalculate legacy draft slips so deductions are visible ---------- */
+const draftSlipRefreshInFlight=new Set();
+const draftSlipRefreshDone=new Set();
+async function syncDraftSlipsForMonth(ym){
+  if(!slipIsAdmin()||!ym||draftSlipRefreshInFlight.has(ym)||draftSlipRefreshDone.has(ym))return false;
+  const drafts=(DB.payslips||[]).filter(x=>x.month===ym&&x.status!=="Finalized");
+  if(!drafts.length){draftSlipRefreshDone.add(ym);return false}
+  draftSlipRefreshInFlight.add(ym);
+  const before=JSON.parse(JSON.stringify(DB.payslips||[]));
+  let changed=false;
+  try{
+    for(const old of drafts){
+      const employee=emp(old.empId);if(!employee)continue;
+      const fresh=slipBuild(employee,ym);
+      fresh.payDate=old.payDate||"";
+      fresh.status=old.status||"Draft";
+      fresh.notes=old.notes||"";
+      fresh.createdOn=old.createdOn||today;
+      // Keep manually entered earning/deduction rows, but always regenerate system-calculated rows.
+      (old.earnings||[]).filter(r=>r.manual).forEach(r=>{
+        const ix=fresh.earnings.findIndex(x=>x.label===r.label);
+        if(ix>=0)fresh.earnings[ix]=r;else fresh.earnings.push(r);
+      });
+      (old.deductions||[]).filter(r=>r.manual&&!r.auto).forEach(r=>fresh.deductions.push(r));
+      const ix=DB.payslips.findIndex(x=>x.id===old.id);
+      if(ix>=0){DB.payslips[ix]=fresh;changed=true}
+    }
+    if(changed){
+      await saveDB();
+      if(typeof renderAudit==="function")renderAudit();
+    }
+    draftSlipRefreshDone.add(ym);
+    return changed;
+  }catch(err){
+    DB.payslips=before;
+    console.error("Draft payslip recalculation failed:",err);
+    toast("Could not update old draft deductions: "+(err?.message||err));
+    return false;
+  }finally{
+    draftSlipRefreshInFlight.delete(ym);
+  }
+}
+
 /* ---------- Pay Slip register page ---------- */
 window.renderPayslips=()=>{
   ensureModules();
@@ -2704,7 +2748,16 @@ window.renderPayslips=()=>{
     ${x.status==="Finalized"?"":`<button class="btn btn-primary" style="padding:7px 9px" onclick="finalizeSlipById('${esc(x.id)}')">Publish</button>`}
     <button class="btn btn-danger" style="padding:7px 9px" onclick="deleteSlip('${esc(x.id)}')">Delete</button></td></tr>`}).join("")
     :`<tr><td colspan="8"><div class="empty">No pay slips for this selection. Generating automatically…</div></td></tr>`;
-  if(month)autoGenerateSlipsForMonth(month);
+  if(month){
+    autoGenerateSlipsForMonth(month);
+    syncDraftSlipsForMonth(month).then(changed=>{
+      if(changed&&currentPage==="payslips"&&document.getElementById("slipMonth").value===month){
+        // Re-render after legacy records have been recalculated and persisted.
+        const body=document.getElementById("slipBody");
+        if(body)renderPayslips();
+      }
+    });
+  }
 };
 function slipFiltered(){
   const month=document.getElementById("slipMonth").value,emp_=document.getElementById("slipEmpFilter").value,st=document.getElementById("slipStatusFilter").value,q=document.getElementById("slipSearch").value.trim().toLowerCase();
@@ -2743,6 +2796,8 @@ window.finalizeSlipDraft=async()=>{
 
 window.refreshDraftSlips=async()=>{
   if(!slipIsAdmin())return;
+  const selectedMonth=document.getElementById("slipMonth").value||today.slice(0,7);
+  draftSlipRefreshDone.delete(selectedMonth);
   const ym=$se("slipMonth").value||today.slice(0,7);
   const drafts=(DB.payslips||[]).filter(x=>x.month===ym&&x.status!=="Finalized");
   if(!drafts.length){toast("There are no draft pay slips to refresh for "+slipMonthLabel(ym)+".");return}
