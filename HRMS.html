@@ -2520,7 +2520,7 @@ document.getElementById("loginForm").addEventListener("submit",async e=>{e.preve
    Data comes from DB.employees (salary, bank, PAN/UAN/PF), DB.attendance,
    DB.punches and DB.holidays. Pay slips are saved in DB.payslips.
    ===================================================================== */
-const SLIP_DEFAULTS={companyName:"Gurunanak Impex",address:"",contact:"",basicPct:50,hraPct:20,pfOn:false,pfPct:12,pfCap:true,esiOn:false,esiPct:0.75,esiLimit:21000,ptAmount:0,unmarked:"paid",footer:"This is a computer-generated pay slip."};
+const SLIP_DEFAULTS={companyName:"Gurunanak Impex",address:"",contact:"",basicPct:50,hraPct:20,standardHoursPerDay:8,pfOn:false,pfPct:12,pfCap:true,esiOn:false,esiPct:0.75,esiLimit:21000,ptAmount:0,unmarked:"paid",footer:"This is a computer-generated pay slip."};
 const SLIP_MONTHS=["January","February","March","April","May","June","July","August","September","October","November","December"];
 let slipDraft=null, slipIsNew=true, slipPreviewId=null;
 
@@ -2549,18 +2549,28 @@ function slipAttendance(e,ym){
   const cfg=slipCfg(),dim=slipDim(ym),p=currentPeriod(e);
   const join=p.joining||"", exit=p.exit||p.lastDay||"";
   const holidays=new Set((DB.holidays||[]).map(h=>typeof h==="string"?h:(h.date||h.day||"")));
-  const r={dim,outside:0,lop:0,present:0,half:0,leave:0,absent:0,unmarked:0};
+  const r={dim,outside:0,lop:0,present:0,half:0,leave:0,absent:0,unmarked:0,workedHours:0,shortHours:0,overtimeHours:0};
+  const standardHours=Math.max(1,Number(cfg.standardHoursPerDay)||8);
   for(let d=1;d<=dim;d++){
     const date=`${ym}-${String(d).padStart(2,"0")}`;
     if((join&&date<join)||(exit&&date>exit)){r.outside++;continue}
     const key=e.id+"|"+date;
-    const st=DB.attendance?.[key]||(DB.punches?.[key]?.in?"Present":"");
+    const punch=DB.punches?.[key]||{};
+    const st=DB.attendance?.[key]||(punch.in?"Present":"");
     if(st==="Absent"){r.lop+=1;r.absent++}
     else if(st==="Half Day"){r.lop+=0.5;r.half++}
     else if(st==="Leave"){r.leave++}
-    else if(st==="Present"){r.present++}
+    else if(st==="Present"){
+      r.present++;
+      if(Number(punch.workedHours)>0){
+        const worked=Number(punch.workedHours);
+        r.workedHours+=worked;
+        r.shortHours+=Math.max(0,standardHours-worked);
+        r.overtimeHours+=Math.max(0,Number(punch.overtimeHours)||0);
+      }
+    }
     else{
-      // Business rule: if no attendance status was entered, treat the employee as Present.
+      // No entry means Present; no short-hours penalty without recorded timings.
       r.present++;r.unmarked++;
     }
   }
@@ -2575,8 +2585,8 @@ function slipBuild(e,ym){
     id:`PS-${ym}-${e.id}`,empId:e.id,month:ym,payDate:"",status:"Draft",
     dim:att.dim,outside:att.outside,lop:att.lop,paidDays:att.dim-att.outside-att.lop,
     att:{present:att.present,half:att.half,leave:att.leave,absent:att.absent,unmarked:att.unmarked,
-      workedHours:Object.keys(DB.punches||{}).filter(k=>k.startsWith(e.id+"|"+ym)).reduce((a,k)=>a+(Number(DB.punches[k]?.workedHours)||0),0),
-      overtimeHours:Object.keys(DB.punches||{}).filter(k=>k.startsWith(e.id+"|"+ym)).reduce((a,k)=>a+(Number(DB.punches[k]?.overtimeHours)||0),0)},
+      workedHours:Number(att.workedHours.toFixed(2)),shortHours:Number(att.shortHours.toFixed(2)),
+      overtimeHours:Number(att.overtimeHours.toFixed(2)),standardHoursPerDay:Number(cfg.standardHoursPerDay)||8},
     emp:{name:e.name||"",designation:p.designation||e.designation||"",department:p.department||e.department||"",doj:p.joining||"",location:e.location||"",
       pan:e.pan||"",uan:e.uan||"",pf:e.pfAccountNumber||"",payMode:e.paymentMode||"Bank Transfer",bankName:e.bankName||"",account:e.bankAccountNumber||"",ifsc:e.bankIFSC||""},
     earnings:[{label:"Basic Salary",full:basic,amount:0},{label:"House Rent Allowance",full:hra,amount:0},{label:"Other Allowance",full:other,amount:0}].filter(r=>r.full>0||r.label==="Basic Salary"),
@@ -2595,8 +2605,15 @@ function slipAutoCalc(ps,reset){
   if(cfg.pfOn) want.push({auto:"pf",label:"Provident Fund (Employee)",amount:Math.round(Math.min(basicEarned,cfg.pfCap?15000:Infinity)*Number(cfg.pfPct)/100)});
   if(cfg.esiOn&&grossFull<=Number(cfg.esiLimit)) want.push({auto:"esi",label:"ESI (Employee)",amount:Math.ceil(grossEarned*Number(cfg.esiPct)/100)});
   if(Number(cfg.ptAmount)>0) want.push({auto:"pt",label:"Professional Tax",amount:Number(cfg.ptAmount)});
+  const shortHours=Math.max(0,Number(ps.att?.shortHours)||0);
+  const standardHours=Math.max(1,Number(ps.att?.standardHoursPerDay)||Number(cfg.standardHoursPerDay)||8);
+  const hourlyRate=ps.dim>0?grossFull/ps.dim/standardHours:0;
+  if(shortHours>0)want.push({auto:"shortHours",label:`Short Working Hours (${shortHours.toFixed(2)} hrs)`,amount:Math.round(shortHours*hourlyRate)});
   if(reset) ps.deductions=[...want,...ps.deductions.filter(d=>!d.auto)];
-  else ps.deductions.forEach(d=>{if(d.auto&&!d.manual){const w=want.find(x=>x.auto===d.auto);d.amount=w?w.amount:0}});
+  else{
+    ps.deductions=ps.deductions.filter(d=>!(d.auto&&!d.manual&&!want.some(w=>w.auto===d.auto)));
+    want.forEach(w=>{const existing=ps.deductions.find(d=>d.auto===w.auto&&!d.manual);if(existing){existing.label=w.label;existing.amount=w.amount}else ps.deductions.push(w)});
+  }
 }
 
 /* ---------- Automatic monthly pay slip generation ---------- */
