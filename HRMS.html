@@ -1022,7 +1022,7 @@
         <div class="field"><label>Basic Salary (% of gross)</label><input class="input" type="number" id="ss_basic" min="0" max="100"></div>
         <div class="field"><label>HRA (% of gross)</label><input class="input" type="number" id="ss_hra" min="0" max="100"></div>
         <div class="field full"><div class="slip-hint" style="margin:0">Remaining amount goes to “Other Allowance”. Gross comes from the employee’s current monthly salary.</div></div>
-        <div class="field"><label>Unmarked attendance days</label><select class="select" id="ss_unmarked"><option value="paid">Treat as paid</option><option value="lop">Treat as LOP (excl. Sundays & holidays)</option></select></div>
+        <div class="field"><label>Unmarked attendance days</label><select class="select" id="ss_unmarked" disabled><option value="paid" selected>Treat as Present (paid)</option></select><small class="muted">Days without an attendance entry are automatically counted as Present.</small></div>
         <div class="field"><label>Professional Tax (₹ / month)</label><input class="input" type="number" id="ss_pt" min="0"></div>
         <div class="field"><label>Provident Fund</label><select class="select" id="ss_pfon"><option value="0">Off</option><option value="1">On</option></select></div>
         <div class="field"><label>PF % of Basic</label><input class="input" type="number" id="ss_pfpct" step="0.01"></div>
@@ -2367,7 +2367,7 @@ window.renderAttendance=()=>{
   const date=d.value, active=DB.employees.filter(e=>e.status==="Active");
   const adminKey="ADMIN|"+date; DB.attendance=DB.attendance||{}; DB.attendance[adminKey]="Present";
   const adminRow=`<tr><td><div class="person"><div class="avatar">M</div><div><div class="personname">Mandeep Singh</div><div class="personmeta">Owner & CEO • ADMIN</div></div></div></td><td>Company Admin</td><td>—</td><td>—</td><td>${statusBadge("Present")}</td><td><span class="badge green">Always Present</span></td></tr>`;
-  const employeeRows=active.map(e=>{const p=DB.punches?.[e.id+"|"+date],a=DB.attendance?.[e.id+"|"+date]||((p?.in)?"Present":"Not Marked");return `<tr><td><div class="person"><div class="avatar">${esc((e.name||"?")[0])}</div><div><div class="personname">${esc(e.name)}</div><div class="personmeta">${esc(e.id)}</div></div></div></td><td>${esc(e.shift||"—")}</td><td>${esc(p?.in||"—")}</td><td>${esc(p?.out||"—")}</td><td>${statusBadge(a)}</td><td><button class="btn btn-secondary" style="padding:7px 9px" onclick="manualAttendance('${e.id}','${date}')">Mark</button></td></tr>`}).join("");
+  const employeeRows=active.map(e=>{const p=DB.punches?.[e.id+"|"+date],a=DB.attendance?.[e.id+"|"+date]||((p?.in)?"Present":"Present");return `<tr><td><div class="person"><div class="avatar">${esc((e.name||"?")[0])}</div><div><div class="personname">${esc(e.name)}</div><div class="personmeta">${esc(e.id)}</div></div></div></td><td>${esc(e.shift||"—")}</td><td>${esc(p?.in||"—")}</td><td>${esc(p?.out||"—")}</td><td>${statusBadge(a)}</td><td><button class="btn btn-secondary" style="padding:7px 9px" onclick="manualAttendance('${e.id}','${date}')">Mark</button></td></tr>`}).join("");
   document.getElementById("attBody").innerHTML=adminRow+employeeRows;
 }
 /* Backdated attendance entry with complete shift timings */
@@ -2401,7 +2401,7 @@ window.manualAttendance=(id,date)=>{
       if(mins<0)mins+=1440; mins=Math.max(0,mins-br);
       document.getElementById("ma_hours").textContent=`Net working hours: ${(mins/60).toFixed(2)} hrs (excluding ${br} min break).`;
     };
-    ["ma_in","ma_out","ma_break"].forEach(x=>$(x).addEventListener("input",updateHours));
+    ["ma_in","ma_out","ma_break"].forEach(x=>document.getElementById(x).addEventListener("input",updateHours));
     document.getElementById("ma_status").addEventListener("change",()=>{
       const absent=["Absent","Leave"].includes(document.getElementById("ma_status").value);
       document.getElementById("ma_in").required=document.getElementById("ma_status").value==="Present";
@@ -2427,7 +2427,7 @@ window.manualAttendance=(id,date)=>{
       DB.attendanceHistory=DB.attendanceHistory||[];
       DB.attendanceHistory.push({id:"AH-"+Date.now(),empId:id,date:d,status:s,checkIn:ci||null,checkOut:co||null,workedHours:Number(worked.toFixed(2)),overtimeHours:ot,remarks:document.getElementById("ma_reason").value.trim(),updatedOn:new Date().toISOString()});
       audit("Backdated attendance saved","Attendance",`${employee.name} — ${d} — ${s} — ${worked.toFixed(2)} hours`);
-      await saveDB();closeManualAttendance();renderAttendance();renderDashboard();renderPayslips?.();toast("Attendance and shift timings saved. Re-generate or refresh the relevant draft pay slip to apply the updated paid days.");
+      try{await saveDB();}catch(err){console.error("Attendance save failed:",err);return toast("Attendance was not saved: "+(err?.message||"Database error. Check Firebase access and connection."));}closeManualAttendance();renderAttendance();renderDashboard();renderPayslips?.();toast("Attendance and shift timings saved. Re-generate or refresh the relevant draft pay slip to apply the updated paid days.");
     });
   }
   document.getElementById("ma_employee").textContent=employee.name+" • "+id;
@@ -2559,9 +2559,8 @@ function slipAttendance(e,ym){
     else if(st==="Leave"){r.leave++}
     else if(st==="Present"){r.present++}
     else{
-      const dow=new Date(date+"T00:00:00").getDay();
-      if(cfg.unmarked==="lop"&&date<=today&&dow!==0&&!holidays.has(date)){r.lop+=1;r.unmarked++}
-      else r.unmarked++;
+      // Business rule: if no attendance status was entered, treat the employee as Present.
+      r.present++;
     }
   }
   return r;
