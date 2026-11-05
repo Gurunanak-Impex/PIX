@@ -390,6 +390,19 @@
           </div></div>
           <div class="card"><div class="cardhead"><div class="cardtitle">Pending work</div><button class="btn btn-secondary" onclick="go('approvals')" style="padding:7px 10px">Open inbox</button></div><div class="cardbody" id="dashPending"></div></div>
         </div>
+        <div class="card" style="margin-top:16px">
+          <div class="cardhead"><div><div class="cardtitle">Payroll & Salary Deductions</div><div class="subtitle" style="margin-top:3px">Monthly deduction summary from generated pay slips.</div></div>
+            <div style="display:flex;gap:8px;align-items:center"><input class="input" type="month" id="dashPayrollMonth" style="width:155px" onchange="renderDashboard()"><button class="btn btn-secondary" onclick="go('payslips')">Open Pay Slips</button></div>
+          </div>
+          <div class="cardbody">
+            <div class="grid three">
+              <div><div class="stat-label">Gross Salary</div><div class="stat-value" id="dashGross" style="font-size:21px">₹0</div></div>
+              <div><div class="stat-label">Total Deductions</div><div class="stat-value" id="dashDeductions" style="font-size:21px;color:#dc2626">₹0</div></div>
+              <div><div class="stat-label">Net Pay</div><div class="stat-value" id="dashNetPay" style="font-size:21px">₹0</div></div>
+            </div>
+            <div class="tablewrap" style="margin-top:14px"><table class="table"><thead><tr><th>Employee</th><th>Deduction Details</th><th>Total Deduction</th><th>Net Pay</th></tr></thead><tbody id="dashDeductionBody"><tr><td colspan="4">No payslips generated for this month.</td></tr></tbody></table></div>
+          </div>
+        </div>
         <div class="card" style="margin-top:16px"><div class="cardhead"><div class="cardtitle">Quick actions</div></div><div class="cardbody"><div class="quick">
           <button class="btn btn-secondary" onclick="openEmployee()">＋ Add employee</button><button class="btn btn-secondary" onclick="go('attendance')">◷ Attendance</button><button class="btn btn-secondary" onclick="openLeave()">▣ Apply leave</button><button class="btn btn-secondary" onclick="go('former')">↺ Former employees</button>
         </div></div></div>
@@ -1468,6 +1481,19 @@ function renderDashboard(){
   document.getElementById("dPresent").textContent=present;document.getElementById("dAbsent").textContent=absent;document.getElementById("dLeave").textContent=leave;
   const pct=active.length?Math.round(((present+leave)/active.length)*100):0;document.getElementById("coverage").textContent=pct+"%";document.getElementById("coverageBar").style.width=Math.min(100,pct)+"%";
   document.getElementById("dashPending").innerHTML=pending.length?pending.slice(0,4).map(r=>{const e=emp(r.empId);return `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #eef2f7"><div><b style="font-size:12px">${e?.name||r.empId}</b><div style="font-size:10px;color:#94a3b8">${r.typeId} • ${fmt(r.from)}–${fmt(r.to)}</div></div>${statusBadge(r.status)}</div>`}).join(""):`<div class="empty">No pending approvals. You're all caught up.</div>`;
+
+  const monthEl=document.getElementById("dashPayrollMonth");
+  if(monthEl&&!monthEl.value)monthEl.value=today.slice(0,7);
+  const payMonth=monthEl?.value||today.slice(0,7);
+  const payroll=(DB.payslips||[]).filter(x=>x.month===payMonth);
+  const totals=payroll.reduce((a,x)=>{const t=slipTotals(x);a.gross+=t.gross;a.ded+=t.ded;a.net+=t.net;return a},{gross:0,ded:0,net:0});
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v};
+  set("dashGross",slipInr(totals.gross));set("dashDeductions",slipInr(totals.ded));set("dashNetPay",slipInr(totals.net));
+  const body=document.getElementById("dashDeductionBody");
+  if(body)body.innerHTML=payroll.length?payroll.map(x=>{
+    const t=slipTotals(x),items=(x.deductions||[]).filter(d=>Number(d.amount)>0).map(d=>`${esc(d.label)}: ${slipInr(d.amount)}`).join("<br>")||'<span style="color:#64748b">No deductions</span>';
+    return `<tr><td><b>${esc(x.emp?.name||x.empId)}</b><div class="personmeta">${esc(x.empId)}</div></td><td style="font-size:11px;line-height:1.7">${items}</td><td style="color:#dc2626;font-weight:700">${slipInr(t.ded)}</td><td><b>${slipInr(t.net)}</b></td></tr>`;
+  }).join(""):`<tr><td colspan="4"><div class="empty">No pay slips generated for ${esc(payMonth)}.</div></td></tr>`;
 }
 
 function isOwnerCeo(e){
@@ -2670,7 +2696,7 @@ window.renderPayslips=()=>{
   document.getElementById("slipBody").innerHTML=rows.length?rows.map(x=>{
     const t=slipTotals(x);
     return `<tr><td><div class="person"><div class="avatar">${esc((x.emp?.name||"?")[0])}</div><div><div class="personname">${esc(x.emp?.name)}</div><div class="personmeta">${esc(x.empId)}</div></div></div></td>
-    <td>${esc(slipMonthLabel(x.month))}</td><td>${x.paidDays} / ${x.dim}</td><td>${slipInr(t.gross)}</td><td>${slipInr(t.ded)}</td><td><b>${slipInr(t.net)}</b></td>
+    <td>${esc(slipMonthLabel(x.month))}</td><td>${x.paidDays} / ${x.dim}</td><td>${slipInr(t.gross)}</td><td><b style="color:#dc2626">${slipInr(t.ded)}</b><div style="font-size:10px;line-height:1.5;color:#64748b">${(x.deductions||[]).filter(d=>Number(d.amount)>0).map(d=>`${esc(d.label)} · ${slipInr(d.amount)}`).join("<br>")||"No deductions"}</div></td><td><b>${slipInr(t.net)}</b></td>
     <td><span class="badge ${x.status==="Finalized"?"green":"amber"}">${esc(x.status)}</span></td>
     <td style="white-space:nowrap"><button class="btn btn-secondary" style="padding:7px 9px" onclick="viewSlip('${esc(x.id)}')">View</button>
     <button class="btn btn-secondary" style="padding:7px 9px" onclick="openSlipEditor('${esc(x.id)}')">Edit</button>
