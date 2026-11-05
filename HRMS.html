@@ -750,7 +750,7 @@
           <div class="card stat"><div class="stat-label">Drafts / Finalized</div><div class="stat-value" id="slipStatStatus">0 / 0</div><div class="stat-foot">Employees see finalized only</div></div>
         </div>
         <div class="card">
-          <div class="cardhead"><div class="cardtitle">Pay Slip Register</div><button class="btn btn-secondary" onclick="printShownSlips()">🖨 Print All Shown</button><button class="btn btn-secondary" onclick="downloadShownSlips()">⇩ Download All Shown</button></div>
+          <div class="cardhead"><div class="cardtitle">Pay Slip Register</div><button class="btn btn-secondary" onclick="printShownSlips()">🖨 Print All Shown</button></div>
           <div class="cardbody" style="padding-bottom:0">
             <div class="toolbar">
               <input class="input" type="month" id="slipMonth" style="width:170px" onchange="renderPayslips()">
@@ -1006,7 +1006,7 @@
 <div id="slipViewModal" class="modalback">
   <div class="modal" style="width:min(900px,100%)">
     <div class="modalhead"><div><div style="font-size:16px;font-weight:800">Pay Slip Preview</div><div style="font-size:10px;color:#94a3b8">Use Print → Save as PDF to download.</div></div>
-      <div style="display:flex;gap:8px"><button class="btn btn-secondary" id="svEditBtn" onclick="editFromPreview()">✎ Edit</button><button class="btn btn-primary" onclick="printSlip(slipPreviewId)">🖨 Print / PDF</button><button class="btn btn-secondary" onclick="downloadSlip(slipPreviewId)">⇩ Download</button><button class="btn btn-secondary" onclick="closeModals()">✕</button></div></div>
+      <div style="display:flex;gap:8px"><button class="btn btn-secondary" id="svEditBtn" onclick="editFromPreview()">✎ Edit</button><button class="btn btn-primary" onclick="printSlip(slipPreviewId)">🖨 Print / PDF</button><button class="btn btn-secondary" onclick="closeModals()">✕</button></div></div>
     <div class="modalbody" style="background:#f1f5f9" id="svBody"></div>
   </div>
 </div>
@@ -1135,8 +1135,6 @@ async function saveDB(){
   payload.organization={...(payload.organization||{}),companyName:"Gurunanak Impex",ownerCeoName:"Mandeep Singh",ownerCeoTitle:"Owner & CEO"};
   payload.updatedAt=new Date().toISOString();
   payload.updatedBy=auth.currentUser.uid;
-  const approxBytes=new Blob([JSON.stringify(payload)]).size;
-  if(approxBytes>1000000) throw new Error("Data is too large for one Firestore document ("+Math.round(approxBytes/1024)+" KB; limit is about 1 MB). Remove large uploaded files/old records.");
   await setDoc(STATE_REF,payload,{merge:true});
 }
 
@@ -1236,7 +1234,7 @@ function audit(action,entity,details){
 }
 function esc(v){return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m]))}
 
-function toast(m,ms=2800){const t=document.getElementById("toast");t.textContent=m;t.classList.add("show");clearTimeout(window.__toastT);window.__toastT=setTimeout(()=>t.classList.remove("show"),ms)}
+function toast(m){const t=document.getElementById("toast");t.textContent=m;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2800)}
 function fmt(d){return d?new Date(d+"T00:00:00").toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric"}):"—"}
 function currentPeriod(e){return e.periods?.[e.periods.length-1]||{}}
 function ensureCurrentPeriod(e){
@@ -2372,7 +2370,78 @@ window.renderAttendance=()=>{
   const employeeRows=active.map(e=>{const p=DB.punches?.[e.id+"|"+date],a=DB.attendance?.[e.id+"|"+date]||((p?.in)?"Present":"Not Marked");return `<tr><td><div class="person"><div class="avatar">${esc((e.name||"?")[0])}</div><div><div class="personname">${esc(e.name)}</div><div class="personmeta">${esc(e.id)}</div></div></div></td><td>${esc(e.shift||"—")}</td><td>${esc(p?.in||"—")}</td><td>${esc(p?.out||"—")}</td><td>${statusBadge(a)}</td><td><button class="btn btn-secondary" style="padding:7px 9px" onclick="manualAttendance('${e.id}','${date}')">Mark</button></td></tr>`}).join("");
   document.getElementById("attBody").innerHTML=adminRow+employeeRows;
 }
-window.manualAttendance=async(id,date)=>{const s=prompt("Attendance status: Present / Absent / Leave / Half Day","Present");if(!s)return;DB.attendance=DB.attendance||{};DB.attendance[id+"|"+date]=s;await saveDB();renderAttendance();renderDashboard();toast("Attendance updated.");}
+/* Backdated attendance entry with complete shift timings */
+window.manualAttendance=(id,date)=>{
+  const employee=emp(id); if(!employee)return toast("Employee record not found.");
+  const key=id+"|"+date, existing=DB.punches?.[key]||{};
+  const status=DB.attendance?.[key]||"Present";
+  let modal=document.getElementById("manualAttendanceModal");
+  if(!modal){
+    modal=document.createElement("div");modal.id="manualAttendanceModal";modal.className="modalback";
+    modal.innerHTML=`<div class="modal" style="width:min(650px,100%)">
+      <div class="modalhead"><div><div style="font-size:17px;font-weight:800">Backdated Attendance Entry</div><div id="ma_employee" style="font-size:11px;color:#64748b;margin-top:3px"></div></div><button type="button" class="btn btn-secondary" onclick="closeManualAttendance()">✕</button></div>
+      <form id="manualAttendanceForm"><div class="modalbody">
+        <div class="notice" style="margin-bottom:14px">Enter the actual shift timings for this date. Saved attendance will be used when calculating paid days and the monthly pay slip.</div>
+        <div class="formgrid">
+          <div class="field"><label>Attendance Date</label><input class="input" type="date" id="ma_date" required></div>
+          <div class="field"><label>Attendance Status</label><select class="select" id="ma_status" required><option>Present</option><option>Half Day</option><option>Absent</option><option>Leave</option></select></div>
+          <div class="field"><label>Check-in Time</label><input class="input" type="time" id="ma_in"></div>
+          <div class="field"><label>Check-out Time</label><input class="input" type="time" id="ma_out"></div>
+          <div class="field"><label>Break Duration (minutes)</label><input class="input" type="number" min="0" max="600" step="5" id="ma_break" value="60"></div>
+          <div class="field"><label>Overtime (hours)</label><input class="input" type="number" min="0" max="24" step="0.25" id="ma_ot" value="0"></div>
+          <div class="field full"><label>Remarks / Reason for backdated entry</label><textarea class="textarea" id="ma_reason" rows="2" placeholder="Enter a note (optional)"></textarea></div>
+        </div>
+        <div id="ma_hours" class="notice" style="margin-top:12px">Net working hours will be calculated from check-in, check-out and break duration.</div>
+      </div><div class="modalfoot"><button type="button" class="btn btn-secondary" onclick="closeManualAttendance()">Cancel</button><button class="btn btn-primary" type="submit">Save Attendance</button></div></form></div>`;
+    document.body.appendChild(modal);
+    const updateHours=()=>{
+      const a=$("ma_in")?.value,b=$("ma_out")?.value,br=Number($("ma_break")?.value||0);
+      if(!a||!b){$("ma_hours").textContent="Enter both check-in and check-out to calculate net working hours.";return}
+      let mins=(Number(b.slice(0,2))*60+Number(b.slice(3))-Number(a.slice(0,2))*60-Number(a.slice(3)));
+      if(mins<0)mins+=1440; mins=Math.max(0,mins-br);
+      $("ma_hours").textContent=`Net working hours: ${(mins/60).toFixed(2)} hrs (excluding ${br} min break).`;
+    };
+    ["ma_in","ma_out","ma_break"].forEach(x=>$(x).addEventListener("input",updateHours));
+    $("ma_status").addEventListener("change",()=>{
+      const absent=["Absent","Leave"].includes($("ma_status").value);
+      $("ma_in").required=$("ma_status").value==="Present";
+      $("ma_out").required=$("ma_status").value==="Present";
+      if(absent){$("ma_in").value="";$("ma_out").value="";$("ma_ot").value="0"}
+      updateHours();
+    });
+    $("manualAttendanceForm").addEventListener("submit",async ev=>{
+      ev.preventDefault();
+      const d=$("ma_date").value,s=$("ma_status").value,ci=$("ma_in").value,co=$("ma_out").value;
+      if(!d)return toast("Choose an attendance date.");
+      if(s==="Present"&&(!ci||!co))return toast("For Present attendance, enter both check-in and check-out times.");
+      if(ci&&co){
+        const to=n=>Number(n.slice(0,2))*60+Number(n.slice(3));
+        if(to(co)===to(ci))return toast("Check-out time must be different from check-in time.");
+      }
+      const br=Number($("ma_break").value||0),ot=Number($("ma_ot").value||0);
+      let worked=0;
+      if(ci&&co){let mins=(Number(co.slice(0,2))*60+Number(co.slice(3)))-(Number(ci.slice(0,2))*60+Number(ci.slice(3)));if(mins<0)mins+=1440;worked=Math.max(0,mins-br)/60;}
+      DB.attendance=DB.attendance||{};DB.punches=DB.punches||{};
+      DB.attendance[id+"|"+d]=s;
+      DB.punches[id+"|"+d]={in:ci||null,out:co||null,breakMinutes:br,workedHours:Number(worked.toFixed(2)),overtimeHours:ot,remarks:$("ma_reason").value.trim(),enteredBy:auth.currentUser?.email||"Admin",backdated:true};
+      DB.attendanceHistory=DB.attendanceHistory||[];
+      DB.attendanceHistory.push({id:"AH-"+Date.now(),empId:id,date:d,status:s,checkIn:ci||null,checkOut:co||null,workedHours:Number(worked.toFixed(2)),overtimeHours:ot,remarks:$("ma_reason").value.trim(),updatedOn:new Date().toISOString()});
+      audit("Backdated attendance saved","Attendance",`${employee.name} — ${d} — ${s} — ${worked.toFixed(2)} hours`);
+      await saveDB();closeManualAttendance();renderAttendance();renderDashboard();renderPayslips?.();toast("Attendance and shift timings saved. Re-generate or refresh the relevant draft pay slip to apply the updated paid days.");
+    });
+  }
+  $("ma_employee").textContent=employee.name+" • "+id;
+  $("ma_date").value=date;
+  $("ma_status").value=status;
+  $("ma_in").value=existing.in||"";
+  $("ma_out").value=existing.out||"";
+  $("ma_break").value=existing.breakMinutes??60;
+  $("ma_ot").value=existing.overtimeHours??0;
+  $("ma_reason").value=existing.remarks||"";
+  $("ma_status").dispatchEvent(new Event("change"));
+  modal.classList.add("show");
+};
+window.closeManualAttendance=()=>document.getElementById("manualAttendanceModal")?.classList.remove("show");
 window.punch=async()=>{
   if(isAdminUser()){toast("Admin attendance is automatically marked Present.");return;}
   const e=essCurrentEmployee();if(!e){toast("No active employee found.");return}
@@ -2505,7 +2574,9 @@ function slipBuild(e,ym){
   const ps={
     id:`PS-${ym}-${e.id}`,empId:e.id,month:ym,payDate:"",status:"Draft",
     dim:att.dim,outside:att.outside,lop:att.lop,paidDays:att.dim-att.outside-att.lop,
-    att:{present:att.present,half:att.half,leave:att.leave,absent:att.absent,unmarked:att.unmarked},
+    att:{present:att.present,half:att.half,leave:att.leave,absent:att.absent,unmarked:att.unmarked,
+      workedHours:Object.keys(DB.punches||{}).filter(k=>k.startsWith(e.id+"|"+ym)).reduce((a,k)=>a+(Number(DB.punches[k]?.workedHours)||0),0),
+      overtimeHours:Object.keys(DB.punches||{}).filter(k=>k.startsWith(e.id+"|"+ym)).reduce((a,k)=>a+(Number(DB.punches[k]?.overtimeHours)||0),0)},
     emp:{name:e.name||"",designation:p.designation||e.designation||"",department:p.department||e.department||"",doj:p.joining||"",location:e.location||"",
       pan:e.pan||"",uan:e.uan||"",pf:e.pfAccountNumber||"",payMode:e.paymentMode||"Bank Transfer",bankName:e.bankName||"",account:e.bankAccountNumber||"",ifsc:e.bankIFSC||""},
     earnings:[{label:"Basic Salary",full:basic,amount:0},{label:"House Rent Allowance",full:hra,amount:0},{label:"Other Allowance",full:other,amount:0}].filter(r=>r.full>0||r.label==="Basic Salary"),
@@ -2551,7 +2622,7 @@ window.renderPayslips=()=>{
     <td><span class="badge ${x.status==="Finalized"?"green":"amber"}">${esc(x.status)}</span></td>
     <td style="white-space:nowrap"><button class="btn btn-secondary" style="padding:7px 9px" onclick="viewSlip('${esc(x.id)}')">View</button>
     <button class="btn btn-secondary" style="padding:7px 9px" onclick="openSlipEditor('${esc(x.id)}')">Edit</button>
-    <button class="btn btn-secondary" style="padding:7px 9px" onclick="printSlip('${esc(x.id)}')">Print</button><button class="btn btn-secondary" style="padding:7px 9px" onclick="downloadSlip('${esc(x.id)}')">⇩</button>
+    <button class="btn btn-secondary" style="padding:7px 9px" onclick="printSlip('${esc(x.id)}')">Print</button>
     <button class="btn btn-danger" style="padding:7px 9px" onclick="deleteSlip('${esc(x.id)}')">Delete</button></td></tr>`}).join("")
     :`<tr><td colspan="8"><div class="empty">No pay slips for this selection. Use “New Pay Slip” or “Generate for All Active”.</div></td></tr>`;
 };
@@ -2692,7 +2763,7 @@ window.saveSlip=async(thenPreview)=>{
   const i=DB.payslips.findIndex(x=>x.id===d.id);
   if(i>=0)DB.payslips[i]=d;else DB.payslips.push(d);
   audit(i>=0?"Pay slip updated":"Pay slip created","Pay Slips",`${d.emp.name} · ${slipMonthLabel(d.month)} · ${d.status}`);
-  try{await saveDB()}catch(err){console.error("Pay slip save failed",err);toast("Pay slip NOT saved: "+(err?.message||err),9000);return}
+  try{await saveDB()}catch(err){toast("Could not save: "+(err?.message||err));return}
   closeModals();
   const mEl=$se("slipMonth");if(mEl.value&&mEl.value!==d.month){mEl.value=d.month}
   renderPayslips();renderAudit?.();toast("Pay slip saved.");
@@ -2727,40 +2798,15 @@ window.viewSlip=(id)=>{
   closeModals();$se("slipViewModal").classList.add("show");
 };
 window.editFromPreview=()=>{closeModals();openSlipEditor(slipPreviewId)};
-function slipCssText(){
-  let css=":root{--navy:#0f2942;--line:#e5e7eb}body{margin:0;background:#fff;font-family:Inter,system-ui,Arial,sans-serif}.slip{margin:0 auto 24px}";
-  try{for(const sh of document.styleSheets){let rules;try{rules=sh.cssRules}catch(_e){continue}
-    for(const r of rules){if(r.selectorText&&/\.slip/.test(r.selectorText)&&!/#slipPrintRoot|body\.slip-printing/.test(r.selectorText))css+=r.cssText+"\n"}}}catch(_e){}
-  return css+"@page{size:A4;margin:12mm}@media print{.slip{border:0;border-radius:0;max-width:none;page-break-after:always;break-after:page}.slip:last-child{page-break-after:auto;break-after:auto}}";
-}
-function slipStandaloneHTML(list,autoPrint){
-  return "<!DOCTYPE html><html><head><meta charset=\"utf-8\"><title>Pay Slip</title><style>"+slipCssText()+"</style></head><body>"+list.map(slipHTML).join("")+(autoPrint?"<script>window.onload=function(){setTimeout(function(){window.print()},400)}<\/script>":"")+"</body></html>";
-}
-function slipFileName(list){
-  const one=list.length===1?list[0]:null;
-  return one?("PaySlip_"+String((one.emp&&one.emp.name)||one.empId||"employee").replace(/[^A-Za-z0-9]+/g,"_")+"_"+one.month+".html"):"PaySlips_"+new Date().toISOString().slice(0,10)+".html";
-}
-function slipDownloadList(list){
-  if(!list.length){toast("Nothing to download.");return}
-  const blob=new Blob([slipStandaloneHTML(list,true)],{type:"text/html"});
-  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=slipFileName(list);
-  document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500);
-  toast("Downloaded. Open the file and choose Save as PDF / Print.",6000);
-}
 function slipPrintList(list){
   if(!list.length){toast("Nothing to print.");return}
-  // Embedded/sandboxed views (preview panes, iframes) block window.print(): fall back to a downloadable printable file.
-  let embedded=false;try{embedded=window.self!==window.top}catch(_e){embedded=true}
-  if(embedded||typeof window.print!=="function"){slipDownloadList(list);return}
   $se("slipPrintRoot").innerHTML=list.map(slipHTML).join("");
   document.body.classList.add("slip-printing");
-  setTimeout(()=>{try{window.print()}catch(err){document.body.classList.remove("slip-printing");slipDownloadList(list)}},80);
+  setTimeout(()=>window.print(),80);
 }
 window.addEventListener("afterprint",()=>{document.body.classList.remove("slip-printing");const r=document.getElementById("slipPrintRoot");if(r)r.innerHTML=""});
 window.printSlip=(id)=>{const ps=DB.payslips.find(x=>x.id===id);if(!ps)return;if(!slipIsAdmin()&&ps.status!=="Finalized")return;slipPrintList([ps])};
 window.printShownSlips=()=>{slipPrintList(slipFiltered())};
-window.downloadSlip=(id)=>{const ps=DB.payslips.find(x=>x.id===id);if(!ps)return;if(!slipIsAdmin()&&ps.status!=="Finalized")return;slipDownloadList([ps])};
-window.downloadShownSlips=()=>{slipDownloadList(slipFiltered())};
 
 /* ---------- Settings ---------- */
 window.openSlipSettings=()=>{
@@ -2789,7 +2835,7 @@ window.renderMyPayslips=()=>{
   const me=essCurrentEmployee();
   const list=me?(DB.payslips||[]).filter(x=>x.empId===me.id&&x.status==="Finalized").sort((a,b)=>b.month.localeCompare(a.month)):[];
   box.innerHTML=list.length?list.map(x=>`<div class="ess-list-item"><div><b>${esc(slipMonthLabel(x.month))}</b><div class="ess-muted">Net pay ${slipInr(slipTotals(x).net)} · ${x.paidDays} paid days</div></div>
-    <div style="display:flex;gap:8px"><button class="btn btn-secondary" onclick="viewSlip('${esc(x.id)}')">View</button><button class="btn btn-primary" onclick="printSlip('${esc(x.id)}')">Print / PDF</button><button class="btn btn-secondary" onclick="downloadSlip('${esc(x.id)}')">⇩ Download</button></div></div>`).join("")
+    <div style="display:flex;gap:8px"><button class="btn btn-secondary" onclick="viewSlip('${esc(x.id)}')">View</button><button class="btn btn-primary" onclick="printSlip('${esc(x.id)}')">Print / PDF</button></div></div>`).join("")
     :'<div class="empty">No pay slips have been published for you yet.</div>';
 };
 
