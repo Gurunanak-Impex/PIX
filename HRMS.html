@@ -2444,6 +2444,12 @@ window.manualAttendance=(id,date)=>{
     });
     document.getElementById("manualAttendanceForm").addEventListener("submit",async ev=>{
       ev.preventDefault();
+      // Always resolve the employee from the currently opened modal, not from
+      // the first manualAttendance() call that created this one-time listener.
+      const employeeId=modal.dataset.employeeId;
+      const currentEmployee=emp(employeeId);
+      if(!employeeId||!currentEmployee)return toast("Employee selection is missing. Close and reopen attendance.");
+      const idForSave=employeeId;
       const d=document.getElementById("ma_date").value,s=document.getElementById("ma_status").value,ci=document.getElementById("ma_in").value,co=document.getElementById("ma_out").value;
       if(!d)return toast("Choose an attendance date.");
       if(s==="Present"&&(!ci||!co))return toast("For Present attendance, enter both check-in and check-out times.");
@@ -2455,14 +2461,15 @@ window.manualAttendance=(id,date)=>{
       let worked=0;
       if(ci&&co){let mins=(Number(co.slice(0,2))*60+Number(co.slice(3)))-(Number(ci.slice(0,2))*60+Number(ci.slice(3)));if(mins<0)mins+=1440;worked=Math.max(0,mins-br)/60;}
       DB.attendance=DB.attendance||{};DB.punches=DB.punches||{};
-      DB.attendance[id+"|"+d]=s;
-      DB.punches[id+"|"+d]={in:ci||null,out:co||null,breakMinutes:br,workedHours:Number(worked.toFixed(2)),overtimeHours:ot,remarks:document.getElementById("ma_reason").value.trim(),enteredBy:auth.currentUser?.email||"Admin",backdated:true};
+      DB.attendance[idForSave+"|"+d]=s;
+      DB.punches[idForSave+"|"+d]={in:ci||null,out:co||null,breakMinutes:br,workedHours:Number(worked.toFixed(2)),overtimeHours:ot,remarks:document.getElementById("ma_reason").value.trim(),enteredBy:auth.currentUser?.email||"Admin",backdated:true};
       DB.attendanceHistory=DB.attendanceHistory||[];
-      DB.attendanceHistory.push({id:"AH-"+Date.now(),empId:id,date:d,status:s,checkIn:ci||null,checkOut:co||null,workedHours:Number(worked.toFixed(2)),overtimeHours:ot,remarks:document.getElementById("ma_reason").value.trim(),updatedOn:new Date().toISOString()});
-      audit("Backdated attendance saved","Attendance",`${employee.name} — ${d} — ${s} — ${worked.toFixed(2)} hours`);
+      DB.attendanceHistory.push({id:"AH-"+Date.now(),empId:idForSave,date:d,status:s,checkIn:ci||null,checkOut:co||null,workedHours:Number(worked.toFixed(2)),overtimeHours:ot,remarks:document.getElementById("ma_reason").value.trim(),updatedOn:new Date().toISOString()});
+      audit("Backdated attendance saved","Attendance",`${currentEmployee.name} — ${d} — ${s} — ${worked.toFixed(2)} hours`);
       try{await saveDB();}catch(err){console.error("Attendance save failed:",err);return toast("Attendance was not saved: "+(err?.message||"Database error. Check Firebase access and connection."));}closeManualAttendance();renderAttendance();renderDashboard();renderPayslips?.();toast("Attendance and shift timings saved. Re-generate or refresh the relevant draft pay slip to apply the updated paid days.");
     });
   }
+  modal.dataset.employeeId=id;
   document.getElementById("ma_employee").textContent=employee.name+" • "+id;
   document.getElementById("ma_date").value=date;
   document.getElementById("ma_status").value=status;
