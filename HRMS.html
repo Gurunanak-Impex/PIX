@@ -2576,11 +2576,12 @@ function slipAttendance(e,ym){
   const cfg=slipCfg(),dim=slipDim(ym),p=currentPeriod(e);
   const join=p.joining||"", exit=p.exit||p.lastDay||"";
   const holidays=new Set((DB.holidays||[]).map(h=>typeof h==="string"?h:(h.date||h.day||"")));
-  const r={dim,outside:0,lop:0,present:0,half:0,leave:0,absent:0,unmarked:0,workedHours:0,shortHours:0,overtimeHours:0};
+  const r={dim,outside:0,preJoining:0,postExit:0,lop:0,present:0,half:0,leave:0,absent:0,unmarked:0,workedHours:0,shortHours:0,overtimeHours:0};
   const standardHours=Math.max(1,Number(cfg.standardHoursPerDay)||8);
   for(let d=1;d<=dim;d++){
     const date=`${ym}-${String(d).padStart(2,"0")}`;
-    if((join&&date<join)||(exit&&date>exit)){r.outside++;continue}
+    if(join&&date<join){r.outside++;r.preJoining++;continue}
+    if(exit&&date>exit){r.outside++;r.postExit++;continue}
     const key=e.id+"|"+date;
     const punch=DB.punches?.[key]||{};
     const st=DB.attendance?.[key]||(punch.in?"Present":"");
@@ -2610,7 +2611,7 @@ function slipBuild(e,ym){
   const basic=Math.round(gross*cfg.basicPct/100),hra=Math.round(gross*cfg.hraPct/100),other=Math.max(0,gross-basic-hra);
   const ps={
     id:`PS-${ym}-${e.id}`,empId:e.id,month:ym,payDate:"",status:"Draft",
-    dim:att.dim,outside:att.outside,lop:att.lop,paidDays:att.dim-att.outside-att.lop,
+    dim:att.dim,outside:att.outside,preJoining:att.preJoining,postExit:att.postExit,lop:att.lop,paidDays:att.dim-att.outside-att.lop,
     att:{present:att.present,half:att.half,leave:att.leave,absent:att.absent,unmarked:att.unmarked,
       workedHours:Number(att.workedHours.toFixed(2)),shortHours:Number(att.shortHours.toFixed(2)),
       overtimeHours:Number(att.overtimeHours.toFixed(2)),standardHoursPerDay:Number(cfg.standardHoursPerDay)||8},
@@ -2631,7 +2632,9 @@ function slipAutoCalc(ps,reset){
   const basicEarned=basicRow?basicRow.amount:0, grossEarned=slipSum(ps.earnings), grossFull=ps.earnings.reduce((a,r)=>a+(Number(r.full)||0),0);
   const want=[];
   const lopDays=Math.max(0,Number(ps.lop)||0);
+  const outsideDays=Math.max(0,Number(ps.outside)||0);
   const dailyRate=ps.dim>0?grossFull/ps.dim:0;
+  if(outsideDays>0)want.push({auto:"outside",label:`Unpaid Days Outside Employment (${outsideDays} day${outsideDays===1?"":"s"})`,amount:Math.round(dailyRate*outsideDays)});
   if(lopDays>0)want.push({auto:"lop",label:`Loss of Pay (${lopDays.toFixed(1)} day${lopDays===1?"":"s"})`,amount:Math.round(dailyRate*lopDays)});
   if(cfg.pfOn) want.push({auto:"pf",label:"Provident Fund (Employee)",amount:Math.round(Math.min(basicEarned,cfg.pfCap?15000:Infinity)*Number(cfg.pfPct)/100)});
   if(cfg.esiOn&&grossFull<=Number(cfg.esiLimit)) want.push({auto:"esi",label:"ESI (Employee)",amount:Math.ceil(grossEarned*Number(cfg.esiPct)/100)});
