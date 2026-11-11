@@ -843,7 +843,9 @@
           <div class="field"><label>Employment Status</label><select class="select" id="f_status"><option>Active</option><option>Left</option></select></div>
           <div class="field"><label>Source of Hire</label><input class="input" id="f_source"></div>
           <div class="field"><label>Date of Joining</label><input class="input" id="f_joining" type="date" required></div>
-          <div class="field"><label>Monthly Salary (₹)</label><input class="input" id="f_salary" type="number" min="0" value="9000"></div>
+          <div class="field"><label>Salary Basis</label><select class="select" id="f_salary_basis"><option value="monthly">Monthly</option><option value="hourly">Hourly</option></select></div>
+          <div class="field" id="monthlySalaryField"><label>Monthly Salary (₹)</label><input class="input" id="f_salary" type="number" min="0" value="9000"></div>
+          <div class="field" id="hourlyRateField" style="display:none"><label>Hourly Rate (₹ / hour)</label><input class="input" id="f_hourly_rate" type="number" min="0" step="0.01" value="0"></div>
           <div class="field"><label>Zoho Role / System Role</label><input class="input" id="f_systemrole" value="Team member"></div>
           <div class="field"><label>Probation End Date</label><input class="input" id="f_probation" type="date"></div>
         </div>
@@ -1311,7 +1313,10 @@ window.openEmployee=(id=null)=>{
   const sm=document.getElementById("f_secondary_manager");
   sm.innerHTML='<option value="">None</option>'+mgrs.map(x=>`<option value="${esc(x.id)}">${esc(x.name)} — ${esc(x.id)}</option>`).join("");
   sm.value=e?.secondaryManagerId||"";
-  val("f_shift",e?.shift||"10:00 AM – 7:00 PM"); val("f_salary",e?salary(e):9000); val("f_joining",p.joining||today);
+  val("f_shift",e?.shift||"10:00 AM – 7:00 PM"); val("f_salary",e?salary(e):9000); val("f_salary_basis",e?.salaryBasis||"monthly"); val("f_hourly_rate",e?.hourlyRate??p.hourlyRate??0); val("f_joining",p.joining||today);
+  const setSalaryBasisUI=()=>{const hourly=document.getElementById("f_salary_basis").value==="hourly";document.getElementById("monthlySalaryField").style.display=hourly?"none":"";document.getElementById("hourlyRateField").style.display=hourly?"":"none";};
+  setSalaryBasisUI();
+  document.getElementById("f_salary_basis").onchange=setSalaryBasisUI;
   val("f_type",e?.empType||"Full Time"); val("f_email",e?.email||""); val("f_emergency",e?.emergency||"");
   val("f_address",e?.address||""); val("f_docref",e?.docref||""); val("f_location",e?.location||"Head Office");
   val("f_seating",e?.seatingLocation||""); val("f_status",e?.status||"Active"); val("f_source",e?.sourceOfHire||"");
@@ -1404,7 +1409,7 @@ document.getElementById("employeeForm").addEventListener("submit",async ev=>{
     uploadStatus.textContent="Saving employee record…";
     const data={
       name,mobile:g("f_mobile"),nickname:g("f_nickname"),fatherName:g("f_father"),department:g("f_department"),designation:g("f_designation"),
-      managerId:g("f_manager"),secondaryManagerId:g("f_secondary_manager"),shift:g("f_shift"),salary:Number(g("f_salary"))||0,joining:g("f_joining"),
+      managerId:g("f_manager"),secondaryManagerId:g("f_secondary_manager"),shift:g("f_shift"),salary:Number(g("f_salary"))||0,salaryBasis:g("f_salary_basis")||"monthly",hourlyRate:Number(g("f_hourly_rate"))||0,joining:g("f_joining"),
       empType:g("f_type"),email:g("f_email"),emergency:g("f_emergency"),address:g("f_address"),docref:g("f_docref"),location:g("f_location"),
       seatingLocation:g("f_seating"),status:g("f_status")||"Active",sourceOfHire:g("f_source"),systemRole:g("f_systemrole"),probationEnd:g("f_probation"),
       workPhone:g("f_workphone"),extension:g("f_extension"),personalMobile:g("f_personal_mobile"),personalEmail:g("f_personal_email"),
@@ -2572,10 +2577,28 @@ function slipWords(n){
 }
 
 /* ---------- Attendance → LOP / paid days (from the database) ---------- */
+function slipTimeMinutes(value){
+  if(!value)return null;
+  const s=String(value).trim();
+  let m=s.match(/^(\d{1,2}):(\d{2})(?::\d{2})?\s*(AM|PM)?$/i);
+  if(!m)return null;
+  let h=Number(m[1]),min=Number(m[2]),ap=(m[3]||"").toUpperCase();
+  if(min>59||h>24)return null;
+  if(ap){if(h<1||h>12)return null;h=(h%12)+(ap==="PM"?12:0);}
+  if(h===24)h=0;
+  return h*60+min;
+}
+function slipPunchHours(punch){
+  if(Number(punch?.workedHours)>0)return Number(punch.workedHours);
+  const start=slipTimeMinutes(punch?.in||punch?.checkIn),end=slipTimeMinutes(punch?.out||punch?.checkOut);
+  if(start===null||end===null)return 0;
+  let mins=end-start;if(mins<0)mins+=1440;
+  mins=Math.max(0,mins-(Number(punch?.breakMinutes)||0));
+  return mins/60;
+}
 function slipAttendance(e,ym){
   const cfg=slipCfg(),dim=slipDim(ym),p=currentPeriod(e);
   const join=p.joining||"", exit=p.exit||p.lastDay||"";
-  const holidays=new Set((DB.holidays||[]).map(h=>typeof h==="string"?h:(h.date||h.day||"")));
   const r={dim,outside:0,preJoining:0,postExit:0,lop:0,present:0,half:0,leave:0,absent:0,unmarked:0,workedHours:0,shortHours:0,overtimeHours:0};
   const standardHours=Math.max(1,Number(cfg.standardHoursPerDay)||8);
   for(let d=1;d<=dim;d++){
@@ -2584,21 +2607,25 @@ function slipAttendance(e,ym){
     if(exit&&date>exit){r.outside++;r.postExit++;continue}
     const key=e.id+"|"+date;
     const punch=DB.punches?.[key]||{};
-    const st=DB.attendance?.[key]||(punch.in?"Present":"");
+    const st=DB.attendance?.[key]||(punch.in||punch.checkIn?"Present":"");
+    const worked=slipPunchHours(punch);
     if(st==="Absent"){r.lop+=1;r.absent++}
-    else if(st==="Half Day"){r.lop+=0.5;r.half++}
+    else if(st==="Half Day"){
+      r.lop+=0.5;r.half++;
+      if(worked>0){r.workedHours+=worked;}
+    }
     else if(st==="Leave"){r.leave++}
     else if(st==="Present"){
       r.present++;
-      if(Number(punch.workedHours)>0){
-        const worked=Number(punch.workedHours);
+      if(worked>0){
         r.workedHours+=worked;
         r.shortHours+=Math.max(0,standardHours-worked);
         r.overtimeHours+=Math.max(0,Number(punch.overtimeHours)||0);
       }
     }
     else{
-      // No entry means Present; no short-hours penalty without recorded timings.
+      // Attendance without punch timings is treated as present for day-count purposes.
+      // Hours are not fabricated; add actual in/out times to calculate hours and short-time.
       r.present++;r.unmarked++;
     }
   }
@@ -2607,7 +2634,10 @@ function slipAttendance(e,ym){
 
 /* ---------- Build a pay slip from employee + attendance data ---------- */
 function slipBuild(e,ym){
-  const cfg=slipCfg(),p=currentPeriod(e),gross=salary(e),att=slipAttendance(e,ym);
+  const cfg=slipCfg(),p=currentPeriod(e),att=slipAttendance(e,ym);
+  const isHourly=(e.salaryBasis||p.salaryBasis||"monthly")==="hourly";
+  const hourlyRate=Number(e.hourlyRate??p.hourlyRate)||0;
+  const gross=isHourly?hourlyRate*(att.workedHours+att.shortHours):salary(e);
   const basic=Math.round(gross*cfg.basicPct/100),hra=Math.round(gross*cfg.hraPct/100),other=Math.max(0,gross-basic-hra);
   const ps={
     id:`PS-${ym}-${e.id}`,empId:e.id,month:ym,payDate:"",status:"Draft",
@@ -2615,9 +2645,10 @@ function slipBuild(e,ym){
     att:{present:att.present,half:att.half,leave:att.leave,absent:att.absent,unmarked:att.unmarked,
       workedHours:Number(att.workedHours.toFixed(2)),shortHours:Number(att.shortHours.toFixed(2)),
       overtimeHours:Number(att.overtimeHours.toFixed(2)),standardHoursPerDay:Number(cfg.standardHoursPerDay)||8},
+    salaryBasis:isHourly?"hourly":"monthly",hourlyRate:isHourly?hourlyRate:0,
     emp:{name:e.name||"",designation:p.designation||e.designation||"",department:p.department||e.department||"",doj:p.joining||"",location:e.location||"",
       pan:e.pan||"",uan:e.uan||"",pf:e.pfAccountNumber||"",payMode:e.paymentMode||"Bank Transfer",bankName:e.bankName||"",account:e.bankAccountNumber||"",ifsc:e.bankIFSC||""},
-    earnings:[{label:"Basic Salary",full:basic,amount:0},{label:"House Rent Allowance",full:hra,amount:0},{label:"Other Allowance",full:other,amount:0}].filter(r=>r.full>0||r.label==="Basic Salary"),
+    earnings:isHourly?[{label:`Hourly Wages (${hourlyRate.toFixed(2)} × ${att.dim* (Number(cfg.standardHoursPerDay)||8)} scheduled hours)`,full:Math.round(gross),amount:0}]:[{label:"Basic Salary",full:basic,amount:0},{label:"House Rent Allowance",full:hra,amount:0},{label:"Other Allowance",full:other,amount:0}].filter(r=>r.full>0||r.label==="Basic Salary"),
     deductions:[],notes:"",createdOn:today
   };
   slipAutoCalc(ps,true);
@@ -2634,15 +2665,19 @@ function slipAutoCalc(ps,reset){
   const lopDays=Math.max(0,Number(ps.lop)||0);
   const outsideDays=Math.max(0,Number(ps.outside)||0);
   const dailyRate=ps.dim>0?grossFull/ps.dim:0;
-  if(outsideDays>0)want.push({auto:"outside",label:`Unpaid Days Outside Employment (${outsideDays} day${outsideDays===1?"":"s"})`,amount:Math.round(dailyRate*outsideDays)});
-  if(lopDays>0)want.push({auto:"lop",label:`Loss of Pay (${lopDays.toFixed(1)} day${lopDays===1?"":"s"})`,amount:Math.round(dailyRate*lopDays)});
+  if(ps.salaryBasis!=="hourly"){
+    if(outsideDays>0)want.push({auto:"outside",label:`Unpaid Days Outside Employment (${outsideDays} day${outsideDays===1?"":"s"})`,amount:Math.round(dailyRate*outsideDays)});
+    if(lopDays>0)want.push({auto:"lop",label:`Loss of Pay (${lopDays.toFixed(1)} day${lopDays===1?"":"s"})`,amount:Math.round(dailyRate*lopDays)});
+  }
   if(cfg.pfOn) want.push({auto:"pf",label:"Provident Fund (Employee)",amount:Math.round(Math.min(basicEarned,cfg.pfCap?15000:Infinity)*Number(cfg.pfPct)/100)});
   if(cfg.esiOn&&grossFull<=Number(cfg.esiLimit)) want.push({auto:"esi",label:"ESI (Employee)",amount:Math.ceil(grossEarned*Number(cfg.esiPct)/100)});
   if(Number(cfg.ptAmount)>0) want.push({auto:"pt",label:"Professional Tax",amount:Number(cfg.ptAmount)});
   const shortHours=Math.max(0,Number(ps.att?.shortHours)||0);
   const standardHours=Math.max(1,Number(ps.att?.standardHoursPerDay)||Number(cfg.standardHoursPerDay)||8);
-  const hourlyRate=ps.dim>0?grossFull/ps.dim/standardHours:0;
-  if(shortHours>0)want.push({auto:"shortHours",label:`Short Working Hours (${shortHours.toFixed(2)} hrs)`,amount:Math.round(shortHours*hourlyRate)});
+  const shortTimeRate=ps.salaryBasis==="hourly"
+    ? Math.max(0,Number(ps.hourlyRate)||0)
+    : (ps.dim>0?grossFull/ps.dim/standardHours:0);
+  if(shortHours>0)want.push({auto:"shortHours",label:`Short Working Time (${(shortHours*60).toFixed(0)} mins / ${shortHours.toFixed(2)} hrs)`,amount:Math.round(shortHours*shortTimeRate)});
   if(reset) ps.deductions=[...want,...ps.deductions.filter(d=>!d.auto)];
   else{
     ps.deductions=ps.deductions.filter(d=>!(d.auto&&!d.manual&&!want.some(w=>w.auto===d.auto)));
